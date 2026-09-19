@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日文分句對照與句法結構分析工具</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- 引入 Google Identity Services (GIS) 官方授權庫 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 0 20px;
+      background-color: #f7f9fa;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+    }
+    .global-bar {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .global-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .api-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #444;
+    }
+    .api-input-wrap input {
+      padding: 7px 10px;
+      border: 1px solid #ccd0d5;
+      border-radius: 5px;
+      width: 250px;
+      font-size: 13px;
+    }
+    .model-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #444;
+    }
+    .model-select-wrap select {
+      padding: 6px 10px;
+      border: 1px solid #ccd0d5;
+      border-radius: 5px;
+      font-size: 13px;
+      background: #ffffff;
+      color: #333;
+    }
+    .text-action-btn {
+      background: #f0f2f5;
+      color: #555;
+      border: 1px solid #ccd0d5;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .text-action-btn:hover {
+      background: #e4e6eb;
+      color: #222;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: -1px;
+    }
+    .tab-btn {
+      padding: 11px 22px;
+      background: #e8ecf1;
+      border: 1px solid #ccd0d5;
+      border-bottom: none;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #ffffff;
+      color: #2e78d6;
+      border-bottom: 2px solid #ffffff;
+      font-weight: bold;
+    }
+    .tab-content {
+      background: #ffffff;
+      border-radius: 0 8px 8px 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      padding: 24px;
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .textarea-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .field-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .field-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #444;
+    }
+    .lang-toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f2f5;
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid #d0d7de;
+    }
+    .lang-radio-label {
+      font-size: 12px;
+      color: #444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 15px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #2e78d6;
+    }
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .primary-btn {
+      background-color: #2e78d6;
+      color: white;
+      border: none;
+      padding: 9px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .primary-btn:hover {
+      background-color: #1f64bd;
+    }
+    .primary-btn:disabled {
+      background-color: #b0c7e8;
+      cursor: not-allowed;
+    }
+    .status-msg {
+      color: #666;
+      font-size: 13px;
+    }
+    .result-container {
+      margin-top: 24px;
+      border-top: 1px solid #edf0f2;
+      padding-top: 18px;
+      display: none;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .sentence-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #edf0f2;
+    }
+    .sentence-item:last-child {
+      border-bottom: none;
+    }
+    .raw-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 4px;
+    }
+    .romaji-text {
+      font-size: 14px;
+      color: #c93b3b;
+      margin-bottom: 4px;
+      letter-spacing: 0.3px;
+      font-family: Consolas, monospace;
+    }
+    .trans-text {
+      font-size: 14px;
+      color: #257a46;
+      line-height: 1.5;
+    }
+
+    /* 結構圖樣式 */
+    .syntax-control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .syntax-sentence-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .syntax-sentence-selector select {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #ccd0d5;
+      font-size: 14px;
+      max-width: 500px;
+    }
+    .tree-scroll-container {
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: #fafbfc;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .floating-zoom-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccd0d5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .floating-capture-controls {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccd0d5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .capture-btn {
+      background: #ffffff;
+      border: 1px solid #ccd0d5;
+      color: #333;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .capture-btn:hover {
+      background: #eef3f8;
+      border-color: #2e78d6;
+      color: #2e78d6;
+    }
+    .zoom-btn {
+      background: #ffffff;
+      border: 1px solid #ccd0d5;
+      color: #333;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      transition: background 0.15s;
+    }
+    .zoom-btn:hover {
+      background: #e4e6eb;
+    }
+    .zoom-level-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #444;
+      min-width: 44px;
+      text-align: center;
+    }
+    .tree-scale-wrapper {
+      transform-origin: top left;
+      transition: transform 0.15s ease-out;
+      display: inline-block;
+    }
+    .tree-canvas-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 100%;
+      background: #fafbfc;
+      padding: 16px 20px 20px 20px;
+      border-radius: 8px;
+    }
+    .canvas-header-block {
+      text-align: center;
+      padding: 6px 12px 18px 12px;
+      border-bottom: 1px solid #e1e4e8;
+      margin-bottom: 20px;
+    }
+    .canvas-header-orig-zh {
+      font-size: 12px;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 4px;
+    }
+    .canvas-header-raw {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+    .canvas-header-romaji {
+      font-size: 14px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin-bottom: 4px;
+    }
+    .canvas-header-zh {
+      font-size: 15px;
+      color: #257a46;
+      font-weight: 500;
+    }
+    #topSvgWrap {
+      position: relative;
+      width: 100%;
+      height: 220px;
+    }
+    svg.dep-svg-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .cards-row-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .tokens-container {
+      display: flex;
+      gap: 36px;
+      padding: 12px 24px 20px 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .token-card {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 12px 10px;
+      min-width: 100px;
+      max-width: 140px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      position: relative;
+      background-clip: padding-box;
+    }
+    .token-surface {
+      font-size: 17px;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 3px;
+      word-break: break-all;
+    }
+    .token-romaji {
+      font-size: 12px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin-bottom: 4px;
+    }
+    .token-meaning {
+      font-size: 12px;
+      color: #257a46;
+      font-weight: 500;
+      margin-bottom: 6px;
+      word-break: break-all;
+      line-height: 1.3;
+    }
+    .token-pos {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #eef3f8;
+      color: #2e78d6;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .token-form {
+      font-size: 11px;
+      color: #6e7781;
+      margin-top: 5px;
+      line-height: 1.3;
+      word-break: break-all;
+    }
+    .clause-overlays {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .clause-box {
+      position: absolute;
+      border: 2px dashed #9333ea;
+      background-color: rgba(243, 232, 255, 0.35);
+      border-radius: 8px;
+    }
+    .clause-box-tag {
+      position: absolute;
+      top: -11px;
+      left: 10px;
+      background: #9333ea;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    #bottomSvgWrap {
+      position: relative;
+      width: 100%;
+      height: 80px;
+    }
+    svg.dep-svg-bottom {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .syntax-table-title {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    table.analysis-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    table.analysis-table th, table.analysis-table td {
+      border: 1px solid #e1e4e8;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    table.analysis-table th {
+      background-color: #f6f8fa;
+      color: #555;
+    }
+    table.analysis-table tr:hover {
+      background-color: #f9fbfc;
+    }
+
+    /* =================== Google Drive 專屬雲端同步面板 =================== */
+    .gdrive-sync-panel {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .gdrive-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .gdrive-status-badge {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    .gdrive-status-badge.connected {
+      background: #c6f6d5;
+      color: #22543d;
+      font-weight: 600;
+    }
+    .gdrive-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .vocab-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      gap: 12px;
+    }
+    .voice-settings-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #4a5568;
+    }
+    .voice-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .voice-slider-wrap input[type="range"] {
+      width: 75px;
+      cursor: pointer;
+    }
+    .toggle-switch-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .vocab-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .vocab-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .vocab-card:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .card-delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: #f0f2f5;
+      color: #888;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.15s;
+    }
+    .card-delete-btn:hover {
+      background: #ff4d4f;
+      color: #ffffff;
+    }
+
+    .speak-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #4a5568;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      vertical-align: middle;
+      user-select: none;
+    }
+    .speak-btn:hover {
+      background: #edf2f7;
+      color: #2b6cb0;
+      transform: scale(1.15);
+    }
+
+    .vocab-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      padding-right: 28px;
+    }
+    .vocab-word-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .vocab-word {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a202c;
+    }
+    .vocab-lemma {
+      font-size: 12px;
+      color: #718096;
+    }
+    .vocab-romaji {
+      font-size: 13px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin-bottom: 6px;
+    }
+    .vocab-romaji.hidden {
+      display: none;
+    }
+    .vocab-meaning {
+      font-size: 15px;
+      font-weight: 600;
+      color: #257a46;
+      margin-bottom: 8px;
+    }
+    .vocab-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .vocab-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    .vocab-badge.pos {
+      background: #ebf8ff;
+      color: #2b6cb0;
+      font-weight: 500;
+    }
+    .vocab-badge.form {
+      background: #fefcbf;
+      color: #975a16;
+    }
+
+    .familiarity-selector {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #718096;
+    }
+    .familiarity-tag {
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      transition: all 0.15s;
+    }
+    .familiarity-tag.active[data-level="0"] {
+      background: #fed7d7;
+      color: #c53030;
+      border-color: #feb2b2;
+      font-weight: bold;
+    }
+    .familiarity-tag.active[data-level="1"] {
+      background: #feebc8;
+      color: #c05621;
+      border-color: #fbd38d;
+      font-weight: bold;
+    }
+    .familiarity-tag.active[data-level="2"] {
+      background: #c6f6d5;
+      color: #22543d;
+      border-color: #9ae6b4;
+      font-weight: bold;
+    }
+
+    .conjugation-details {
+      margin-top: 10px;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 8px;
+    }
+    .conjugation-details summary {
+      font-size: 12px;
+      color: #2b6cb0;
+      cursor: pointer;
+      font-weight: 600;
+      outline: none;
+      user-select: none;
+    }
+    .conjugation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+      background: #f7fafc;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .conj-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .conj-label {
+      color: #718096;
+      font-size: 10px;
+    }
+    .conj-val {
+      font-weight: 600;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 學習模式 (Flashcard) 樣式 */
+    .study-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 20px;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .study-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 10px;
+    }
+    .flashcard-box {
+      max-width: 540px;
+      min-height: 280px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 2px solid #cbd5e0;
+      border-radius: 12px;
+      padding: 28px 24px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      transition: transform 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .flashcard-box:hover {
+      border-color: #2e78d6;
+    }
+    .flip-hint-badge {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 11px;
+      color: #718096;
+      background: #edf2f7;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .study-nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 540px;
+      margin: 18px auto 0 auto;
+      gap: 12px;
+    }
+
+    /* 測驗區塊樣式 */
+    .quiz-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      display: none;
+    }
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #edf2f7;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .quiz-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2d3748;
+    }
+    .quiz-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .quiz-stats {
+      font-size: 14px;
+      color: #4a5568;
+    }
+    .quiz-card-box {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .quiz-question-word-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .quiz-question-word {
+      font-size: 34px;
+      font-weight: bold;
+      color: #1a202c;
+    }
+    .quiz-question-romaji {
+      font-size: 15px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin-bottom: 18px;
+    }
+    .quiz-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .quiz-opt-btn {
+      padding: 12px 16px;
+      font-size: 15px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .quiz-opt-btn:hover {
+      background: #f7fafc;
+      border-color: #4a5568;
+    }
+    .quiz-opt-btn.correct {
+      background: #c6f6d5 !important;
+      border-color: #38a169 !important;
+      color: #22543d;
+      font-weight: bold;
+    }
+    .quiz-opt-btn.wrong {
+      background: #fed7d7 !important;
+      border-color: #e53e3e !important;
+      color: #742a2a;
+    }
+
+    .vocab-book-drawer {
+      margin-top: 24px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .vocab-book-drawer summary {
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #2d3748;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    .vocab-book-drawer[open] summary {
+      border-bottom: 1px solid #e2e8f0;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .vocab-book-content {
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>日文分句對照與句法結構分析工具</h1>
+
+  <div class="global-bar">
+    <div class="global-controls">
+      <div class="api-input-wrap">
+        <label for="apiKey"><strong>Gemini API Key：</strong></label>
+        <input type="password" id="apiKey" placeholder="全域共用，自動記憶">
+        <button type="button" class="text-action-btn" onclick="clearApiKey()">清除 Key</button>
+      </div>
+      <div class="model-select-wrap">
+        <label for="modelSelect"><strong>呼叫模型：</strong></label>
+        <select id="modelSelect" onchange="onModelChange()">
+          <option value="gemini-3.5-flash">Gemini 3.5 Flash (推薦)</option>
+          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐/快速)</option>
+          <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+          <option value="auto">自動備援 (Auto Fallback)</option>
+        </select>
+      </div>
+    </div>
+    <div id="globalStatus" class="status-msg">系統就緒。</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tabTranslate')">對照轉換</button>
+    <button class="tab-btn" onclick="switchTab('tabSyntax')">句法結構與無交錯折線分析</button>
+    <button class="tab-btn" onclick="switchTab('tabVocab')">日文單字卡與測驗工具</button>
+  </div>
+
+  <!-- 分頁一：對照轉換 -->
+  <div id="tabTranslate" class="tab-content active">
+    <div class="textarea-header">
+      <span class="field-title">導入對照歌詞或文本（支援多行分句）：</span>
+      <button type="button" class="text-action-btn" onclick="clearInput('transInput')">清空輸入</button>
+    </div>
+    <textarea id="transInput" placeholder="請輸入日文歌詞或短文，支援換行分句。例如：
+いつまでも続くと思い込んでいた
+勝手に思い込んで
+ご飯を食べてから出かけた"></textarea>
+    <div class="action-row">
+      <div id="transStatus" class="status-msg">等待輸入...</div>
+      <button id="transBtn" class="primary-btn" onclick="runTranslationOnly()">開始對照轉換</button>
+    </div>
+
+    <div id="transResultWrapper" class="result-container">
+      <div class="result-header">
+        <span style="font-size: 14px; font-weight: 600; color: #555;">對照輸出結果</span>
+        <button id="copyBtn" class="text-action-btn" onclick="copyFormattedWithColors()">複製帶顏色格式</button>
+      </div>
+      <div id="transResultList"></div>
+    </div>
+  </div>
+
+  <!-- 分頁二：句法結構分析 -->
+  <div id="tabSyntax" class="tab-content">
+    <div class="textarea-header">
+      <div class="field-title-group">
+        <span class="field-title" id="syntaxInputTitle">導入欲深度剖析的句子：</span>
+        <div class="lang-toggle-group">
+          <label class="lang-radio-label">
+            <input type="radio" name="syntaxLang" value="ja" checked onchange="toggleSyntaxLangMode()"> 日文輸入
+          </label>
+          <label class="lang-radio-label">
+            <input type="radio" name="syntaxLang" value="zh" onchange="toggleSyntaxLangMode()"> 中文輸入（先翻日文再剖析）
+          </label>
+        </div>
+      </div>
+      <button type="button" class="text-action-btn" onclick="clearInput('syntaxInput')">清空輸入</button>
+    </div>
+    <textarea id="syntaxInput" placeholder="請輸入日文句子。例如包含引用節或連續動作的：
+この件は、そんなに単純な話ではない
+店内で写真を撮ってもいいですか
+いつまでも続くと思い込んでいた"></textarea>
+    <div class="action-row">
+      <div id="syntaxStatus" class="status-msg">等待輸入...</div>
+      <button id="syntaxBtn" class="primary-btn" onclick="runSyntaxOnly()">開始結構分析</button>
+    </div>
+
+    <div id="syntaxResultWrapper" class="result-container">
+      <div class="syntax-control-bar">
+        <div class="syntax-sentence-selector">
+          <label for="syntaxSentenceSelect"><strong>檢視句子：</strong></label>
+          <select id="syntaxSentenceSelect" onchange="renderSyntaxForSelected()"></select>
+        </div>
+        <button id="saveToVocabBtn" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc; font-weight:600;" onclick="saveCurrentSyntaxSentenceToVocab()">
+          📖 轉存目前句子到單字書
+        </button>
+      </div>
+
+      <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #444;">語意結構圖（包含三語表頭與物理折線結構，截圖自動包含三語）：</div>
+      
+      <div class="tree-scroll-container">
+        <div class="floating-zoom-controls">
+          <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+          <span class="zoom-level-text" id="zoomLabel">100%</span>
+          <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+          <button class="zoom-btn" onclick="resetZoom()">重置</button>
+        </div>
+
+        <div class="floating-capture-controls">
+          <button id="copyShotBtn" class="capture-btn" onclick="captureStructureTree('copy')">複製截圖</button>
+          <button id="downShotBtn" class="capture-btn" onclick="captureStructureTree('download')">下載截圖</button>
+        </div>
+
+        <div class="tree-scale-wrapper" id="treeScaleWrapper">
+          <div class="tree-canvas-wrap" id="treeCanvasWrap">
+            <div class="canvas-header-block" id="canvasHeaderBlock">
+              <div class="canvas-header-orig-zh" id="cHeaderOrigZh" style="display:none;"></div>
+              <div class="canvas-header-raw" id="cHeaderRaw">日文原文</div>
+              <div class="canvas-header-romaji" id="cHeaderRomaji">Hepburn Romaji</div>
+              <div class="canvas-header-zh" id="cHeaderZh">中文整句翻譯</div>
+            </div>
+
+            <div id="topSvgWrap">
+              <svg id="topDepSvg" class="dep-svg-top">
+                <defs>
+                  <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#2e78d6"></path>
+                  </marker>
+                  <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#9333ea"></path>
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+
+            <div class="cards-row-wrap" id="cardsRowWrap">
+              <div id="clauseOverlays" class="clause-overlays"></div>
+              <div class="tokens-container" id="tokensBox"></div>
+            </div>
+
+            <div id="bottomSvgWrap">
+              <svg id="bottomDepSvg" class="dep-svg-bottom">
+                <defs>
+                  <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#15803d"></path>
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="syntax-table-title">詳細詞性、單詞釋義與動詞活用分解表</div>
+      <table class="analysis-table" id="syntaxTable">
+        <thead>
+          <tr>
+            <th>詞彙</th>
+            <th>羅馬拼音</th>
+            <th>中文意思</th>
+            <th>原型 / 辭書形</th>
+            <th>詞性分類</th>
+            <th>活用 / 變形種類</th>
+            <th>依賴關係（指向詞）</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 分頁三：單字拆解與測驗工具 -->
+  <div id="tabVocab" class="tab-content">
+
+    <!-- 🟢 Google 帳號與 Google Drive 自動同步面板 -->
+    <div class="gdrive-sync-panel">
+      <div class="gdrive-user-info">
+        <span style="font-size:18px;">🇬</span>
+        <div>
+          <div style="font-weight:600; font-size:14px;">Google 帳號雲端同步</div>
+          <div style="font-size:12px; color:#718096;" id="gdriveAccountText">尚未登入 Google 帳號</div>
+        </div>
+        <span class="gdrive-status-badge" id="gdriveStatusBadge">離線 / 本地保存</span>
+      </div>
+
+      <div class="gdrive-actions">
+        <button type="button" class="text-action-btn" id="gdriveAuthBtn" style="background:#2e78d6; color:#ffffff; border-color:#2e78d6; font-weight:500;" onclick="handleGoogleAuthClick()">
+          登入 Google 帳號
+        </button>
+        <button type="button" class="text-action-btn" id="gdriveManualSyncBtn" style="display:none;" onclick="syncWithGoogleDrive(true)">
+          🔄 立即同步 (上傳/拉取)
+        </button>
+        <button type="button" class="text-action-btn" id="gdriveSignoutBtn" style="display:none;" onclick="handleGoogleSignout()">
+          登出
+        </button>
+        <details style="display:inline-block; font-size:12px; color:#718096; margin-left:4px;">
+          <summary style="cursor:pointer;">設定 Client ID ▾</summary>
+          <div style="position:absolute; background:#ffffff; border:1px solid #ccd0d5; padding:10px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:20; margin-top:6px; width:290px;">
+            <label style="font-weight:600; display:block; margin-bottom:4px;">Google OAuth Client ID：</label>
+            <input type="text" id="gdriveClientIdInput" placeholder="貼上你的 Google Client ID" style="width:100%; padding:6px; font-size:12px; border:1px solid #ccd0d5; border-radius:4px; margin-bottom:6px;">
+            <button class="text-action-btn" style="width:100%;" onclick="saveGoogleClientId()">儲存 Client ID</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="textarea-header">
+      <span class="field-title">輸入日語句子（完整語塊拆解、過濾純英文、自動保存至本地與雲端）：</span>
+      <button type="button" class="text-action-btn" onclick="clearInput('vocabInput')">清空輸入</button>
+    </div>
+    <textarea id="vocabInput" placeholder="請輸入日文句子。例如：
+昨日リリースされた新曲、すごくかっこいいよ！
+抹茶ラテのグランデサイズを一つ、アイスでお願いします。"></textarea>
+    <div class="action-row">
+      <div id="vocabStatus" class="status-msg">等待輸入...（拆解時專用 Gemini 3.1 Flash Lite，發音與測驗零 Token）</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="studyToggleBtn" class="text-action-btn" style="background:#e6fffa; color:#234e52; border-color:#b2f5ea; font-weight:600;" onclick="startStudyMode()">
+          🎴 進入學習模式 (翻卡)
+        </button>
+        <button id="quizToggleBtn" class="text-action-btn" style="background:#fefcbf; color:#744210; border-color:#faf089; font-weight:600;" onclick="startQuizMode()">
+          📝 進入測驗模式 (陌生優先)
+        </button>
+        <button id="vocabBtn" class="primary-btn" onclick="runVocabExtraction()">拆解為單字卡</button>
+      </div>
+    </div>
+
+    <!-- 學習模式 (一張一張翻卡記憶區塊) -->
+    <div id="studySection" class="study-section">
+      <div class="study-header">
+        <div style="font-weight:bold; font-size:16px; color:#2d3748;">🎴 單字翻卡學習模式</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span id="studyProgressText" style="font-size:13px; color:#4a5568;">進度：1 / 1</span>
+          <button class="text-action-btn" onclick="exitStudyMode()">退出學習</button>
+        </div>
+      </div>
+
+      <div class="flashcard-box" id="flashcardBox" onclick="flipFlashcard()">
+        <span class="flip-hint-badge" id="flipHintBadge">點擊卡片翻面 ↻</span>
+        <div id="flashcardContent"></div>
+      </div>
+
+      <div class="study-nav-row">
+        <button class="text-action-btn" onclick="prevFlashcard()">← 上一張</button>
+        <div id="cardFamiliarityControl" style="display:flex; align-items:center; gap:6px; font-size:12px;">
+          <span>設定熟悉度：</span>
+          <button class="familiarity-tag" data-level="0" onclick="setCardFamiliarityInStudy(0)">陌生</button>
+          <button class="familiarity-tag" data-level="1" onclick="setCardFamiliarityInStudy(1)">模糊</button>
+          <button class="familiarity-tag" data-level="2" onclick="setCardFamiliarityInStudy(2)">掌握</button>
+        </div>
+        <button class="text-action-btn" onclick="nextFlashcard()">下一張 →</button>
+      </div>
+    </div>
+
+    <!-- 測驗卡片互動區塊 -->
+    <div id="quizSection" class="quiz-section">
+      <div class="quiz-header">
+        <div class="quiz-title">📝 單字測驗挑戰（優先測試陌生單字）</div>
+        <div class="quiz-controls-right">
+          <label class="toggle-switch-wrap" style="font-size:12px; color:#4a5568;">
+            <input type="checkbox" id="autoSpeakToggle"> 出題自動朗讀
+          </label>
+          <div class="quiz-stats" id="quizStats">得分: 0 / 0</div>
+          <button class="text-action-btn" onclick="exitQuizMode()">退出測驗</button>
+        </div>
+      </div>
+      <div class="quiz-card-box" id="quizCardBox">
+        <div class="quiz-question-word-wrap">
+          <span class="quiz-question-word" id="quizWord">單字</span>
+          <button class="speak-btn" id="quizSpeakBtn" title="朗讀發音" style="font-size:22px;">🔊</button>
+        </div>
+        <div class="quiz-question-romaji" id="quizRomaji">romaji</div>
+        <div class="quiz-options-list" id="quizOptions"></div>
+      </div>
+    </div>
+
+    <!-- 本次拆解單字卡即時預覽 -->
+    <div id="vocabResultWrapper" class="result-container">
+      <div class="vocab-toolbar">
+        <div class="toggle-switch-wrap">
+          <input type="checkbox" id="romajiToggle" checked onchange="toggleRomajiVisibility()">
+          <label for="romajiToggle"><strong>顯示羅馬拼音 (Hepburn)</strong></label>
+        </div>
+
+        <div class="voice-settings-row">
+          <div class="voice-slider-wrap" title="降低數值可使人聲更低沉溫和，消除刺耳感">
+            <label for="pitchSlider">音高：</label>
+            <input type="range" id="pitchSlider" min="0.5" max="1.3" step="0.05" value="0.85" onchange="onVoiceSettingChange()">
+            <span id="pitchValLabel">0.85</span>
+          </div>
+          <div class="voice-slider-wrap">
+            <label for="rateSlider">語速：</label>
+            <input type="range" id="rateSlider" min="0.7" max="1.2" step="0.05" value="0.92" onchange="onVoiceSettingChange()">
+            <span id="rateValLabel">0.92</span>
+          </div>
+        </div>
+
+        <div>
+          <span style="font-size:13px; color:#4a5568;" id="vocabCountBadge">本次拆解 0 個單字</span>
+        </div>
+      </div>
+      <div id="vocabCardsGrid" class="vocab-cards-grid"></div>
+    </div>
+
+    <!-- 默認闔上的單字書 -->
+    <details class="vocab-book-drawer" id="vocabBookDrawer" ontoggle="onBookDrawerToggle(this)">
+      <summary>
+        <span>📖 我的已存單字書 (<span id="bookCountText">計算中...</span>)</span>
+        <span style="font-size:12px; font-weight:normal; color:#718096;">點擊展開 / 收起 ▾</span>
+      </summary>
+      <div class="vocab-book-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:13px; color:#666;">資料庫保存於本機 IndexedDB，點擊 🔊 朗讀，點擊熟悉度標籤可手動調整。</span>
+          <div style="display:flex; gap:8px;">
+            <button class="text-action-btn" onclick="clearLocalDatabase()">清空全書單字</button>
+          </div>
+        </div>
+        <div id="bookCardsGrid" class="vocab-cards-grid"></div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "gemini_saved_api_key";
+    const MODEL_STORAGE_KEY = "gemini_saved_model_pref";
+    const GOOGLE_CLIENT_ID_KEY = "gdrive_saved_client_id";
+    const GOOGLE_TOKEN_KEY = "gdrive_saved_access_token";
+
+    let cachedHtmlPayload = "";
+    let cachedTextPayload = "";
+    let isolatedSyntaxData = [];
+    let currentZoom = 1.0;
+
+    // ================= 原生柔和人聲發音核心 (Web Speech API) =================
+    let voicePitch = 0.85;
+    let voiceRate = 0.92;
+
+    function onVoiceSettingChange() {
+      voicePitch = parseFloat(document.getElementById("pitchSlider").value);
+      voiceRate = parseFloat(document.getElementById("rateSlider").value);
+      document.getElementById("pitchValLabel").innerText = voicePitch.toFixed(2);
+      document.getElementById("rateValLabel").innerText = voiceRate.toFixed(2);
+    }
+
+    function speakJapanese(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ja-JP";
+      utterance.rate = voiceRate;
+      utterance.pitch = voicePitch;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredKeywords = [
+        "Google 日本語", "Natural", "Online (Natural)", 
+        "Nanami", "Keiko", "Ichiro", "Kyoko", "Otoya", "Mayu"
+      ];
+      
+      let matchedVoice = null;
+      for (const kw of preferredKeywords) {
+        matchedVoice = voices.find(v => (v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP") && v.name.includes(kw));
+        if (matchedVoice) break;
+      }
+
+      if (!matchedVoice) {
+        matchedVoice = voices.find(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
+      }
+
+      if (matchedVoice) utterance.voice = matchedVoice;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    // ================= IndexedDB 單字資料庫核心 =================
+    const DB_NAME = "JapaneseVocabDB";
+    const DB_VERSION = 2;
+    const STORE_NAME = "vocab_cards";
+    let dbInstance = null;
+
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+            store.createIndex("word", "word", { unique: false });
+            store.createIndex("familiarity", "familiarity", { unique: false });
+            store.createIndex("created_at", "created_at", { unique: false });
+          } else {
+            const store = e.target.transaction.objectStore(STORE_NAME);
+            if (!store.indexNames.contains("familiarity")) {
+              store.createIndex("familiarity", "familiarity", { unique: false });
+            }
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          refreshBookSummary();
+          resolve(dbInstance);
+        };
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    async function saveVocabToDb(tokens) {
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      tokens.forEach(t => {
+        store.add({
+          word: t.word,
+          lemma: t.lemma || t.word,
+          romaji: t.romaji,
+          meaning: t.meaning,
+          pos: t.pos,
+          inflection: t.inflection,
+          conjugations: t.conjugations || null,
+          familiarity: t.familiarity !== undefined ? t.familiarity : 0,
+          created_at: t.created_at || Date.now()
+        });
+      });
+      return new Promise((resolve) => {
+        tx.oncomplete = () => {
+          refreshBookSummary();
+          // 若處於 Google 登入狀態，自動觸發背景同步
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    function getAllVocabFromDb() {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const res = req.result || [];
+          res.forEach(item => {
+            if (item.familiarity === undefined) item.familiarity = 0;
+          });
+          resolve(res);
+        };
+      });
+    }
+
+    async function updateVocabFamiliarityInDb(id, level) {
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      const getReq = store.get(Number(id));
+      getReq.onsuccess = () => {
+        const item = getReq.result;
+        if (item) {
+          item.familiarity = level;
+          store.put(item);
+        }
+      };
+      return new Promise((resolve) => {
+        tx.oncomplete = () => {
+          refreshBookSummary();
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    async function deleteVocabFromDb(id) {
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(Number(id));
+      return new Promise((resolve) => {
+        tx.oncomplete = () => {
+          refreshBookSummary();
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    async function refreshBookSummary() {
+      const items = await getAllVocabFromDb();
+      const countEl = document.getElementById("bookCountText");
+      if (countEl) countEl.innerText = `共累積 ${items.length} 詞`;
+      const drawer = document.getElementById("vocabBookDrawer");
+      if (drawer && drawer.open) {
+        renderBookCards(items);
+      }
+    }
+
+    function onBookDrawerToggle(drawer) {
+      if (drawer.open) {
+        getAllVocabFromDb().then(items => {
+          renderBookCards(items);
+        });
+      }
+    }
+
+    function renderBookCards(items) {
+      const grid = document.getElementById("bookCardsGrid");
+      const showRomaji = document.getElementById("romajiToggle").checked;
+      grid.innerHTML = "";
+
+      if (items.length === 0) {
+        grid.innerHTML = `<div style="color:#a0aec0; font-size:13px; grid-column:1/-1; text-align:center; padding:20px;">單字書內目前沒有單字。</div>`;
+        return;
+      }
+
+      items.slice().reverse().forEach(t => {
+        const card = createCardElement(t, true, showRomaji);
+        grid.appendChild(card);
+      });
+    }
+
+    async function clearLocalDatabase() {
+      if (!confirm("確定要清空本地所有已儲存的單字嗎？")) return;
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).clear();
+      tx.oncomplete = () => {
+        refreshBookSummary();
+        if (googleAccessToken) syncWithGoogleDrive(false);
+        alert("本地單字庫已清空。");
+      };
+    }
+
+    // ================= 🟢 Google Drive 雲端雙向同步模組 =================
+    let googleAccessToken = null;
+    let tokenClient = null;
+    const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
+
+    function saveGoogleClientId() {
+      const val = document.getElementById("gdriveClientIdInput").value.trim();
+      if (val) {
+        localStorage.setItem(GOOGLE_CLIENT_ID_KEY, val);
+        alert("Client ID 已儲存！請點擊「登入 Google 帳號」。");
+        initGoogleClient();
+      } else {
+        localStorage.removeItem(GOOGLE_CLIENT_ID_KEY);
+      }
+    }
+
+    function initGoogleClient() {
+      const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+      if (!clientId) return;
+
+      if (window.google && google.accounts && google.accounts.oauth2) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: "https://www.googleapis.com/auth/drive.appdata",
+          callback: async (resp) => {
+            if (resp.error) {
+              console.error("Google 授權失敗:", resp);
+              alert("Google 登入失敗: " + resp.error);
+              return;
+            }
+            googleAccessToken = resp.access_token;
+            localStorage.setItem(GOOGLE_TOKEN_KEY, googleAccessToken);
+            updateGoogleUi(true);
+            await syncWithGoogleDrive(true);
+          }
+        });
+      }
+    }
+
+    function updateGoogleUi(isConnected, email = "") {
+      const authBtn = document.getElementById("gdriveAuthBtn");
+      const signoutBtn = document.getElementById("gdriveSignoutBtn");
+      const manualSyncBtn = document.getElementById("gdriveManualSyncBtn");
+      const statusBadge = document.getElementById("gdriveStatusBadge");
+      const accountText = document.getElementById("gdriveAccountText");
+
+      if (isConnected) {
+        authBtn.style.display = "none";
+        signoutBtn.style.display = "inline-block";
+        manualSyncBtn.style.display = "inline-block";
+        statusBadge.innerText = "已連線 Google 雲端";
+        statusBadge.className = "gdrive-status-badge connected";
+        accountText.innerText = email ? `帳號: ${email}` : "Google 帳號已連結 (雲端同步中)";
+      } else {
+        authBtn.style.display = "inline-block";
+        signoutBtn.style.display = "none";
+        manualSyncBtn.style.display = "none";
+        statusBadge.innerText = "離線 / 本地保存";
+        statusBadge.className = "gdrive-status-badge";
+        accountText.innerText = "尚未登入 Google 帳號";
+      }
+    }
+
+    function handleGoogleAuthClick() {
+      const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+      if (!clientId) {
+        alert("請先點擊右側「設定 Client ID ▾」，輸入你在 Google Cloud Console 申請的 OAuth Client ID。");
+        return;
+      }
+      if (!tokenClient) initGoogleClient();
+      if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: "consent" });
+      } else {
+        alert("Google 授權元件載入中，請稍候再試。");
+      }
+    }
+
+    function handleGoogleSignout() {
+      if (googleAccessToken) {
+        google.accounts.oauth2.revoke(googleAccessToken, () => {
+          googleAccessToken = null;
+          localStorage.removeItem(GOOGLE_TOKEN_KEY);
+          updateGoogleUi(false);
+          alert("已登出 Google 帳號。");
+        });
+      }
+    }
+
+    // 在 Google Drive AppData 隱藏資料夾中尋找檔案
+    async function findDriveFileId() {
+      const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}`, {
+        headers: { Authorization: `Bearer ${googleAccessToken}` }
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          // Token 過期
+          googleAccessToken = null;
+          updateGoogleUi(false);
+        }
+        return null;
+      }
+      const data = await res.json();
+      return data.files && data.files.length > 0 ? data.files[0].id : null;
+    }
+
+    // Google Drive 雙向同步（合併本地與雲端）
+    async function syncWithGoogleDrive(showNotify = false) {
+      if (!googleAccessToken) return;
+
+      try {
+        const fileId = await findDriveFileId();
+        const localItems = await getAllVocabFromDb();
+
+        if (fileId) {
+          // 雲端已有備份：先拉取雲端內容與本地合併
+          const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            headers: { Authorization: `Bearer ${googleAccessToken}` }
+          });
+          const cloudData = await getRes.json().catch(() => ({ items: [] }));
+          const cloudItems = cloudData.items || [];
+
+          // 合併不重複單字
+          const localWords = new Set(localItems.map(i => i.word));
+          const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
+          if (newFromCloud.length > 0) {
+            await saveVocabToDb(newFromCloud);
+          }
+
+          // 重新取得合併後的最新完整清單
+          const fullMergedItems = await getAllVocabFromDb();
+
+          // 覆蓋更新回雲端
+          const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${googleAccessToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              updated_at: new Date().toISOString(),
+              items: fullMergedItems
+            })
+          });
+
+          if (updateRes.ok && showNotify) {
+            alert(`Google 雲端同步完成！\n已整合並同步 ${fullMergedItems.length} 個單字（新增 ${newFromCloud.length} 個）。`);
+          }
+        } else {
+          // 首次建立備份檔案
+          const metadata = {
+            name: DRIVE_FILE_NAME,
+            parents: ["appDataFolder"]
+          };
+          const form = new FormData();
+          form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+          form.append("file", new Blob([JSON.stringify({ updated_at: new Date().toISOString(), items: localItems })], { type: "application/json" }));
+
+          const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${googleAccessToken}` },
+            body: form
+          });
+
+          if (createRes.ok && showNotify) {
+            alert(`已在 Google 雲端建立單字庫存儲檔！共上傳 ${localItems.length} 個單字。`);
+          }
+        }
+        refreshBookSummary();
+      } catch (err) {
+        console.error("Google Drive 同步失敗:", err);
+        if (showNotify) alert("Google 雲端同步發生錯誤: " + err.message);
+      }
+    }
+
+    // ================= 初始化監聽 =================
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedKey = localStorage.getItem(STORAGE_KEY);
+      if (savedKey) document.getElementById("apiKey").value = savedKey;
+
+      const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+      if (savedModel) document.getElementById("modelSelect").value = savedModel;
+
+      const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+      if (savedClientId) {
+        document.getElementById("gdriveClientIdInput").value = savedClientId;
+      }
+
+      initIndexedDB();
+      setTimeout(initGoogleClient, 500);
+      document.getElementById("globalStatus").innerText = "系統就緒。";
+    });
+
+    document.getElementById("apiKey").addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (val) localStorage.setItem(STORAGE_KEY, val);
+      else localStorage.removeItem(STORAGE_KEY);
+    });
+
+    function onModelChange() {
+      const model = document.getElementById("modelSelect").value;
+      localStorage.setItem(MODEL_STORAGE_KEY, model);
+    }
+
+    function clearApiKey() {
+      document.getElementById("apiKey").value = "";
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById("globalStatus").innerText = "已清除 API Key。";
+    }
+
+    function clearInput(id) {
+      document.getElementById(id).value = "";
+      document.getElementById(id).focus();
+    }
+
+    function getApiKey() {
+      const key = document.getElementById("apiKey").value.trim();
+      if (!key) {
+        alert("請先在上方填入 Gemini API Key。");
+        return null;
+      }
+      return key;
+    }
+
+    function toggleSyntaxLangMode() {
+      const mode = document.querySelector('input[name="syntaxLang"]:checked').value;
+      const input = document.getElementById("syntaxInput");
+      const title = document.getElementById("syntaxInputTitle");
+
+      if (mode === "zh") {
+        title.innerText = "導入中文句子（將自動先翻成道地日文再進行結構剖析）：";
+        input.placeholder = "請輸入中文句子，支援換行多句。例如：\n這件事情根本沒有那麼簡單\n店內可以拍照嗎\n我一直擅自以為這會永遠持續下去";
+      } else {
+        title.innerText = "導入欲深度剖析的日文句子：";
+        input.placeholder = "請輸入日文句子。例如包含引用節或連續動作的：\nこの件は、そんなに単純な話ではない\n店内で写真を撮ってもいいですか\nいつまでも続くと思い込んでいた";
+      }
+    }
+
+    function changeZoom(delta) {
+      currentZoom = Math.min(2.0, Math.max(0.6, currentZoom + delta));
+      applyZoom();
+    }
+
+    function resetZoom() {
+      currentZoom = 1.0;
+      applyZoom();
+    }
+
+    function applyZoom() {
+      const wrapper = document.getElementById("treeScaleWrapper");
+      wrapper.style.transform = `scale(${currentZoom})`;
+      document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
+    }
+
+    async function captureStructureTree(actionType) {
+      const canvasTarget = document.getElementById("treeCanvasWrap");
+      const scaleWrapper = document.getElementById("treeScaleWrapper");
+      const copyBtn = document.getElementById("copyShotBtn");
+      const downBtn = document.getElementById("downShotBtn");
+
+      if (!canvasTarget) return;
+
+      const savedTransform = scaleWrapper.style.transform;
+      scaleWrapper.style.transform = "scale(1.0)";
+
+      try {
+        if (actionType === "copy") copyBtn.innerText = "擷取中...";
+        else downBtn.innerText = "產生中...";
+
+        const canvas = await html2canvas(canvasTarget, {
+          backgroundColor: "#fafbfc",
+          scale: 2,
+          logging: false,
+          useCORS: true
+        });
+
+        if (actionType === "download") {
+          const imgUrl = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.download = `japanese-syntax-tree-${Date.now()}.png`;
+          a.href = imgUrl;
+          a.click();
+          downBtn.innerText = "已下載！";
+          setTimeout(() => { downBtn.innerText = "下載截圖"; }, 2000);
+        } else if (actionType === "copy") {
+          canvas.toBlob(async (blob) => {
+            try {
+              if (navigator.clipboard && window.ClipboardItem) {
+                await navigator.clipboard.write([
+                  new ClipboardItem({ "image/png": blob })
+                ]);
+                copyBtn.innerText = "已複製圖片！";
+              } else {
+                alert("瀏覽器限制直接寫入剪貼簿，請使用下載按鈕。");
+              }
+            } catch (err) {
+              console.error(err);
+              alert("複製圖片失敗，請直接點擊下載截圖。");
+            }
+            setTimeout(() => { copyBtn.innerText = "複製截圖"; }, 2000);
+          }, "image/png");
+        }
+      } catch (err) {
+        console.error("截圖處理失敗:", err);
+        alert("截圖發生錯誤: " + err.message);
+        copyBtn.innerText = "複製截圖";
+        downBtn.innerText = "下載截圖";
+      } finally {
+        scaleWrapper.style.transform = savedTransform;
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      
+      if (tabId === "tabTranslate") {
+        document.querySelectorAll(".tab-btn")[0].classList.add("active");
+        document.getElementById("tabTranslate").classList.add("active");
+      } else if (tabId === "tabSyntax") {
+        document.querySelectorAll(".tab-btn")[1].classList.add("active");
+        document.getElementById("tabSyntax").classList.add("active");
+        setTimeout(drawStructureGraph, 60);
+      } else if (tabId === "tabVocab") {
+        document.querySelectorAll(".tab-btn")[2].classList.add("active");
+        document.getElementById("tabVocab").classList.add("active");
+        refreshBookSummary();
+      }
+    }
+
+    async function requestGeminiWithFallback(prompt, apiKey, updateStatusCallback) {
+      const userChoice = document.getElementById("modelSelect").value;
+      let candidateModels = [];
+      const standardPool = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.7-flash"];
+
+      if (userChoice === "auto") candidateModels = standardPool;
+      else candidateModels = [userChoice, ...standardPool.filter(m => m !== userChoice)];
+
+      let lastError = null;
+
+      for (let i = 0; i < candidateModels.length; i++) {
+        const model = candidateModels[i];
+        if (updateStatusCallback) updateStatusCallback(`正在使用 ${model} 處理中...`);
+
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            const msg = data.error?.message || `HTTP ${res.status}`;
+            if (res.status === 429 || res.status === 404) {
+              console.warn(`[Model Fallback] ${model} 狀態碼 ${res.status} (${msg})，嘗試備援模型...`);
+              lastError = new Error(`${model}: ${msg}`);
+              continue;
+            }
+            throw new Error(msg);
+          }
+
+          return extractJsonFromResponse(data);
+        } catch (err) {
+          console.warn(`[Model Error] ${model}:`, err);
+          lastError = err;
+          if (i < candidateModels.length - 1) continue;
+        }
+      }
+
+      throw lastError || new Error("所有可用模型呼叫皆失敗，請稍候重試或檢查 API Key。");
+    }
+
+    function extractJsonFromResponse(data) {
+      if (!data) throw new Error("伺服器未回傳資料");
+      if (data.error) throw new Error(data.error.message || `API 錯誤代碼: ${data.error.code}`);
+
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        if (data.promptFeedback && data.promptFeedback.blockReason) {
+          throw new Error(`內容觸發審查被阻擋: ${data.promptFeedback.blockReason}`);
+        }
+        throw new Error("API 未產生有效回傳內容（candidates 為空）");
+      }
+
+      const parts = data.candidates[0].content.parts;
+      if (!parts || !parts[0] || !parts[0].text) {
+        throw new Error("回傳結構中缺少有效文字");
+      }
+
+      let rawText = parts[0].text.trim();
+      if (rawText.startsWith("```json")) {
+        rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (rawText.startsWith("```")) {
+        rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
+
+      return JSON.parse(rawText);
+    }
+
+    // ================= 對照轉換 =================
+    async function runTranslationOnly() {
+      const input = document.getElementById("transInput").value;
+      if (!input.trim()) return alert("請輸入日文內容。");
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      const btn = document.getElementById("transBtn");
+      const status = document.getElementById("transStatus");
+      const wrapper = document.getElementById("transResultWrapper");
+      const list = document.getElementById("transResultList");
+
+      btn.disabled = true;
+      list.innerHTML = "";
+
+      const rawLines = input.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+      const prompt = `請將下列每行日文轉換為標準赫本式羅馬拼音（Hepburn Romaji，嚴禁漢語拼音）與自然優雅的台灣繁體中文意譯。
+回傳純 JSON 陣列：
+[ { "raw": "原文", "romaji": "羅馬拼音", "translation": "中文意譯" } ]
+內容：
+${JSON.stringify(rawLines, null, 2)}`;
+
+      try {
+        const results = await requestGeminiWithFallback(prompt, apiKey, (msg) => {
+          status.innerText = msg;
+        });
+
+        const htmlBlocks = [];
+        const plainBlocks = [];
+
+        results.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "sentence-item";
+          div.innerHTML = `
+            <div class="raw-text">${escapeHtml(item.raw)}</div>
+            <div class="romaji-text">${escapeHtml(item.romaji)}</div>
+            <div class="trans-text">${escapeHtml(item.translation)}</div>
+          `;
+          list.appendChild(div);
+
+          htmlBlocks.push([
+            `<div><b><span style="color: #111111;"><font color="#111111">${escapeHtml(item.raw)}</font></span></b></div>`,
+            `<div><span style="color: #c93b3b; font-family: Consolas, monospace;"><font color="#c93b3b">${escapeHtml(item.romaji)}</font></span></div>`,
+            `<div><span style="color: #257a46;"><font color="#257a46">${escapeHtml(item.translation)}</font></span></div>`,
+            `<div style="height: 12px;"><br></div>`
+          ].join(""));
+
+          plainBlocks.push(`${item.raw}\n${item.romaji}\n${item.translation}`);
+        });
+
+        cachedHtmlPayload = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${htmlBlocks.join("")}</body></html>`;
+        cachedTextPayload = plainBlocks.join("\n\n");
+
+        wrapper.style.display = "block";
+        status.innerText = `轉換完成！共處理 ${results.length} 行。`;
+      } catch (err) {
+        status.innerText = `轉換失敗：${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function copyFormattedWithColors() {
+      if (!cachedHtmlPayload) return;
+      const copyBtn = document.getElementById("copyBtn");
+      const handleCopy = (e) => {
+        e.preventDefault();
+        e.clipboardData.setData("text/html", cachedHtmlPayload);
+        e.clipboardData.setData("text/plain", cachedTextPayload);
+      };
+      document.addEventListener("copy", handleCopy);
+      const isSuccess = document.execCommand("copy");
+      document.removeEventListener("copy", handleCopy);
+
+      if (isSuccess) {
+        copyBtn.innerText = "已複製彩色格式！";
+        setTimeout(() => { copyBtn.innerText = "複製帶顏色格式"; }, 2000);
+      }
+    }
+
+    // ================= 句法與結構分析 =================
+    async function runSyntaxOnly() {
+      const input = document.getElementById("syntaxInput").value;
+      if (!input.trim()) return alert("請輸入內容。");
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      const btn = document.getElementById("syntaxBtn");
+      const status = document.getElementById("syntaxStatus");
+      const wrapper = document.getElementById("syntaxResultWrapper");
+      const mode = document.querySelector('input[name="syntaxLang"]:checked').value;
+
+      btn.disabled = true;
+
+      const rawLines = input.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+      let promptInstruction = "";
+      if (mode === "zh") {
+        promptInstruction = `輸入的文本為「中文句子」。請先將每行中文翻譯成最自然、道地的「現代日文句子（作為 raw 欄位）」，並在 input_zh 欄位保留中文原文；接著對該翻譯後的日文句子進行完整的句法結構、詞性、活用與依賴剖析。`;
+      } else {
+        promptInstruction = `輸入的文本為「日文句子」。請直接進行語法結構、詞性、活用與依賴剖析。input_zh 欄位請填空字串 ""。`;
+      }
+
+      const prompt = `你是一位資深日語語法學家。
+${promptInstruction}
+
+要求：
+1. 為每個日文句子提供全句標準赫本式羅馬拼音 (Hepburn Romaji，嚴禁漢語拼音) 與整句繁體中文意譯 (translation)。
+2. tokens：對日文進行精確分詞，標明詞性、單詞中文意思、原型、活用形、修飾關係。
+3. action_chains：特別標出「て形、たり、ながら」等連接助詞連接的連續動作。
+4. clauses：標出長修飾節（如連體修飾節、引用節）的大結構範圍及修飾目標。
+
+請嚴格回傳純 JSON 陣列：
+[
+  {
+    "input_zh": "若為中文輸入則填入中文原文，否則為空",
+    "raw": "日文句子（若是中文輸入，此處填翻譯出的日文）",
+    "romaji": "全句標準赫本式羅馬拼音",
+    "translation": "整句繁體中文意譯",
+    "tokens": [
+      {
+        "id": 1,
+        "surface": "詞彙表面形",
+        "romaji": "單詞拼音",
+        "meaning": "單詞中文意思",
+        "lemma": "辭書形/原型",
+        "pos": "詞性（名詞、動詞、助詞、形容詞、副詞等）",
+        "inflection": "活用類型（如：五段動詞連用形、辭書形等；無活用填「-」）",
+        "dep_head": 2,
+        "dep_label": "關係（主語、賓語、連體修飾、狀語修飾、引用節謂語等）"
+      }
+    ],
+    "action_chains": [
+      {
+        "from_action_id": 1,
+        "conj_token_id": 2,
+        "to_action_id": 4,
+        "label": "連續動作"
+      }
+    ],
+    "clauses": [
+      {
+        "id": "c1",
+        "label": "引用節 / 修飾節",
+        "start_token_id": 1,
+        "end_token_id": 3,
+        "target_token_id": 6
+      }
+    ]
+  }
+]
+
+待分析內容：
+${JSON.stringify(rawLines, null, 2)}`;
+
+      try {
+        isolatedSyntaxData = await requestGeminiWithFallback(prompt, apiKey, (msg) => {
+          status.innerText = msg;
+        });
+
+        const sel = document.getElementById("syntaxSentenceSelect");
+        sel.innerHTML = "";
+        isolatedSyntaxData.forEach((s, idx) => {
+          const opt = document.createElement("option");
+          opt.value = idx;
+          opt.innerText = `${idx + 1}. ${s.raw}${s.input_zh ? ` (原: ${s.input_zh})` : ""}`;
+          sel.appendChild(opt);
+        });
+
+        wrapper.style.display = "block";
+        resetZoom();
+        renderSyntaxForSelected();
+        status.innerText = `分析完成！共處理 ${isolatedSyntaxData.length} 句。`;
+      } catch (err) {
+        status.innerText = `分析失敗：${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderSyntaxForSelected() {
+      const idx = document.getElementById("syntaxSentenceSelect").value || 0;
+      const data = isolatedSyntaxData[idx];
+      if (!data || !data.tokens) return;
+
+      const cOrigZh = document.getElementById("cHeaderOrigZh");
+      if (data.input_zh && data.input_zh.trim().length > 0) {
+        cOrigZh.innerText = `輸入中文原句：${data.input_zh}`;
+        cOrigZh.style.display = "block";
+      } else {
+        cOrigZh.style.display = "none";
+      }
+
+      document.getElementById("cHeaderRaw").innerText = data.raw || "";
+      document.getElementById("cHeaderRomaji").innerText = data.romaji || "";
+      document.getElementById("cHeaderZh").innerText = data.translation || "";
+
+      const tokensBox = document.getElementById("tokensBox");
+      const tableBody = document.querySelector("#syntaxTable tbody");
+
+      tokensBox.innerHTML = "";
+      tableBody.innerHTML = "";
+
+      const tokenMap = {};
+      data.tokens.forEach(t => { tokenMap[t.id] = t; });
+
+      data.tokens.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "token-card";
+        card.id = `token-${t.id}`;
+        card.innerHTML = `
+          <div class="token-surface">${escapeHtml(t.surface)}</div>
+          <div class="token-romaji">${escapeHtml(t.romaji || "")}</div>
+          <div class="token-meaning">${escapeHtml(t.meaning || "-")}</div>
+          <span class="token-pos">${escapeHtml(t.pos)}</span>
+          <div class="token-form">${escapeHtml(t.inflection !== "-" ? t.inflection : "")}</div>
+        `;
+        tokensBox.appendChild(card);
+      });
+
+      data.tokens.forEach(t => {
+        const headToken = tokenMap[t.dep_head];
+        const headDesc = t.dep_head === 0 ? "<b>[核心主節/根節點]</b>" : (headToken ? `${escapeHtml(headToken.surface)} (${escapeHtml(t.dep_label)})` : "-");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(t.surface)}</strong></td>
+          <td style="color:#c93b3b; font-family:Consolas, monospace;">${escapeHtml(t.romaji || "")}</td>
+          <td style="color:#257a46; font-weight:500;">${escapeHtml(t.meaning || "-")}</td>
+          <td>${escapeHtml(t.lemma || t.surface)}</td>
+          <td><span class="token-pos">${escapeHtml(t.pos)}</span></td>
+          <td>${escapeHtml(t.inflection || "-")}</td>
+          <td>${headDesc}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      setTimeout(drawStructureGraph, 60);
+    }
+
+    function drawStructureGraph() {
+      const idx = document.getElementById("syntaxSentenceSelect").value || 0;
+      const data = isolatedSyntaxData[idx];
+      if (!data || !data.tokens) return;
+
+      const topSvg = document.getElementById("topDepSvg");
+      const bottomSvg = document.getElementById("bottomDepSvg");
+      const topSvgWrap = document.getElementById("topSvgWrap");
+      const bottomSvgWrap = document.getElementById("bottomSvgWrap");
+      const cardsRowWrap = document.getElementById("cardsRowWrap");
+      const tokensBox = document.getElementById("tokensBox");
+      const overlays = document.getElementById("clauseOverlays");
+
+      overlays.innerHTML = "";
+
+      const topDefs = topSvg.querySelector("defs");
+      topSvg.innerHTML = "";
+      if (topDefs) topSvg.appendChild(topDefs);
+
+      const bottomDefs = bottomSvg.querySelector("defs");
+      bottomSvg.innerHTML = "";
+      if (bottomDefs) bottomSvg.appendChild(bottomDefs);
+
+      const cardsRect = cardsRowWrap.getBoundingClientRect();
+      const inAlloc = {};
+      const outAlloc = {};
+
+      function getCardPortX(tokenId, isTarget) {
+        const el = document.getElementById(`token-${tokenId}`);
+        if (!el) return 0;
+        const rect = el.getBoundingClientRect();
+        const baseCenterX = ((rect.left - cardsRect.left) / currentZoom) + (rect.width / currentZoom / 2);
+
+        if (isTarget) {
+          const count = inAlloc[tokenId] || 0;
+          inAlloc[tokenId] = count + 1;
+          return baseCenterX - 18 + (count * 12);
+        } else {
+          const count = outAlloc[tokenId] || 0;
+          outAlloc[tokenId] = count + 1;
+          return baseCenterX + 8 + (count * 12);
+        }
+      }
+
+      const clauseList = data.clauses || [];
+      const clauseRoutes = [];
+
+      clauseList.forEach(cl => {
+        const startEl = document.getElementById(`token-${cl.start_token_id}`);
+        const endEl = document.getElementById(`token-${cl.end_token_id}`);
+        if (!startEl || !endEl) return;
+
+        const sRect = startEl.getBoundingClientRect();
+        const eRect = endEl.getBoundingClientRect();
+
+        const boxLeft = ((Math.min(sRect.left, eRect.left) - cardsRect.left) / currentZoom) - 10;
+        const boxRight = ((Math.max(sRect.right, eRect.right) - cardsRect.left) / currentZoom) + 10;
+        const boxTop = ((sRect.top - cardsRect.top) / currentZoom) - 8;
+        const boxHeight = (sRect.height / currentZoom) + 16;
+
+        const box = document.createElement("div");
+        box.className = "clause-box";
+        box.style.left = `${boxLeft}px`;
+        box.style.top = `${boxTop}px`;
+        box.style.width = `${boxRight - boxLeft}px`;
+        box.style.height = `${boxHeight}px`;
+
+        const tag = document.createElement("div");
+        tag.className = "clause-box-tag";
+        tag.innerText = cl.label;
+        box.appendChild(tag);
+        overlays.appendChild(box);
+
+        if (cl.target_token_id) {
+          const fromX = boxLeft + (boxRight - boxLeft) / 2;
+          const toX = getCardPortX(cl.target_token_id, true);
+          clauseRoutes.push({
+            fromX: fromX,
+            toX: toX,
+            minX: Math.min(fromX, toX),
+            maxX: Math.max(fromX, toX),
+            label: "全節修飾",
+            color: "#9333ea",
+            marker: "arrow-purple",
+            isClause: true
+          });
+        }
+      });
+
+      const actionChains = data.action_chains || [];
+      const topTokens = data.tokens.filter(t => {
+        if (!t.dep_head || t.dep_head === 0) return false;
+        return !actionChains.some(c => c.conj_token_id === t.id);
+      });
+
+      const topRoutes = [];
+      topTokens.forEach(t => {
+        const fromX = getCardPortX(t.id, false);
+        const toX = getCardPortX(t.dep_head, true);
+        topRoutes.push({
+          fromX: fromX,
+          toX: toX,
+          minX: Math.min(fromX, toX),
+          maxX: Math.max(fromX, toX),
+          label: t.dep_label,
+          color: "#2e78d6",
+          marker: "arrow-blue",
+          isClause: false
+        });
+      });
+
+      const allTopRoutes = [...topRoutes, ...clauseRoutes];
+      allTopRoutes.sort((a, b) => (a.maxX - a.minX) - (b.maxX - b.minX));
+
+      function checkConflict(rA, rB) {
+        if (Math.max(rA.minX, rB.minX) <= Math.min(rA.maxX, rB.maxX) + 24) return true;
+        const aCrossB = (rA.fromX >= rB.minX - 12 && rA.fromX <= rB.maxX + 12) ||
+                        (rA.toX >= rB.minX - 12 && rA.toX <= rB.maxX + 12);
+        const bCrossA = (rB.fromX >= rA.minX - 12 && rB.fromX <= rA.maxX + 12) ||
+                        (rB.toX >= rA.minX - 12 && rB.toX <= rA.maxX + 12);
+        return aCrossB || bCrossA;
+      }
+
+      const tracks = [];
+      allTopRoutes.forEach(route => {
+        let assigned = 0;
+        while (true) {
+          if (!tracks[assigned]) {
+            tracks[assigned] = [route];
+            route.track = assigned;
+            break;
+          }
+          const collision = tracks[assigned].some(existing => checkConflict(route, existing));
+          if (!collision) {
+            tracks[assigned].push(route);
+            route.track = assigned;
+            break;
+          }
+          assigned++;
+        }
+      });
+
+      const totalTracks = tracks.length;
+      const trackStep = 44;
+      const topSvgHeight = Math.max(160, 48 + totalTracks * trackStep);
+
+      topSvgWrap.style.height = `${topSvgHeight}px`;
+
+      const totalWidth = Math.max(tokensBox.scrollWidth, cardsRowWrap.offsetWidth);
+      topSvg.setAttribute("width", totalWidth);
+      topSvg.setAttribute("height", topSvgHeight);
+
+      const groundY = topSvgHeight;
+
+      allTopRoutes.forEach(r => {
+        const channelY = groundY - 26 - (r.track * trackStep);
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${r.fromX} ${groundY} V ${channelY} H ${r.toX} V ${groundY - 6}`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", r.color);
+        path.setAttribute("stroke-width", r.isClause ? "1.9" : "1.7");
+        if (r.isClause) path.setAttribute("stroke-dasharray", "4,4");
+        path.setAttribute("marker-end", `url(#${r.marker})`);
+        topSvg.appendChild(path);
+
+        if (r.label) {
+          renderSquareLabel(topSvg, (r.fromX + r.toX) / 2, channelY, r.label, r.color);
+        }
+      });
+
+      const bottomSvgHeight = Math.max(80, 24 + actionChains.length * 36);
+      bottomSvgWrap.style.height = `${bottomSvgHeight}px`;
+      bottomSvg.setAttribute("width", totalWidth);
+      bottomSvg.setAttribute("height", bottomSvgHeight);
+
+      actionChains.forEach((chain, cIdx) => {
+        const fromEl = document.getElementById(`token-${chain.from_action_id}`);
+        const conjEl = document.getElementById(`token-${chain.conj_token_id}`);
+        const toEl = document.getElementById(`token-${chain.to_action_id}`);
+        if (!fromEl || !toEl) return;
+
+        const fRect = fromEl.getBoundingClientRect();
+        const tRect = toEl.getBoundingClientRect();
+
+        const x1 = ((fRect.left - cardsRect.left) / currentZoom) + (fRect.width / currentZoom / 2);
+        const x2 = ((tRect.left - cardsRect.left) / currentZoom) + (tRect.width / currentZoom / 2);
+
+        const bottomChannelY = 24 + (cIdx * 34);
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${x1} 0 V ${bottomChannelY} H ${x2} V 6`;
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "#15803d");
+        path.setAttribute("stroke-width", "1.8");
+        path.setAttribute("marker-end", "url(#arrow-green)");
+        bottomSvg.appendChild(path);
+
+        let labelX = (x1 + x2) / 2;
+        if (conjEl) {
+          const cRect = conjEl.getBoundingClientRect();
+          labelX = ((cRect.left - cardsRect.left) / currentZoom) + (cRect.width / currentZoom / 2);
+        }
+        renderSquareLabel(bottomSvg, labelX, bottomChannelY, chain.label || "連續動作", "#15803d");
+      });
+    }
+
+    function renderSquareLabel(svg, x, y, textStr, color) {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", x);
+      text.setAttribute("y", y + 3.5);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("fill", color);
+      text.setAttribute("font-size", "11px");
+      text.setAttribute("font-weight", "600");
+      text.textContent = textStr;
+      g.appendChild(text);
+      svg.appendChild(g);
+
+      const bbox = text.getBBox();
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", bbox.x - 6);
+      rect.setAttribute("y", bbox.y - 3);
+      rect.setAttribute("width", bbox.width + 12);
+      rect.setAttribute("height", bbox.height + 6);
+      rect.setAttribute("fill", "#ffffff");
+      rect.setAttribute("stroke", "#ccd0d5");
+      rect.setAttribute("stroke-width", "1");
+      rect.setAttribute("rx", "4");
+      g.insertBefore(rect, text);
+    }
+
+    window.addEventListener("resize", () => {
+      if (document.getElementById("tabSyntax").classList.contains("active")) {
+        drawStructureGraph();
+      }
+    });
+
+    // ================= 第三分頁：單字拆解專屬函式 =================
+    let currentExtractedTokens = [];
+
+    async function executeVocabExtraction(sentenceText, apiKey) {
+      const prompt = `你是一位專業的日語教學專家。
+請將下列日文句子拆解為適合台灣學習者的「完整詞彙與學習語塊卡片 (Vocab Cards)」。
+
+【重要拆解規則】：
+1. **過濾純英文**：若句子中出現原本就是純英文字母的專有名詞/單字（例如 Westwood），直接捨棄不拆出！但若已經轉換為日文外來語的「片假名」（例如 リリース、ラテ），則務必保留並拆解。
+2. **語意保持完整，嚴禁過度碎化**：
+   - 動詞請務必將其「被動態、使役態、過去式(た)、接續(て)、否定(ない)或複合動詞」保持為同一個完整單字語塊！
+   - 絕對不要把「リリースされた」碎拆成「さ」「れ」「た」，請組合成「リリースされた」（釋義：被發行/發布，詞性：動詞片語/受身形，原型：リリースする）。
+   - 絕對不要把「聴いた」拆成「聴い」和「た」，請組合成「聴いた」（釋義：聽了，原型：聴く）。
+   - 助詞若獨立無意義，可合理附隨於搭配詞或獨立為明確語法點（如：～について、～によって）。
+3. 每個單字包含：單字當前語塊 (word)、原型/辭書形 (lemma)、標準赫本式羅馬拼音 (romaji)、繁體中文精確釋義 (meaning)、詞性 (pos)、當前形態說明 (inflection)。
+4. 如果該詞包含動詞，在 conjugations 提供其原型辭書形相關的常見活用字典對照（辞書形, ます形, て形, ない形, た形, 意向形, 可能形, 條件形等）；若無活用填 null。
+
+請嚴格回傳純 JSON 陣列：
+[
+  {
+    "word": "リリースされた",
+    "lemma": "リリースする",
+    "romaji": "ririisu sareta",
+    "meaning": "被發行、被發布",
+    "pos": "動詞 (サ變被動過去形)",
+    "inflection": "サ行變格動詞被動過去形",
+    "conjugations": {
+      "辞書形": "リリースする",
+      "ます形": "リリースします",
+      "て形": "リリースして",
+      "ない形": "リリースしない",
+      "た形": "リリースした",
+      "意向形": "リリースしよう",
+      "可能形": "リリースできる",
+      "條件形": "リリースすれば"
+    }
+  }
+]
+
+待拆解句子：
+${JSON.stringify(sentenceText.trim())}`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+        })
+      });
+
+      const data = await res.json();
+      return extractJsonFromResponse(data);
+    }
+
+    async function saveCurrentSyntaxSentenceToVocab() {
+      const idx = document.getElementById("syntaxSentenceSelect").value || 0;
+      const data = isolatedSyntaxData[idx];
+      if (!data || !data.raw) {
+        alert("目前沒有可轉存的日文句子，請先進行結構分析。");
+        return;
+      }
+
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      const btn = document.getElementById("saveToVocabBtn");
+      const origText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "轉存中...";
+
+      try {
+        const tokens = await executeVocabExtraction(data.raw, apiKey);
+        await saveVocabToDb(tokens);
+        btn.innerText = "已成功轉存！";
+        setTimeout(() => {
+          btn.innerText = origText;
+          btn.disabled = false;
+        }, 2000);
+      } catch (err) {
+        console.error("轉存單字書失敗:", err);
+        alert(`轉存單字書失敗：${err.message}`);
+        btn.innerText = origText;
+        btn.disabled = false;
+      }
+    }
+
+    async function runVocabExtraction() {
+      const input = document.getElementById("vocabInput").value;
+      if (!input.trim()) return alert("請輸入日文句子。");
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      const btn = document.getElementById("vocabBtn");
+      const status = document.getElementById("vocabStatus");
+      const wrapper = document.getElementById("vocabResultWrapper");
+      const grid = document.getElementById("vocabCardsGrid");
+
+      btn.disabled = true;
+      grid.innerHTML = "";
+      status.innerText = "正在使用 Gemini 3.1 Flash-Lite 拆解學習語塊與動詞活用...";
+
+      try {
+        currentExtractedTokens = await executeVocabExtraction(input, apiKey);
+        await saveVocabToDb(currentExtractedTokens);
+
+        renderVocabCards(currentExtractedTokens);
+        wrapper.style.display = "block";
+        document.getElementById("vocabCountBadge").innerText = `本次拆解 ${currentExtractedTokens.length} 個單字`;
+        status.innerText = `拆解成功！已將 ${currentExtractedTokens.length} 個單字存入單字書。`;
+      } catch (err) {
+        status.innerText = `單字拆解失敗：${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function createCardElement(t, isDbCard, showRomaji) {
+      const card = document.createElement("div");
+      card.className = "vocab-card";
+      if (t.id) card.dataset.dbId = t.id;
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "card-delete-btn";
+      delBtn.title = "刪除此單字";
+      delBtn.innerHTML = "✕";
+      delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (confirm(`確定要刪除「${t.word}」嗎？`)) {
+          if (t.id) await deleteVocabFromDb(t.id);
+          card.remove();
+        }
+      };
+      card.appendChild(delBtn);
+
+      let conjHtml = "";
+      if (t.pos && t.pos.includes("動詞") && t.conjugations && typeof t.conjugations === "object") {
+        const items = Object.entries(t.conjugations).map(([k, v]) => `
+          <div class="conj-item">
+            <span class="conj-label">${escapeHtml(k)}</span>
+            <span class="conj-val">
+              ${escapeHtml(v)}
+              <button class="speak-btn" style="font-size:12px;" onclick="speakJapanese('${escapeHtml(v)}')" title="朗讀活用發音">🔊</button>
+            </span>
+          </div>
+        `).join("");
+
+        conjHtml = `
+          <details class="conjugation-details">
+            <summary>查看動詞活用變形表 (${escapeHtml(t.lemma || t.word)})</summary>
+            <div class="conjugation-grid">${items}</div>
+          </details>
+        `;
+      }
+
+      const fam = t.familiarity !== undefined ? t.familiarity : 0;
+      let famControlsHtml = "";
+      if (isDbCard && t.id) {
+        famControlsHtml = `
+          <div class="familiarity-selector">
+            <span>熟悉度：</span>
+            <span class="familiarity-tag ${fam === 0 ? "active" : ""}" data-level="0" onclick="updateCardFamiliarity(${t.id}, 0)">陌生</span>
+            <span class="familiarity-tag ${fam === 1 ? "active" : ""}" data-level="1" onclick="updateCardFamiliarity(${t.id}, 1)">模糊</span>
+            <span class="familiarity-tag ${fam === 2 ? "active" : ""}" data-level="2" onclick="updateCardFamiliarity(${t.id}, 2)">掌握</span>
+          </div>
+        `;
+      }
+
+      const content = document.createElement("div");
+      content.innerHTML = `
+        <div class="vocab-card-header">
+          <div class="vocab-word-row">
+            <span class="vocab-word">${escapeHtml(t.word)}</span>
+            <button class="speak-btn" onclick="speakJapanese('${escapeHtml(t.word)}')" title="朗讀單字發音">🔊</button>
+            ${t.lemma && t.lemma !== t.word ? `<span class="vocab-lemma">(${escapeHtml(t.lemma)})</span>` : ""}
+          </div>
+        </div>
+        <div class="vocab-romaji ${showRomaji ? "" : "hidden"}">${escapeHtml(t.romaji || "")}</div>
+        <div class="vocab-meaning">${escapeHtml(t.meaning || "")}</div>
+        <div class="vocab-tags-row">
+          <span class="vocab-badge pos">${escapeHtml(t.pos)}</span>
+          ${t.inflection && t.inflection !== "-" ? `<span class="vocab-badge form">${escapeHtml(t.inflection)}</span>` : ""}
+        </div>
+        ${famControlsHtml}
+        ${conjHtml}
+      `;
+      card.appendChild(content);
+      return card;
+    }
+
+    async function updateCardFamiliarity(id, level) {
+      await updateVocabFamiliarityInDb(id, level);
+      const items = await getAllVocabFromDb();
+      renderBookCards(items);
+    }
+
+    function renderVocabCards(tokens) {
+      const grid = document.getElementById("vocabCardsGrid");
+      const showRomaji = document.getElementById("romajiToggle").checked;
+      grid.innerHTML = "";
+
+      tokens.forEach(t => {
+        const card = createCardElement(t, false, showRomaji);
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleRomajiVisibility() {
+      const show = document.getElementById("romajiToggle").checked;
+      document.querySelectorAll(".vocab-romaji").forEach(el => {
+        if (show) el.classList.remove("hidden");
+        else el.classList.add("hidden");
+      });
+    }
+
+    // ================= 單張翻卡學習模式 (Flashcard Mode) =================
+    let studyPool = [];
+    let currentStudyIndex = 0;
+    let isFlipped = false;
+
+    async function startStudyMode() {
+      const items = await getAllVocabFromDb();
+      if (items.length === 0) {
+        alert("單字書內目前沒有單字，請先拆解儲存一些單字。");
+        return;
+      }
+
+      studyPool = items;
+      currentStudyIndex = 0;
+      isFlipped = false;
+
+      document.getElementById("studySection").style.display = "block";
+      document.getElementById("quizSection").style.display = "none";
+      document.getElementById("vocabResultWrapper").style.display = "none";
+
+      renderCurrentFlashcard();
+    }
+
+    function exitStudyMode() {
+      window.speechSynthesis.cancel();
+      document.getElementById("studySection").style.display = "none";
+      document.getElementById("vocabResultWrapper").style.display = "block";
+    }
+
+    function renderCurrentFlashcard() {
+      if (studyPool.length === 0) return;
+      const t = studyPool[currentStudyIndex];
+      isFlipped = false;
+
+      document.getElementById("studyProgressText").innerText = `進度：${currentStudyIndex + 1} / ${studyPool.length}`;
+      document.getElementById("flipHintBadge").innerText = "點擊卡片翻面 ↻";
+
+      const fam = t.familiarity !== undefined ? t.familiarity : 0;
+      document.querySelectorAll("#cardFamiliarityControl .familiarity-tag").forEach(tag => {
+        const level = Number(tag.dataset.level);
+        if (level === fam) tag.classList.add("active");
+        else tag.classList.remove("active");
+      });
+
+      renderFlashcardSide(t, false);
+    }
+
+    function flipFlashcard() {
+      if (studyPool.length === 0) return;
+      isFlipped = !isFlipped;
+      document.getElementById("flipHintBadge").innerText = isFlipped ? "背面 (中文釋義) ↻" : "正面 (日文詞彙) ↻";
+      renderFlashcardSide(studyPool[currentStudyIndex], isFlipped);
+    }
+
+    function renderFlashcardSide(t, showBack) {
+      const box = document.getElementById("flashcardContent");
+      if (!showBack) {
+        box.innerHTML = `
+          <div style="font-size:36px; font-weight:bold; color:#1a202c; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span>${escapeHtml(t.word)}</span>
+            <button class="speak-btn" style="font-size:24px;" onclick="event.stopPropagation(); speakJapanese('${escapeHtml(t.word)}')" title="發音">🔊</button>
+          </div>
+          <div style="font-size:16px; color:#c93b3b; font-family:Consolas, monospace; margin-top:8px;">${escapeHtml(t.romaji || "")}</div>
+          ${t.lemma && t.lemma !== t.word ? `<div style="font-size:13px; color:#718096; margin-top:4px;">原型: ${escapeHtml(t.lemma)}</div>` : ""}
+        `;
+      } else {
+        let conjList = "";
+        if (t.conjugations && typeof t.conjugations === "object") {
+          const list = Object.entries(t.conjugations).map(([k, v]) => `
+            <span style="background:#f7fafc; padding:2px 6px; border-radius:3px; border:1px solid #e2e8f0;">${escapeHtml(k)}: <b>${escapeHtml(v)}</b></span>
+          `).join(" ");
+          conjList = `<div style="font-size:11px; color:#4a5568; margin-top:12px; display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">${list}</div>`;
+        }
+
+        box.innerHTML = `
+          <div style="font-size:24px; font-weight:bold; color:#257a46;">${escapeHtml(t.meaning)}</div>
+          <div style="margin-top:10px; display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+            <span class="vocab-badge pos">${escapeHtml(t.pos)}</span>
+            ${t.inflection && t.inflection !== "-" ? `<span class="vocab-badge form">${escapeHtml(t.inflection)}</span>` : ""}
+          </div>
+          ${conjList}
+        `;
+      }
+    }
+
+    async function setCardFamiliarityInStudy(level) {
+      if (studyPool.length === 0) return;
+      const t = studyPool[currentStudyIndex];
+      t.familiarity = level;
+      if (t.id) {
+        await updateVocabFamiliarityInDb(t.id, level);
+      }
+      document.querySelectorAll("#cardFamiliarityControl .familiarity-tag").forEach(tag => {
+        const l = Number(tag.dataset.level);
+        if (l === level) tag.classList.add("active");
+        else tag.classList.remove("active");
+      });
+    }
+
+    function prevFlashcard() {
+      if (studyPool.length === 0) return;
+      if (currentStudyIndex > 0) {
+        currentStudyIndex--;
+        renderCurrentFlashcard();
+      }
+    }
+
+    function nextFlashcard() {
+      if (studyPool.length === 0) return;
+      if (currentStudyIndex < studyPool.length - 1) {
+        currentStudyIndex++;
+        renderCurrentFlashcard();
+      } else {
+        alert("已瀏覽到最後一張單字卡！");
+      }
+    }
+
+    // ================= 測驗模式 (熟悉度優先演算) =================
+    let quizPool = [];
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+    let currentQuestion = null;
+
+    async function startQuizMode() {
+      const items = await getAllVocabFromDb();
+      if (items.length < 4) {
+        alert("單字書中累積不足 4 個詞，請先輸入句子拆解儲存一些單字。");
+        return;
+      }
+
+      quizPool = [...items].sort((a, b) => {
+        const famA = a.familiarity !== undefined ? a.familiarity : 0;
+        const famB = b.familiarity !== undefined ? b.familiarity : 0;
+        if (famA !== famB) return famA - famB;
+        return 0.5 - Math.random();
+      });
+
+      currentQuizIndex = 0;
+      quizScore = 0;
+
+      document.getElementById("quizSection").style.display = "block";
+      document.getElementById("studySection").style.display = "none";
+      document.getElementById("vocabResultWrapper").style.display = "none";
+      loadNextQuizQuestion();
+    }
+
+    function exitQuizMode() {
+      window.speechSynthesis.cancel();
+      document.getElementById("quizSection").style.display = "none";
+      document.getElementById("vocabResultWrapper").style.display = "block";
+    }
+
+    function loadNextQuizQuestion() {
+      if (currentQuizIndex >= quizPool.length) {
+        alert(`測驗結束！您的最終得分是：${quizScore} / ${quizPool.length}`);
+        exitQuizMode();
+        return;
+      }
+
+      currentQuestion = quizPool[currentQuizIndex];
+      const famDesc = currentQuestion.familiarity === 0 ? "（較陌生）" : (currentQuestion.familiarity === 1 ? "（模糊）" : "（已掌握）");
+
+      document.getElementById("quizStats").innerText = `題目：${currentQuizIndex + 1} / ${quizPool.length} ${famDesc} | 得分: ${quizScore}`;
+      document.getElementById("quizWord").innerText = currentQuestion.word;
+      document.getElementById("quizRomaji").innerText = currentQuestion.romaji || "";
+
+      const speakBtn = document.getElementById("quizSpeakBtn");
+      speakBtn.onclick = () => speakJapanese(currentQuestion.word);
+
+      if (document.getElementById("autoSpeakToggle").checked) {
+        speakJapanese(currentQuestion.word);
+      }
+
+      const otherItems = quizPool.filter(i => i.word !== currentQuestion.word);
+      const distractors = otherItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+      const options = [currentQuestion, ...distractors].sort(() => 0.5 - Math.random());
+
+      const optContainer = document.getElementById("quizOptions");
+      optContainer.innerHTML = "";
+
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "quiz-opt-btn";
+        btn.innerText = `${opt.meaning} (${opt.pos})`;
+        btn.onclick = () => handleAnswer(opt.word === currentQuestion.word, btn);
+        optContainer.appendChild(btn);
+      });
+    }
+
+    async function handleAnswer(isCorrect, clickedBtn) {
+      const allBtns = document.querySelectorAll(".quiz-opt-btn");
+      allBtns.forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        clickedBtn.classList.add("correct");
+        quizScore++;
+        if (currentQuestion.id) {
+          const newFam = Math.min(2, (currentQuestion.familiarity || 0) + 1);
+          currentQuestion.familiarity = newFam;
+          await updateVocabFamiliarityInDb(currentQuestion.id, newFam);
+        }
+      } else {
+        clickedBtn.classList.add("wrong");
+        allBtns.forEach(b => {
+          if (b.innerText.includes(currentQuestion.meaning)) {
+            b.classList.add("correct");
+          }
+        });
+        if (currentQuestion.id) {
+          currentQuestion.familiarity = 0;
+          await updateVocabFamiliarityInDb(currentQuestion.id, 0);
+        }
+      }
+
+      document.getElementById("quizStats").innerText = `題目：${currentQuizIndex + 1} / ${quizPool.length} | 得分: ${quizScore}`;
+      currentQuizIndex++;
+      setTimeout(loadNextQuizQuestion, 1200);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
