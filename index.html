@@ -26,7 +26,7 @@
     }
     .global-bar {
       background: #ffffff;
-      padding: 14px 20px;
+      padding: 12px 18px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
       margin-bottom: 20px;
@@ -36,40 +36,23 @@
       align-items: center;
       gap: 12px;
     }
-    .global-controls {
+    .global-indicators {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       gap: 12px;
-    }
-    .api-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #444;
-    }
-    .api-input-wrap input {
-      padding: 7px 10px;
-      border: 1px solid #ccd0d5;
-      border-radius: 5px;
-      width: 250px;
       font-size: 13px;
     }
-    .model-select-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #444;
+    .status-badge-inline {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      background: #edf2f7;
+      color: #4a5568;
     }
-    .model-select-wrap select {
-      padding: 6px 10px;
-      border: 1px solid #ccd0d5;
-      border-radius: 5px;
-      font-size: 13px;
-      background: #ffffff;
-      color: #333;
+    .status-badge-inline.ready {
+      background: #c6f6d5;
+      color: #22543d;
+      font-weight: 600;
     }
     .text-action-btn {
       background: #f0f2f5;
@@ -91,7 +74,7 @@
       margin-bottom: -1px;
     }
     .tab-btn {
-      padding: 11px 22px;
+      padding: 11px 20px;
       background: #e8ecf1;
       border: 1px solid #ccd0d5;
       border-bottom: none;
@@ -521,44 +504,7 @@
       background-color: #f9fbfc;
     }
 
-    /* =================== Google Drive 專屬雲端同步面板 =================== */
-    .gdrive-sync-panel {
-      background: #ffffff;
-      border: 1px solid #d0d7de;
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 18px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .gdrive-user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .gdrive-status-badge {
-      font-size: 12px;
-      padding: 3px 8px;
-      border-radius: 12px;
-      background: #edf2f7;
-      color: #4a5568;
-    }
-    .gdrive-status-badge.connected {
-      background: #c6f6d5;
-      color: #22543d;
-      font-weight: 600;
-    }
-    .gdrive-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
+    /* 單字卡與測驗樣式 */
     .vocab-toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -638,7 +584,6 @@
       background: #ff4d4f;
       color: #ffffff;
     }
-
     .speak-btn {
       background: transparent;
       border: none;
@@ -659,7 +604,6 @@
       color: #2b6cb0;
       transform: scale(1.15);
     }
-
     .vocab-card-header {
       display: flex;
       justify-content: space-between;
@@ -719,7 +663,6 @@
       background: #fefcbf;
       color: #975a16;
     }
-
     .familiarity-selector {
       display: flex;
       align-items: center;
@@ -754,7 +697,6 @@
       border-color: #9ae6b4;
       font-weight: bold;
     }
-
     .conjugation-details {
       margin-top: 10px;
       border-top: 1px dashed #e2e8f0;
@@ -794,7 +736,7 @@
       gap: 4px;
     }
 
-    /* 學習模式 (Flashcard) 樣式 */
+    /* 學習模式 */
     .study-section {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -852,7 +794,7 @@
       gap: 12px;
     }
 
-    /* 測驗區塊樣式 */
+    /* 測驗模式 */
     .quiz-section {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -938,7 +880,6 @@
       border-color: #e53e3e !important;
       color: #742a2a;
     }
-
     .vocab-book-drawer {
       margin-top: 24px;
       border: 1px solid #e2e8f0;
@@ -967,28 +908,82 @@
     .vocab-book-content {
       padding: 16px;
     }
+
+    /* =================== 第四分頁：設定中心專用樣式 =================== */
+    .settings-section-card {
+      background: #fafbfc;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .settings-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-field-group {
+      margin-bottom: 16px;
+    }
+    .settings-field-group:last-child {
+      margin-bottom: 0;
+    }
+    .settings-field-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .settings-input {
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 12px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .settings-select {
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 12px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #ffffff;
+    }
+    .settings-tip {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+    .cloud-status-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      background: #ffffff;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
   </style>
 </head>
 <body>
 
   <h1>日文分句對照與句法結構分析工具</h1>
 
+  <!-- 頂部精簡狀態列 -->
   <div class="global-bar">
-    <div class="global-controls">
-      <div class="api-input-wrap">
-        <label for="apiKey"><strong>Gemini API Key：</strong></label>
-        <input type="password" id="apiKey" placeholder="全域共用，自動記憶">
-        <button type="button" class="text-action-btn" onclick="clearApiKey()">清除 Key</button>
-      </div>
-      <div class="model-select-wrap">
-        <label for="modelSelect"><strong>呼叫模型：</strong></label>
-        <select id="modelSelect" onchange="onModelChange()">
-          <option value="gemini-3.5-flash">Gemini 3.5 Flash (推薦)</option>
-          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐/快速)</option>
-          <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-          <option value="auto">自動備援 (Auto Fallback)</option>
-        </select>
-      </div>
+    <div class="global-indicators">
+      <div>API Key：<span id="globalApiKeyBadge" class="status-badge-inline">未設定</span></div>
+      <div>模型：<span id="globalModelBadge" style="font-weight:600; color:#2e78d6;">Gemini 3.5 Flash</span></div>
+      <div>Google 雲端：<span id="globalCloudBadge" class="status-badge-inline">未連線</span></div>
     </div>
     <div id="globalStatus" class="status-msg">系統就緒。</div>
   </div>
@@ -997,6 +992,7 @@
     <button class="tab-btn active" onclick="switchTab('tabTranslate')">對照轉換</button>
     <button class="tab-btn" onclick="switchTab('tabSyntax')">句法結構與無交錯折線分析</button>
     <button class="tab-btn" onclick="switchTab('tabVocab')">日文單字卡與測驗工具</button>
+    <button class="tab-btn" onclick="switchTab('tabSettings')">⚙️ 帳號與 API 設定</button>
   </div>
 
   <!-- 分頁一：對照轉換 -->
@@ -1134,39 +1130,6 @@
 
   <!-- 分頁三：單字拆解與測驗工具 -->
   <div id="tabVocab" class="tab-content">
-
-    <!-- 🟢 Google 帳號與 Google Drive 自動同步面板 -->
-    <div class="gdrive-sync-panel">
-      <div class="gdrive-user-info">
-        <span style="font-size:18px;">🇬</span>
-        <div>
-          <div style="font-weight:600; font-size:14px;">Google 帳號雲端同步</div>
-          <div style="font-size:12px; color:#718096;" id="gdriveAccountText">尚未登入 Google 帳號</div>
-        </div>
-        <span class="gdrive-status-badge" id="gdriveStatusBadge">離線 / 本地保存</span>
-      </div>
-
-      <div class="gdrive-actions">
-        <button type="button" class="text-action-btn" id="gdriveAuthBtn" style="background:#2e78d6; color:#ffffff; border-color:#2e78d6; font-weight:500;" onclick="handleGoogleAuthClick()">
-          登入 Google 帳號
-        </button>
-        <button type="button" class="text-action-btn" id="gdriveManualSyncBtn" style="display:none;" onclick="syncWithGoogleDrive(true)">
-          🔄 立即同步 (上傳/拉取)
-        </button>
-        <button type="button" class="text-action-btn" id="gdriveSignoutBtn" style="display:none;" onclick="handleGoogleSignout()">
-          登出
-        </button>
-        <details style="display:inline-block; font-size:12px; color:#718096; margin-left:4px;">
-          <summary style="cursor:pointer;">設定 Client ID ▾</summary>
-          <div style="position:absolute; background:#ffffff; border:1px solid #ccd0d5; padding:10px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:20; margin-top:6px; width:290px;">
-            <label style="font-weight:600; display:block; margin-bottom:4px;">Google OAuth Client ID：</label>
-            <input type="text" id="gdriveClientIdInput" placeholder="貼上你的 Google Client ID" style="width:100%; padding:6px; font-size:12px; border:1px solid #ccd0d5; border-radius:4px; margin-bottom:6px;">
-            <button class="text-action-btn" style="width:100%;" onclick="saveGoogleClientId()">儲存 Client ID</button>
-          </div>
-        </details>
-      </div>
-    </div>
-
     <div class="textarea-header">
       <span class="field-title">輸入日語句子（完整語塊拆解、過濾純英文、自動保存至本地與雲端）：</span>
       <button type="button" class="text-action-btn" onclick="clearInput('vocabInput')">清空輸入</button>
@@ -1187,7 +1150,7 @@
       </div>
     </div>
 
-    <!-- 學習模式 (一張一張翻卡記憶區塊) -->
+    <!-- 學習模式 (翻卡記憶) -->
     <div id="studySection" class="study-section">
       <div class="study-header">
         <div style="font-weight:bold; font-size:16px; color:#2d3748;">🎴 單字翻卡學習模式</div>
@@ -1280,6 +1243,77 @@
         <div id="bookCardsGrid" class="vocab-cards-grid"></div>
       </div>
     </details>
+  </div>
+
+  <!-- 分頁四：⚙️ 帳號與 API 設定 -->
+  <div id="tabSettings" class="tab-content">
+    
+    <!-- Gemini 模型與 API Key 設定 -->
+    <div class="settings-section-card">
+      <div class="settings-section-title">
+        <span>🤖 Gemini 模型與 API Key</span>
+      </div>
+
+      <div class="settings-field-group">
+        <label for="apiKey">Gemini API Key：</label>
+        <div style="display:flex; gap:8px; max-width:560px;">
+          <input type="password" id="apiKey" class="settings-input" placeholder="貼上你的 Gemini API Key (AI Studio)">
+          <button type="button" class="text-action-btn" onclick="clearApiKey()">清除 Key</button>
+        </div>
+        <div class="settings-tip">此 Key 儲存於瀏覽器本機，並會在連線 Google Drive 時自動同步備份至個人雲端空間。</div>
+      </div>
+
+      <div class="settings-field-group">
+        <label for="modelSelect">主要呼叫模型：</label>
+        <select id="modelSelect" class="settings-select" onchange="onModelChange()">
+          <option value="gemini-3.5-flash">Gemini 3.5 Flash (推薦，速度與品質平衡)</option>
+          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐、超低延遲)</option>
+          <option value="gemini-3.7-flash">Gemini 3.7 Flash (高智商推理)</option>
+          <option value="auto">自動備援 (Auto Fallback)</option>
+        </select>
+        <div class="settings-tip">對照轉換與句法分析將優先使用選取的模型；若遇配額限制將自動切換備援。單字拆解固定採用輕量高效的 Flash-Lite 模型。</div>
+      </div>
+    </div>
+
+    <!-- Google Drive 雲端同步設定 -->
+    <div class="settings-section-card">
+      <div class="settings-section-title">
+        <span>☁️ Google 帳號與雲端備份同步</span>
+      </div>
+
+      <div class="cloud-status-box">
+        <span style="font-size:24px;">🇬</span>
+        <div style="flex-grow:1;">
+          <div style="font-weight:600; font-size:14px;" id="gdriveAccountText">尚未登入 Google 帳號</div>
+          <div style="font-size:12px; color:#718096;">雲端同步將自動儲存「單字庫」與「Gemini API Key」至個人專屬 AppData 空間</div>
+        </div>
+        <span class="status-badge-inline" id="gdriveStatusBadge">離線 / 本地保存</span>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+        <button type="button" class="primary-btn" id="gdriveAuthBtn" onclick="handleGoogleAuthClick()">
+          登入 Google 帳號
+        </button>
+        <button type="button" class="text-action-btn" id="gdriveManualSyncBtn" style="display:none;" onclick="syncWithGoogleDrive(true)">
+          🔄 立即雙向同步
+        </button>
+        <button type="button" class="text-action-btn" id="gdriveSignoutBtn" style="display:none;" onclick="handleGoogleSignout()">
+          登出帳號
+        </button>
+      </div>
+
+      <div class="settings-field-group" style="border-top: 1px dashed #e2e8f0; padding-top:14px;">
+        <label for="gdriveClientIdInput">Google OAuth 2.0 Client ID：</label>
+        <div style="display:flex; gap:8px; max-width:620px;">
+          <input type="text" id="gdriveClientIdInput" class="settings-input" placeholder="例如：xxxx.apps.googleusercontent.com">
+          <button type="button" class="text-action-btn" onclick="saveGoogleClientId()">儲存 Client ID</button>
+        </div>
+        <div class="settings-tip">
+          請於 Google Cloud Console 建立 OAuth 用戶端 ID（Web 應用程式），並將當前網頁網址加入「已授權的 JavaScript 來源」。
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -1391,7 +1425,6 @@
       return new Promise((resolve) => {
         tx.oncomplete = () => {
           refreshBookSummary();
-          // 若處於 Google 登入狀態，自動觸發背景同步
           if (googleAccessToken) syncWithGoogleDrive(false);
           resolve();
         };
@@ -1495,7 +1528,7 @@
       };
     }
 
-    // ================= 🟢 Google Drive 雲端雙向同步模組 =================
+    // ================= ☁️ Google Drive 雲端雙向同步模組 (含 API Key) =================
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
@@ -1540,28 +1573,35 @@
       const manualSyncBtn = document.getElementById("gdriveManualSyncBtn");
       const statusBadge = document.getElementById("gdriveStatusBadge");
       const accountText = document.getElementById("gdriveAccountText");
+      const globalBadge = document.getElementById("globalCloudBadge");
 
       if (isConnected) {
         authBtn.style.display = "none";
         signoutBtn.style.display = "inline-block";
         manualSyncBtn.style.display = "inline-block";
         statusBadge.innerText = "已連線 Google 雲端";
-        statusBadge.className = "gdrive-status-badge connected";
+        statusBadge.className = "status-badge-inline ready";
         accountText.innerText = email ? `帳號: ${email}` : "Google 帳號已連結 (雲端同步中)";
+
+        globalBadge.innerText = "已連線";
+        globalBadge.className = "status-badge-inline ready";
       } else {
         authBtn.style.display = "inline-block";
         signoutBtn.style.display = "none";
         manualSyncBtn.style.display = "none";
         statusBadge.innerText = "離線 / 本地保存";
-        statusBadge.className = "gdrive-status-badge";
+        statusBadge.className = "status-badge-inline";
         accountText.innerText = "尚未登入 Google 帳號";
+
+        globalBadge.innerText = "未連線";
+        globalBadge.className = "status-badge-inline";
       }
     }
 
     function handleGoogleAuthClick() {
       const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
       if (!clientId) {
-        alert("請先點擊右側「設定 Client ID ▾」，輸入你在 Google Cloud Console 申請的 OAuth Client ID。");
+        alert("請在下方設定欄位中輸入你在 Google Cloud Console 申請的 OAuth Client ID。");
         return;
       }
       if (!tokenClient) initGoogleClient();
@@ -1583,7 +1623,6 @@
       }
     }
 
-    // 在 Google Drive AppData 隱藏資料夾中尋找檔案
     async function findDriveFileId() {
       const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
       const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}`, {
@@ -1591,7 +1630,6 @@
       });
       if (!res.ok) {
         if (res.status === 401) {
-          // Token 過期
           googleAccessToken = null;
           updateGoogleUi(false);
         }
@@ -1601,33 +1639,42 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
-    // Google Drive 雙向同步（合併本地與雲端）
+    // Google Drive 雙向同步（單字庫與 API Key 同步保存）
     async function syncWithGoogleDrive(showNotify = false) {
       if (!googleAccessToken) return;
 
       try {
         const fileId = await findDriveFileId();
         const localItems = await getAllVocabFromDb();
+        const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
 
         if (fileId) {
-          // 雲端已有備份：先拉取雲端內容與本地合併
+          // 拉取雲端備份進行合併
           const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
             headers: { Authorization: `Bearer ${googleAccessToken}` }
           });
-          const cloudData = await getRes.json().catch(() => ({ items: [] }));
+          const cloudData = await getRes.json().catch(() => ({ items: [], apiKey: "" }));
           const cloudItems = cloudData.items || [];
+          const cloudApiKey = cloudData.apiKey || "";
 
-          // 合併不重複單字
+          // 若本地無 Key 但雲端有備份，自動還原
+          if (!currentLocalKey && cloudApiKey) {
+            localStorage.setItem(STORAGE_KEY, cloudApiKey);
+            document.getElementById("apiKey").value = cloudApiKey;
+            updateApiKeyBadge(cloudApiKey);
+          }
+
+          // 合併單字
           const localWords = new Set(localItems.map(i => i.word));
           const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
           if (newFromCloud.length > 0) {
             await saveVocabToDb(newFromCloud);
           }
 
-          // 重新取得合併後的最新完整清單
           const fullMergedItems = await getAllVocabFromDb();
+          const keyToSync = currentLocalKey || cloudApiKey;
 
-          // 覆蓋更新回雲端
+          // 覆蓋更新至雲端
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -1636,22 +1683,27 @@
             },
             body: JSON.stringify({
               updated_at: new Date().toISOString(),
+              apiKey: keyToSync,
               items: fullMergedItems
             })
           });
 
           if (updateRes.ok && showNotify) {
-            alert(`Google 雲端同步完成！\n已整合並同步 ${fullMergedItems.length} 個單字（新增 ${newFromCloud.length} 個）。`);
+            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個（新增 ${newFromCloud.length} 個）\n• API Key：已同步記錄`);
           }
         } else {
-          // 首次建立備份檔案
+          // 首次建立檔案
           const metadata = {
             name: DRIVE_FILE_NAME,
             parents: ["appDataFolder"]
           };
           const form = new FormData();
           form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-          form.append("file", new Blob([JSON.stringify({ updated_at: new Date().toISOString(), items: localItems })], { type: "application/json" }));
+          form.append("file", new Blob([JSON.stringify({
+            updated_at: new Date().toISOString(),
+            apiKey: currentLocalKey,
+            items: localItems
+          })], { type: "application/json" }));
 
           const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
             method: "POST",
@@ -1660,7 +1712,7 @@
           });
 
           if (createRes.ok && showNotify) {
-            alert(`已在 Google 雲端建立單字庫存儲檔！共上傳 ${localItems.length} 個單字。`);
+            alert(`已在 Google 雲端建立備份庫！上傳 ${localItems.length} 個單字與 API Key 記錄。`);
           }
         }
         refreshBookSummary();
@@ -1673,10 +1725,14 @@
     // ================= 初始化監聽 =================
     window.addEventListener("DOMContentLoaded", () => {
       const savedKey = localStorage.getItem(STORAGE_KEY);
-      if (savedKey) document.getElementById("apiKey").value = savedKey;
+      if (savedKey) {
+        document.getElementById("apiKey").value = savedKey;
+      }
+      updateApiKeyBadge(savedKey);
 
-      const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
-      if (savedModel) document.getElementById("modelSelect").value = savedModel;
+      const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.5-flash";
+      document.getElementById("modelSelect").value = savedModel;
+      updateModelBadge(savedModel);
 
       const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
       if (savedClientId) {
@@ -1690,19 +1746,48 @@
 
     document.getElementById("apiKey").addEventListener("input", (e) => {
       const val = e.target.value.trim();
-      if (val) localStorage.setItem(STORAGE_KEY, val);
-      else localStorage.removeItem(STORAGE_KEY);
+      if (val) {
+        localStorage.setItem(STORAGE_KEY, val);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      updateApiKeyBadge(val);
+      if (googleAccessToken) syncWithGoogleDrive(false);
     });
+
+    function updateApiKeyBadge(val) {
+      const badge = document.getElementById("globalApiKeyBadge");
+      if (val) {
+        badge.innerText = "已就緒";
+        badge.className = "status-badge-inline ready";
+      } else {
+        badge.innerText = "未設定";
+        badge.className = "status-badge-inline";
+      }
+    }
+
+    function updateModelBadge(modelVal) {
+      const modelLabels = {
+        "gemini-3.5-flash": "Gemini 3.5 Flash",
+        "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite",
+        "gemini-3.7-flash": "Gemini 3.7 Flash",
+        "auto": "自動備援"
+      };
+      document.getElementById("globalModelBadge").innerText = modelLabels[modelVal] || modelVal;
+    }
 
     function onModelChange() {
       const model = document.getElementById("modelSelect").value;
       localStorage.setItem(MODEL_STORAGE_KEY, model);
+      updateModelBadge(model);
     }
 
     function clearApiKey() {
       document.getElementById("apiKey").value = "";
       localStorage.removeItem(STORAGE_KEY);
+      updateApiKeyBadge("");
       document.getElementById("globalStatus").innerText = "已清除 API Key。";
+      if (googleAccessToken) syncWithGoogleDrive(false);
     }
 
     function clearInput(id) {
@@ -1713,7 +1798,8 @@
     function getApiKey() {
       const key = document.getElementById("apiKey").value.trim();
       if (!key) {
-        alert("請先在上方填入 Gemini API Key。");
+        alert("請先前往第四分頁「⚙️ 帳號與 API 設定」填入 Gemini API Key。");
+        switchTab("tabSettings");
         return null;
       }
       return key;
@@ -1808,19 +1894,23 @@
     }
 
     function switchTab(tabId) {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      
-      if (tabId === "tabTranslate") {
-        document.querySelectorAll(".tab-btn")[0].classList.add("active");
-        document.getElementById("tabTranslate").classList.add("active");
-      } else if (tabId === "tabSyntax") {
-        document.querySelectorAll(".tab-btn")[1].classList.add("active");
-        document.getElementById("tabSyntax").classList.add("active");
+      const tabs = ["tabTranslate", "tabSyntax", "tabVocab", "tabSettings"];
+      const btns = document.querySelectorAll(".tab-btn");
+
+      tabs.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (id === tabId) {
+          el.classList.add("active");
+          btns[idx].classList.add("active");
+        } else {
+          el.classList.remove("active");
+          btns[idx].classList.remove("active");
+        }
+      });
+
+      if (tabId === "tabSyntax") {
         setTimeout(drawStructureGraph, 60);
       } else if (tabId === "tabVocab") {
-        document.querySelectorAll(".tab-btn")[2].classList.add("active");
-        document.getElementById("tabVocab").classList.add("active");
         refreshBookSummary();
       }
     }
