@@ -909,7 +909,7 @@
       padding: 16px;
     }
 
-    /* =================== 第四分頁：設定中心專用樣式 =================== */
+    /* =================== 第四分頁：設定中心樣式 =================== */
     .settings-section-card {
       background: #fafbfc;
       border: 1px solid #e1e4e8;
@@ -978,7 +978,7 @@
 
   <h1>日文分句對照與句法結構分析工具</h1>
 
-  <!-- 頂部精簡狀態列 -->
+  <!-- 頂部全域狀態列 -->
   <div class="global-bar">
     <div class="global-indicators">
       <div>API Key：<span id="globalApiKeyBadge" class="status-badge-inline">未設定</span></div>
@@ -1321,6 +1321,11 @@
     const MODEL_STORAGE_KEY = "gemini_saved_model_pref";
     const GOOGLE_CLIENT_ID_KEY = "gdrive_saved_client_id";
     const GOOGLE_TOKEN_KEY = "gdrive_saved_access_token";
+    const GOOGLE_EXPIRES_AT_KEY = "gdrive_saved_token_expires_at";
+    const GOOGLE_LOGGED_IN_FLAG = "gdrive_has_logged_in";
+
+    // 若要在部署時預設免填 Client ID，可在此處填入字串（留空則完全依賴使用者本機儲存）
+    const DEFAULT_GOOGLE_CLIENT_ID = "";
 
     let cachedHtmlPayload = "";
     let cachedTextPayload = "";
@@ -1528,10 +1533,14 @@
       };
     }
 
-    // ================= ☁️ Google Drive 雲端雙向同步模組 (含 API Key) =================
+    // ================= ☁️ Google Drive 雲端雙向同步模組 (含 API Key 與靜默更新) =================
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
+
+    function getEffectiveClientId() {
+      return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || DEFAULT_GOOGLE_CLIENT_ID;
+    }
 
     function saveGoogleClientId() {
       const val = document.getElementById("gdriveClientIdInput").value.trim();
@@ -1545,7 +1554,7 @@
     }
 
     function initGoogleClient() {
-      const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+      const clientId = getEffectiveClientId();
       if (!clientId) return;
 
       if (window.google && google.accounts && google.accounts.oauth2) {
@@ -1554,16 +1563,40 @@
           scope: "https://www.googleapis.com/auth/drive.appdata",
           callback: async (resp) => {
             if (resp.error) {
-              console.error("Google 授權失敗:", resp);
-              alert("Google 登入失敗: " + resp.error);
+              console.warn("Google 授權或靜默更新回傳失敗:", resp);
+              updateGoogleUi(false);
               return;
             }
             googleAccessToken = resp.access_token;
+            const expiresIn = resp.expires_in || 3500;
+            const expiresAt = Date.now() + (expiresIn * 1000);
+
             localStorage.setItem(GOOGLE_TOKEN_KEY, googleAccessToken);
+            localStorage.setItem(GOOGLE_EXPIRES_AT_KEY, String(expiresAt));
+            localStorage.setItem(GOOGLE_LOGGED_IN_FLAG, "true");
+
             updateGoogleUi(true);
-            await syncWithGoogleDrive(true);
+            await syncWithGoogleDrive(false);
           }
         });
+
+        checkAndRestoreAuth();
+      }
+    }
+
+    function checkAndRestoreAuth() {
+      const hasLoggedIn = localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true";
+      if (!hasLoggedIn) return;
+
+      const savedToken = localStorage.getItem(GOOGLE_TOKEN_KEY);
+      const expiresAt = Number(localStorage.getItem(GOOGLE_EXPIRES_AT_KEY) || 0);
+
+      if (savedToken && Date.now() < expiresAt - 120000) {
+        googleAccessToken = savedToken;
+        updateGoogleUi(true);
+        syncWithGoogleDrive(false);
+      } else if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: "" });
       }
     }
 
@@ -1599,7 +1632,7 @@
     }
 
     function handleGoogleAuthClick() {
-      const clientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
+      const clientId = getEffectiveClientId();
       if (!clientId) {
         alert("請在下方設定欄位中輸入你在 Google Cloud Console 申請的 OAuth Client ID。");
         return;
@@ -1613,13 +1646,19 @@
     }
 
     function handleGoogleSignout() {
-      if (googleAccessToken) {
-        google.accounts.oauth2.revoke(googleAccessToken, () => {
-          googleAccessToken = null;
-          localStorage.removeItem(GOOGLE_TOKEN_KEY);
-          updateGoogleUi(false);
-          alert("已登出 Google 帳號。");
-        });
+      const clearKeys = () => {
+        googleAccessToken = null;
+        localStorage.removeItem(GOOGLE_TOKEN_KEY);
+        localStorage.removeItem(GOOGLE_EXPIRES_AT_KEY);
+        localStorage.removeItem(GOOGLE_LOGGED_IN_FLAG);
+        updateGoogleUi(false);
+        alert("已登出 Google 帳號。");
+      };
+
+      if (googleAccessToken && window.google && google.accounts && google.accounts.oauth2) {
+        google.accounts.oauth2.revoke(googleAccessToken, clearKeys);
+      } else {
+        clearKeys();
       }
     }
 
@@ -1631,7 +1670,12 @@
       if (!res.ok) {
         if (res.status === 401) {
           googleAccessToken = null;
-          updateGoogleUi(false);
+          localStorage.removeItem(GOOGLE_TOKEN_KEY);
+          if (tokenClient && localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true") {
+            tokenClient.requestAccessToken({ prompt: "" });
+          } else {
+            updateGoogleUi(false);
+          }
         }
         return null;
       }
@@ -1639,7 +1683,6 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
-    // Google Drive 雙向同步（單字庫與 API Key 同步保存）
     async function syncWithGoogleDrive(showNotify = false) {
       if (!googleAccessToken) return;
 
@@ -1649,7 +1692,6 @@
         const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
 
         if (fileId) {
-          // 拉取雲端備份進行合併
           const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
             headers: { Authorization: `Bearer ${googleAccessToken}` }
           });
@@ -1657,7 +1699,7 @@
           const cloudItems = cloudData.items || [];
           const cloudApiKey = cloudData.apiKey || "";
 
-          // 若本地無 Key 但雲端有備份，自動還原
+          // 若本地無 Key 但雲端已備份，自動還原至本機
           if (!currentLocalKey && cloudApiKey) {
             localStorage.setItem(STORAGE_KEY, cloudApiKey);
             document.getElementById("apiKey").value = cloudApiKey;
@@ -1674,7 +1716,6 @@
           const fullMergedItems = await getAllVocabFromDb();
           const keyToSync = currentLocalKey || cloudApiKey;
 
-          // 覆蓋更新至雲端
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -1692,7 +1733,6 @@
             alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個（新增 ${newFromCloud.length} 個）\n• API Key：已同步記錄`);
           }
         } else {
-          // 首次建立檔案
           const metadata = {
             name: DRIVE_FILE_NAME,
             parents: ["appDataFolder"]
@@ -1734,9 +1774,9 @@
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
 
-      const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_KEY);
-      if (savedClientId) {
-        document.getElementById("gdriveClientIdInput").value = savedClientId;
+      const effectiveClientId = getEffectiveClientId();
+      if (effectiveClientId) {
+        document.getElementById("gdriveClientIdInput").value = effectiveClientId;
       }
 
       initIndexedDB();
