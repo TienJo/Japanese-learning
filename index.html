@@ -1302,16 +1302,23 @@
         </button>
       </div>
 
-      <div class="settings-field-group" style="border-top: 1px dashed #e2e8f0; padding-top:14px;">
-        <label for="gdriveClientIdInput">Google OAuth 2.0 Client ID：</label>
-        <div style="display:flex; gap:8px; max-width:620px;">
-          <input type="text" id="gdriveClientIdInput" class="settings-input" placeholder="例如：xxxx.apps.googleusercontent.com">
-          <button type="button" class="text-action-btn" onclick="saveGoogleClientId()">儲存 Client ID</button>
+      <!-- 進階 Client ID 設定（預設隱藏並設有密碼保護） -->
+      <details style="margin-top:16px; border-top:1px dashed #e2e8f0; padding-top:12px;">
+        <summary style="font-size:12px; color:#718096; cursor:pointer; user-select:none;">
+          🔒 進階開發者設定 (自訂 Client ID) ▾
+        </summary>
+        <div class="settings-field-group" style="margin-top:12px;">
+          <label for="gdriveClientIdInput">Google OAuth 2.0 Client ID：</label>
+          <div style="display:flex; gap:8px; max-width:620px; flex-wrap:wrap;">
+            <input type="password" id="gdriveClientIdInput" class="settings-input" style="background:#edf2f7;" readonly>
+            <button type="button" class="text-action-btn" id="unlockClientBtn" onclick="promptUnlockClientId()">解鎖修改 Client ID</button>
+            <button type="button" class="text-action-btn" id="saveClientBtn" style="display:none;" onclick="saveCustomClientId()">儲存變更</button>
+          </div>
+          <div class="settings-tip">
+            系統已內建全域 Client ID，一般使用者無需修改。若為開發維護，需輸入管理者密碼解鎖後方可自訂。
+          </div>
         </div>
-        <div class="settings-tip">
-          請於 Google Cloud Console 建立 OAuth 用戶端 ID（Web 應用程式），並將當前網頁網址加入「已授權的 JavaScript 來源」。
-        </div>
-      </div>
+      </details>
     </div>
 
   </div>
@@ -1324,8 +1331,9 @@
     const GOOGLE_EXPIRES_AT_KEY = "gdrive_saved_token_expires_at";
     const GOOGLE_LOGGED_IN_FLAG = "gdrive_has_logged_in";
 
-    // 若要在部署時預設免填 Client ID，可在此處填入字串（留空則完全依賴使用者本機儲存）
-    const DEFAULT_GOOGLE_CLIENT_ID = "";
+    // 內建固定 Client ID 與維護密碼
+    const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
+    const ADMIN_UNLOCK_PASSWORD = "19980815";
 
     let cachedHtmlPayload = "";
     let cachedTextPayload = "";
@@ -1533,24 +1541,51 @@
       };
     }
 
-    // ================= ☁️ Google Drive 雲端雙向同步模組 (含 API Key 與靜默更新) =================
+    // ================= ☁️ Google Drive 雲端雙向同步模組 =================
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
 
     function getEffectiveClientId() {
-      return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || DEFAULT_GOOGLE_CLIENT_ID;
+      return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || BUILTIN_GOOGLE_CLIENT_ID;
     }
 
-    function saveGoogleClientId() {
+    function promptUnlockClientId() {
+      const inputPass = prompt("請輸入管理密碼以解除鎖定：");
+      if (inputPass === ADMIN_UNLOCK_PASSWORD) {
+        const inputEl = document.getElementById("gdriveClientIdInput");
+        inputEl.type = "text";
+        inputEl.readOnly = false;
+        inputEl.style.background = "#ffffff";
+        inputEl.focus();
+
+        document.getElementById("unlockClientBtn").style.display = "none";
+        document.getElementById("saveClientBtn").style.display = "inline-block";
+        alert("已驗證身分！現在可以編輯或更換 Client ID。");
+      } else if (inputPass !== null) {
+        alert("密碼不正確，無法編輯！");
+      }
+    }
+
+    function saveCustomClientId() {
       const val = document.getElementById("gdriveClientIdInput").value.trim();
       if (val) {
         localStorage.setItem(GOOGLE_CLIENT_ID_KEY, val);
-        alert("Client ID 已儲存！請點擊「登入 Google 帳號」。");
+        alert("自訂 Client ID 已儲存！請重新點擊「登入 Google 帳號」。");
         initGoogleClient();
       } else {
         localStorage.removeItem(GOOGLE_CLIENT_ID_KEY);
+        document.getElementById("gdriveClientIdInput").value = BUILTIN_GOOGLE_CLIENT_ID;
+        alert("已還原為內建預設 Client ID！");
+        initGoogleClient();
       }
+
+      const inputEl = document.getElementById("gdriveClientIdInput");
+      inputEl.type = "password";
+      inputEl.readOnly = true;
+      inputEl.style.background = "#edf2f7";
+      document.getElementById("unlockClientBtn").style.display = "inline-block";
+      document.getElementById("saveClientBtn").style.display = "none";
     }
 
     function initGoogleClient() {
@@ -1634,7 +1669,7 @@
     function handleGoogleAuthClick() {
       const clientId = getEffectiveClientId();
       if (!clientId) {
-        alert("請在下方設定欄位中輸入你在 Google Cloud Console 申請的 OAuth Client ID。");
+        alert("缺少 Google OAuth Client ID。");
         return;
       }
       if (!tokenClient) initGoogleClient();
@@ -1774,10 +1809,9 @@
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
 
+      // 載入當前生效的 Client ID
       const effectiveClientId = getEffectiveClientId();
-      if (effectiveClientId) {
-        document.getElementById("gdriveClientIdInput").value = effectiveClientId;
-      }
+      document.getElementById("gdriveClientIdInput").value = effectiveClientId;
 
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
