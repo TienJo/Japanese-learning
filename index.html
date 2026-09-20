@@ -24,6 +24,104 @@
       margin-bottom: 20px;
       font-size: 1.6rem;
     }
+
+    /* =================== 右上角全域浮動語音設定 =================== */
+    .global-audio-fixed-wrapper {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .audio-config-trigger-btn {
+      background: #ffffff;
+      border: 1px solid #ccd0d5;
+      color: #333;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .audio-config-trigger-btn:hover {
+      background: #f0f4f9;
+      border-color: #2e78d6;
+      color: #2e78d6;
+    }
+    .audio-config-popover {
+      display: none;
+      position: absolute;
+      top: 42px;
+      right: 0;
+      width: 290px;
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      padding: 16px;
+    }
+    .audio-config-popover.active {
+      display: block;
+    }
+    .audio-popover-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #edf2f7;
+      padding-bottom: 8px;
+    }
+    .audio-setting-item {
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .audio-setting-item label {
+      display: flex;
+      justify-content: space-between;
+      color: #4a5568;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    .audio-setting-item input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+    .audio-gender-radios {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .audio-gender-label {
+      font-size: 12px;
+      color: #4a5568;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .audio-test-btn {
+      width: 100%;
+      padding: 6px 0;
+      background: #edf2f7;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s;
+    }
+    .audio-test-btn:hover {
+      background: #e2e8f0;
+      color: #2e78d6;
+    }
+
     .global-bar {
       background: #ffffff;
       padding: 12px 18px;
@@ -204,12 +302,37 @@
       color: #111111;
       margin-bottom: 4px;
     }
+    .romaji-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
     .romaji-text {
       font-size: 14px;
       color: #c93b3b;
-      margin-bottom: 4px;
       letter-spacing: 0.3px;
       font-family: Consolas, monospace;
+    }
+    .romaji-speak-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0 4px;
+      font-size: 15px;
+      line-height: 1;
+      color: #c93b3b;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, opacity 0.15s;
+      opacity: 0.7;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .romaji-speak-btn:hover {
+      opacity: 1;
+      transform: scale(1.18);
     }
     .trans-text {
       font-size: 14px;
@@ -516,22 +639,6 @@
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       gap: 12px;
-    }
-    .voice-settings-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 12px;
-      color: #4a5568;
-    }
-    .voice-slider-wrap {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .voice-slider-wrap input[type="range"] {
-      width: 75px;
-      cursor: pointer;
     }
     .toggle-switch-wrap {
       display: flex;
@@ -976,6 +1083,52 @@
 </head>
 <body>
 
+  <!-- 🟢 右上角全域浮動語音設定 -->
+  <div class="global-audio-fixed-wrapper">
+    <button type="button" class="audio-config-trigger-btn" id="audioConfigToggleBtn" onclick="toggleAudioPopover(event)">
+      <span>🔊 語音設定</span>
+    </button>
+    <div class="audio-config-popover" id="audioConfigPopover" onclick="event.stopPropagation()">
+      <div class="audio-popover-title">
+        <span>全域日語人聲設定</span>
+        <span style="font-size:11px; font-weight:normal; color:#718096;">隨調隨存</span>
+      </div>
+
+      <div class="audio-setting-item">
+        <label>偏好聲音：</label>
+        <div class="audio-gender-radios">
+          <label class="audio-gender-label">
+            <input type="radio" name="voiceGenderPref" value="female" onchange="onVoiceGenderChange('female')"> 女聲
+          </label>
+          <label class="audio-gender-label">
+            <input type="radio" name="voiceGenderPref" value="male" onchange="onVoiceGenderChange('male')"> 男聲
+          </label>
+          <label class="audio-gender-label">
+            <input type="radio" name="voiceGenderPref" value="auto" checked onchange="onVoiceGenderChange('auto')"> 自動
+          </label>
+        </div>
+      </div>
+
+      <div class="audio-setting-item">
+        <label>
+          <span>語速 (Rate)：</span>
+          <span id="rateLabelTop" style="color:#2e78d6; font-weight:bold;">0.92x</span>
+        </label>
+        <input type="range" id="rateSliderTop" min="0.6" max="1.4" step="0.05" value="0.92" oninput="onGlobalVoiceInput()">
+      </div>
+
+      <div class="audio-setting-item">
+        <label>
+          <span>音調高低 (Pitch)：</span>
+          <span id="pitchLabelTop" style="color:#2e78d6; font-weight:bold;">0.85</span>
+        </label>
+        <input type="range" id="pitchSliderTop" min="0.5" max="1.5" step="0.05" value="0.85" oninput="onGlobalVoiceInput()">
+      </div>
+
+      <button type="button" class="audio-test-btn" onclick="speakJapanese('こんにちは、よろしくお願いします。')">▶ 試聽發音效果</button>
+    </div>
+  </div>
+
   <h1>日文分句對照與句法結構分析工具</h1>
 
   <!-- 頂部全域狀態列 -->
@@ -1206,20 +1359,6 @@
           <input type="checkbox" id="romajiToggle" checked onchange="toggleRomajiVisibility()">
           <label for="romajiToggle"><strong>顯示羅馬拼音 (Hepburn)</strong></label>
         </div>
-
-        <div class="voice-settings-row">
-          <div class="voice-slider-wrap" title="降低數值可使人聲更低沉溫和，消除刺耳感">
-            <label for="pitchSlider">音高：</label>
-            <input type="range" id="pitchSlider" min="0.5" max="1.3" step="0.05" value="0.85" onchange="onVoiceSettingChange()">
-            <span id="pitchValLabel">0.85</span>
-          </div>
-          <div class="voice-slider-wrap">
-            <label for="rateSlider">語速：</label>
-            <input type="range" id="rateSlider" min="0.7" max="1.2" step="0.05" value="0.92" onchange="onVoiceSettingChange()">
-            <span id="rateValLabel">0.92</span>
-          </div>
-        </div>
-
         <div>
           <span style="font-size:13px; color:#4a5568;" id="vocabCountBadge">本次拆解 0 個單字</span>
         </div>
@@ -1331,6 +1470,11 @@
     const GOOGLE_EXPIRES_AT_KEY = "gdrive_saved_token_expires_at";
     const GOOGLE_LOGGED_IN_FLAG = "gdrive_has_logged_in";
 
+    // 語音全域設定保存 Key
+    const VOICE_RATE_KEY = "app_voice_rate";
+    const VOICE_PITCH_KEY = "app_voice_pitch";
+    const VOICE_GENDER_KEY = "app_voice_gender";
+
     // 內建固定 Client ID 與維護密碼
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
     const ADMIN_UNLOCK_PASSWORD = "19980815";
@@ -1340,15 +1484,65 @@
     let isolatedSyntaxData = [];
     let currentZoom = 1.0;
 
-    // ================= 原生柔和人聲發音核心 (Web Speech API) =================
+    // ================= 原生人聲發音核心 (Web Speech API) =================
     let voicePitch = 0.85;
     let voiceRate = 0.92;
+    let voiceGenderPref = "auto"; // "female", "male", "auto"
 
-    function onVoiceSettingChange() {
-      voicePitch = parseFloat(document.getElementById("pitchSlider").value);
-      voiceRate = parseFloat(document.getElementById("rateSlider").value);
-      document.getElementById("pitchValLabel").innerText = voicePitch.toFixed(2);
-      document.getElementById("rateValLabel").innerText = voiceRate.toFixed(2);
+    function toggleAudioPopover(e) {
+      e.stopPropagation();
+      const popover = document.getElementById("audioConfigPopover");
+      popover.classList.toggle("active");
+    }
+
+    document.addEventListener("click", () => {
+      const popover = document.getElementById("audioConfigPopover");
+      if (popover) popover.classList.remove("active");
+    });
+
+    function initVoiceSettings() {
+      const savedRate = localStorage.getItem(VOICE_RATE_KEY);
+      const savedPitch = localStorage.getItem(VOICE_PITCH_KEY);
+      const savedGender = localStorage.getItem(VOICE_GENDER_KEY);
+
+      if (savedRate) voiceRate = parseFloat(savedRate);
+      if (savedPitch) voicePitch = parseFloat(savedPitch);
+      if (savedGender) voiceGenderPref = savedGender;
+
+      document.getElementById("rateSliderTop").value = voiceRate;
+      document.getElementById("rateLabelTop").innerText = voiceRate.toFixed(2) + "x";
+
+      document.getElementById("pitchSliderTop").value = voicePitch;
+      document.getElementById("pitchLabelTop").innerText = voicePitch.toFixed(2);
+
+      const radio = document.querySelector(`input[name="voiceGenderPref"][value="${voiceGenderPref}"]`);
+      if (radio) radio.checked = true;
+    }
+
+    function onGlobalVoiceInput() {
+      voiceRate = parseFloat(document.getElementById("rateSliderTop").value);
+      voicePitch = parseFloat(document.getElementById("pitchSliderTop").value);
+
+      document.getElementById("rateLabelTop").innerText = voiceRate.toFixed(2) + "x";
+      document.getElementById("pitchLabelTop").innerText = voicePitch.toFixed(2);
+
+      localStorage.setItem(VOICE_RATE_KEY, voiceRate);
+      localStorage.setItem(VOICE_PITCH_KEY, voicePitch);
+    }
+
+    function onVoiceGenderChange(val) {
+      voiceGenderPref = val;
+      localStorage.setItem(VOICE_GENDER_KEY, val);
+
+      // 切換為男聲時若音高偏高，自動給予較沈穩的預設音調；切換為女聲時適當提升
+      if (val === "male" && voicePitch > 0.9) {
+        voicePitch = 0.75;
+      } else if (val === "female" && voicePitch < 0.9) {
+        voicePitch = 1.05;
+      }
+      document.getElementById("pitchSliderTop").value = voicePitch;
+      document.getElementById("pitchLabelTop").innerText = voicePitch.toFixed(2);
+      localStorage.setItem(VOICE_PITCH_KEY, voicePitch);
     }
 
     function speakJapanese(text) {
@@ -1361,19 +1555,36 @@
       utterance.pitch = voicePitch;
 
       const voices = window.speechSynthesis.getVoices();
-      const preferredKeywords = [
-        "Google 日本語", "Natural", "Online (Natural)", 
-        "Nanami", "Keiko", "Ichiro", "Kyoko", "Otoya", "Mayu"
-      ];
-      
+      const jaVoices = voices.filter(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
+
       let matchedVoice = null;
-      for (const kw of preferredKeywords) {
-        matchedVoice = voices.find(v => (v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP") && v.name.includes(kw));
-        if (matchedVoice) break;
+
+      const femaleKeywords = ["Nanami", "Kyoko", "Keiko", "Mayu", "Ayumi", "Haruka", "Google 日本語", "Natural", "Online (Natural)"];
+      const maleKeywords = ["Ichiro", "Otoya", "Takumi", "Naoki", "Kenji", "Daichi"];
+
+      if (voiceGenderPref === "female") {
+        for (const kw of femaleKeywords) {
+          matchedVoice = jaVoices.find(v => v.name.includes(kw));
+          if (matchedVoice) break;
+        }
+      } else if (voiceGenderPref === "male") {
+        for (const kw of maleKeywords) {
+          matchedVoice = jaVoices.find(v => v.name.includes(kw));
+          if (matchedVoice) break;
+        }
       }
 
+      // 若未指定或未匹配到性別音色，採用通用偏好
       if (!matchedVoice) {
-        matchedVoice = voices.find(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
+        const fallbackKeywords = ["Google 日本語", "Natural", "Online (Natural)", "Nanami", "Keiko", "Ichiro", "Kyoko"];
+        for (const kw of fallbackKeywords) {
+          matchedVoice = jaVoices.find(v => v.name.includes(kw));
+          if (matchedVoice) break;
+        }
+      }
+
+      if (!matchedVoice && jaVoices.length > 0) {
+        matchedVoice = jaVoices[0];
       }
 
       if (matchedVoice) utterance.voice = matchedVoice;
@@ -1734,14 +1945,12 @@
           const cloudItems = cloudData.items || [];
           const cloudApiKey = cloudData.apiKey || "";
 
-          // 若本地無 Key 但雲端已備份，自動還原至本機
           if (!currentLocalKey && cloudApiKey) {
             localStorage.setItem(STORAGE_KEY, cloudApiKey);
             document.getElementById("apiKey").value = cloudApiKey;
             updateApiKeyBadge(cloudApiKey);
           }
 
-          // 合併單字
           const localWords = new Set(localItems.map(i => i.word));
           const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
           if (newFromCloud.length > 0) {
@@ -1809,10 +2018,10 @@
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
 
-      // 載入當前生效的 Client ID
       const effectiveClientId = getEffectiveClientId();
       document.getElementById("gdriveClientIdInput").value = effectiveClientId;
 
+      initVoiceSettings();
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
       document.getElementById("globalStatus").innerText = "系統就緒。";
@@ -2096,9 +2305,13 @@ ${JSON.stringify(rawLines, null, 2)}`;
         results.forEach(item => {
           const div = document.createElement("div");
           div.className = "sentence-item";
+
           div.innerHTML = `
             <div class="raw-text">${escapeHtml(item.raw)}</div>
-            <div class="romaji-text">${escapeHtml(item.romaji)}</div>
+            <div class="romaji-row">
+              <span class="romaji-text" style="margin-bottom:0;">${escapeHtml(item.romaji)}</span>
+              <button type="button" class="romaji-speak-btn" title="朗讀發音" onclick="speakJapanese('${escapeHtml(item.raw)}')">🔊</button>
+            </div>
             <div class="trans-text">${escapeHtml(item.translation)}</div>
           `;
           list.appendChild(div);
