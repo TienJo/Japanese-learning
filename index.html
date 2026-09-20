@@ -1125,7 +1125,7 @@
         <input type="range" id="pitchSliderTop" min="0.5" max="1.5" step="0.05" value="0.85" oninput="onGlobalVoiceInput()">
       </div>
 
-      <button type="button" class="audio-test-btn" onclick="speakJapanese('こんにちは、よろしくお願いします。')">▶ 試聽發音效果</button>
+      <button type="button" class="audio-test-btn" onclick="speakJapanese('こんにちは、よろしくお願いします。', 'こんにちは、よろしくおねがいします。')">▶ 試聽發音效果</button>
     </div>
   </div>
 
@@ -1534,7 +1534,6 @@
       voiceGenderPref = val;
       localStorage.setItem(VOICE_GENDER_KEY, val);
 
-      // 切換為男聲時若音高偏高，自動給予較沈穩的預設音調；切換為女聲時適當提升
       if (val === "male" && voicePitch > 0.9) {
         voicePitch = 0.75;
       } else if (val === "female" && voicePitch < 0.9) {
@@ -1545,20 +1544,24 @@
       localStorage.setItem(VOICE_PITCH_KEY, voicePitch);
     }
 
-    function speakJapanese(text) {
+    // 核心發音：優先採用平假名發音文本 (readingText)，徹底防止漢字被念成中文
+    function speakJapanese(text, readingText = null) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ja-JP";
+      // 若有平假名或標音文本則以此發音，否則退回原始文本
+      const textToSpeak = (readingText && readingText.trim().length > 0) ? readingText.trim() : text;
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.lang = "ja-JP"; // 強制日文語系
       utterance.rate = voiceRate;
       utterance.pitch = voicePitch;
 
       const voices = window.speechSynthesis.getVoices();
+      // 精準限定日文語系
       const jaVoices = voices.filter(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
 
       let matchedVoice = null;
-
       const femaleKeywords = ["Nanami", "Kyoko", "Keiko", "Mayu", "Ayumi", "Haruka", "Google 日本語", "Natural", "Online (Natural)"];
       const maleKeywords = ["Ichiro", "Otoya", "Takumi", "Naoki", "Kenji", "Daichi"];
 
@@ -1574,7 +1577,6 @@
         }
       }
 
-      // 若未指定或未匹配到性別音色，採用通用偏好
       if (!matchedVoice) {
         const fallbackKeywords = ["Google 日本語", "Natural", "Online (Natural)", "Nanami", "Keiko", "Ichiro", "Kyoko"];
         for (const kw of fallbackKeywords) {
@@ -1636,6 +1638,7 @@
       tokens.forEach(t => {
         store.add({
           word: t.word,
+          reading_ja: t.reading_ja || t.word,
           lemma: t.lemma || t.word,
           romaji: t.romaji,
           meaning: t.meaning,
@@ -2288,9 +2291,13 @@
 
       const rawLines = input.split(/\r?\n/).filter(l => l.trim().length > 0);
 
-      const prompt = `請將下列每行日文轉換為標準赫本式羅馬拼音（Hepburn Romaji，嚴禁漢語拼音）與自然優雅的台灣繁體中文意譯。
+      const prompt = `請將下列每行日文歌詞或短文轉換為：
+1. 赫本式羅馬拼音 (Hepburn Romaji，嚴禁漢語拼音)
+2. 完整純平假名讀音標音（reading_ja，若包含原本外文英文可直接保留英文或假名，漢字請務必轉為平假名，用於語音合成）
+3. 自然優雅的台灣繁體中文意譯 (translation)
+
 回傳純 JSON 陣列：
-[ { "raw": "原文", "romaji": "羅馬拼音", "translation": "中文意譯" } ]
+[ { "raw": "原文", "reading_ja": "平假名讀音", "romaji": "羅馬拼音", "translation": "中文意譯" } ]
 內容：
 ${JSON.stringify(rawLines, null, 2)}`;
 
@@ -2306,11 +2313,14 @@ ${JSON.stringify(rawLines, null, 2)}`;
           const div = document.createElement("div");
           div.className = "sentence-item";
 
+          // 發音時直接傳入 reading_ja（純假名讀音），杜絕漢字被念成中文
+          const safeReading = (item.reading_ja || item.raw).replace(/'/g, "\\'");
+
           div.innerHTML = `
             <div class="raw-text">${escapeHtml(item.raw)}</div>
             <div class="romaji-row">
               <span class="romaji-text" style="margin-bottom:0;">${escapeHtml(item.romaji)}</span>
-              <button type="button" class="romaji-speak-btn" title="朗讀發音" onclick="speakJapanese('${escapeHtml(item.raw)}')">🔊</button>
+              <button type="button" class="romaji-speak-btn" title="朗讀發音" onclick="speakJapanese('${escapeHtml(item.raw)}', '${safeReading}')">🔊</button>
             </div>
             <div class="trans-text">${escapeHtml(item.translation)}</div>
           `;
@@ -2384,7 +2394,7 @@ ${promptInstruction}
 
 要求：
 1. 為每個日文句子提供全句標準赫本式羅馬拼音 (Hepburn Romaji，嚴禁漢語拼音) 與整句繁體中文意譯 (translation)。
-2. tokens：對日文進行精確分詞，標明詞性、單詞中文意思、原型、活用形、修飾關係。
+2. tokens：對日文進行精確分詞，標明詞性、單詞中文意思、原型、活用形、修飾關係，以及純平假名讀音(reading_ja)。
 3. action_chains：特別標出「て形、たり、ながら」等連接助詞連接的連續動作。
 4. clauses：標出長修飾節（如連體修飾節、引用節）的大結構範圍及修飾目標。
 
@@ -2393,12 +2403,14 @@ ${promptInstruction}
   {
     "input_zh": "若為中文輸入則填入中文原文，否則為空",
     "raw": "日文句子（若是中文輸入，此處填翻譯出的日文）",
+    "reading_ja": "全句純平假名讀音",
     "romaji": "全句標準赫本式羅馬拼音",
     "translation": "整句繁體中文意譯",
     "tokens": [
       {
         "id": 1,
         "surface": "詞彙表面形",
+        "reading_ja": "單詞平假名讀音",
         "romaji": "單詞拼音",
         "meaning": "單詞中文意思",
         "lemma": "辭書形/原型",
@@ -2771,13 +2783,14 @@ ${JSON.stringify(rawLines, null, 2)}`;
    - 絕對不要把「リリースされた」碎拆成「さ」「れ」「た」，請組合成「リリースされた」（釋義：被發行/發布，詞性：動詞片語/受身形，原型：リリースする）。
    - 絕對不要把「聴いた」拆成「聴い」和「た」，請組合成「聴いた」（釋義：聽了，原型：聴く）。
    - 助詞若獨立無意義，可合理附隨於搭配詞或獨立為明確語法點（如：～について、～によって）。
-3. 每個單字包含：單字當前語塊 (word)、原型/辭書形 (lemma)、標準赫本式羅馬拼音 (romaji)、繁體中文精確釋義 (meaning)、詞性 (pos)、當前形態說明 (inflection)。
+3. 每個單字包含：單字當前語塊 (word)、純平假名標音 (reading_ja，漢字務必轉假名，發音專用)、原型/辭書形 (lemma)、標準赫本式羅馬拼音 (romaji)、繁體中文精確釋義 (meaning)、詞性 (pos)、當前形態說明 (inflection)。
 4. 如果該詞包含動詞，在 conjugations 提供其原型辭書形相關的常見活用字典對照（辞書形, ます形, て形, ない形, た形, 意向形, 可能形, 條件形等）；若無活用填 null。
 
 請嚴格回傳純 JSON 陣列：
 [
   {
     "word": "リリースされた",
+    "reading_ja": "りりーすされた",
     "lemma": "リリースする",
     "romaji": "ririisu sareta",
     "meaning": "被發行、被發布",
@@ -2926,12 +2939,14 @@ ${JSON.stringify(sentenceText.trim())}`;
         `;
       }
 
+      const safeReading = escapeHtml(t.reading_ja || t.word).replace(/'/g, "\\'");
+
       const content = document.createElement("div");
       content.innerHTML = `
         <div class="vocab-card-header">
           <div class="vocab-word-row">
             <span class="vocab-word">${escapeHtml(t.word)}</span>
-            <button class="speak-btn" onclick="speakJapanese('${escapeHtml(t.word)}')" title="朗讀單字發音">🔊</button>
+            <button class="speak-btn" onclick="speakJapanese('${escapeHtml(t.word)}', '${safeReading}')" title="朗讀單字發音">🔊</button>
             ${t.lemma && t.lemma !== t.word ? `<span class="vocab-lemma">(${escapeHtml(t.lemma)})</span>` : ""}
           </div>
         </div>
@@ -3029,11 +3044,13 @@ ${JSON.stringify(sentenceText.trim())}`;
 
     function renderFlashcardSide(t, showBack) {
       const box = document.getElementById("flashcardContent");
+      const safeReading = escapeHtml(t.reading_ja || t.word).replace(/'/g, "\\'");
+
       if (!showBack) {
         box.innerHTML = `
           <div style="font-size:36px; font-weight:bold; color:#1a202c; display:flex; align-items:center; justify-content:center; gap:8px;">
             <span>${escapeHtml(t.word)}</span>
-            <button class="speak-btn" style="font-size:24px;" onclick="event.stopPropagation(); speakJapanese('${escapeHtml(t.word)}')" title="發音">🔊</button>
+            <button class="speak-btn" style="font-size:24px;" onclick="event.stopPropagation(); speakJapanese('${escapeHtml(t.word)}', '${safeReading}')" title="發音">🔊</button>
           </div>
           <div style="font-size:16px; color:#c93b3b; font-family:Consolas, monospace; margin-top:8px;">${escapeHtml(t.romaji || "")}</div>
           ${t.lemma && t.lemma !== t.word ? `<div style="font-size:13px; color:#718096; margin-top:4px;">原型: ${escapeHtml(t.lemma)}</div>` : ""}
@@ -3140,10 +3157,10 @@ ${JSON.stringify(sentenceText.trim())}`;
       document.getElementById("quizRomaji").innerText = currentQuestion.romaji || "";
 
       const speakBtn = document.getElementById("quizSpeakBtn");
-      speakBtn.onclick = () => speakJapanese(currentQuestion.word);
+      speakBtn.onclick = () => speakJapanese(currentQuestion.word, currentQuestion.reading_ja || currentQuestion.word);
 
       if (document.getElementById("autoSpeakToggle").checked) {
-        speakJapanese(currentQuestion.word);
+        speakJapanese(currentQuestion.word, currentQuestion.reading_ja || currentQuestion.word);
       }
 
       const otherItems = quizPool.filter(i => i.word !== currentQuestion.word);
