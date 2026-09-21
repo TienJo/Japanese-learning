@@ -2785,19 +2785,21 @@
       if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
     }
 
-    // 精準將目標句子置中到目前可視範圍的中軸線
-    function scrollTargetLineToCenter(targetCard, viewport) {
-      if (!targetCard || !viewport) return;
-
-    // 精準將目標句子置中到目前可視範圍的中軸線（完美適配手機與動態網址列）
+    // 精準將目標句子置中到目前可視範圍的中軸線（以真實物理中心差值滾動，完美適配手機與動態網址列）
     function scrollTargetLineToCenter(targetCard, viewport) {
       if (!targetCard || !viewport) return;
       
-      // 使用瀏覽器原生精準置中 API，直接保證目標在視窗 Y 軸 50% 正中央
-      targetCard.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest"
+      const cardRect = targetCard.getBoundingClientRect();
+      const viewRect = viewport.getBoundingClientRect();
+      
+      // 計算目標卡片中心與可視區域中心的精準 Y 軸差值
+      const cardCenterY = cardRect.top + (cardRect.height / 2);
+      const viewCenterY = viewRect.top + (viewRect.height / 2);
+      const deltaY = cardCenterY - viewCenterY;
+
+      viewport.scrollBy({
+        top: deltaY,
+        behavior: "smooth"
       });
     }
 
@@ -3142,12 +3144,20 @@
         updateGoogleUi(true);
         renderAdminDashboard();
         syncWithGoogleDrive(false);
-      } else if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: "" });
+      } else {
+        // Token 已過期或 GitHub 重新發布，但使用者先前已登入過：保留帳號並設為待續期狀態，不暴力踢出
+        updateGoogleUi(false, true);
+        if (tokenClient) {
+          try {
+            tokenClient.requestAccessToken({ prompt: "" });
+          } catch (e) {
+            console.warn("靜默自動續期失敗，待使用者操作時喚起:", e);
+          }
+        }
       }
     }
 
-    function updateGoogleUi(isConnected) {
+    function updateGoogleUi(isConnected, isPendingRenew = false) {
       const authBtn = document.getElementById("gdriveAuthBtn");
       const signoutBtn = document.getElementById("gdriveSignoutBtn");
       const manualSyncBtn = document.getElementById("gdriveManualSyncBtn");
@@ -3166,8 +3176,21 @@
 
         globalBadge.innerText = "已連線";
         globalBadge.className = "status-badge-inline ready";
+      } else if (isPendingRenew && email) {
+        // GitHub 更新後或 Token 逾時，保留使用者身分，提供一鍵恢復
+        authBtn.style.display = "inline-block";
+        authBtn.innerText = "⚡ 重新連線雲端";
+        signoutBtn.style.display = "inline-block";
+        manualSyncBtn.style.display = "inline-block";
+        statusBadge.innerText = "連線過期 (點擊連線)";
+        statusBadge.className = "status-badge-inline";
+        accountText.innerText = `帳號: ${email} (點擊「重新連線」即可接續同步)`;
+
+        globalBadge.innerText = "待連線";
+        globalBadge.className = "status-badge-inline";
       } else {
         authBtn.style.display = "inline-block";
+        authBtn.innerText = "登入 Google 帳號";
         signoutBtn.style.display = "none";
         manualSyncBtn.style.display = "none";
         statusBadge.innerText = "離線 / 本地保存";
@@ -3188,7 +3211,9 @@
       }
       if (!tokenClient) initGoogleClient();
       if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: "consent" });
+        // 曾登入過的使用者使用精簡提示，提升續期速度
+        const hasLoggedIn = localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true";
+        tokenClient.requestAccessToken({ prompt: hasLoggedIn ? "" : "consent" });
       } else {
         alert("Google 授權元件載入中，請稍候再試。");
       }
@@ -3234,7 +3259,14 @@
     }
 
     async function syncWithGoogleDrive(showNotify = false) {
-      if (!googleAccessToken) return;
+      if (!googleAccessToken) {
+        // 若 Token 暫時過期但曾授權過，嘗試直接喚醒授權
+        if (localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true" && tokenClient) {
+          tokenClient.requestAccessToken({ prompt: "" });
+        }
+        if (showNotify) alert("Google 雲端尚未連線，請點擊「重新連線雲端」。");
+        return;
+      }
 
       try {
         const fileId = await findDriveFileId();
