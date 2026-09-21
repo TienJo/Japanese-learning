@@ -629,7 +629,7 @@
       background-color: #f9fbfc;
     }
 
-    /* =================== 第三分頁：我的資料庫專屬樣式 =================== */
+    /* =================== 第三分頁：我的資料庫樣式 =================== */
     .db-sub-nav {
       display: flex;
       gap: 10px;
@@ -710,6 +710,7 @@
       justify-content: space-between;
       position: relative;
       transition: all 0.15s;
+      cursor: pointer;
     }
     .article-card:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -808,6 +809,154 @@
       justify-content: flex-end;
       gap: 10px;
       margin-top: 20px;
+    }
+
+    /* =================== 🎧 專注跟讀模式 (全螢幕沉浸黑夜) =================== */
+    .shadowing-fullscreen-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000;
+      z-index: 3000;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .shadowing-fullscreen-overlay.active {
+      display: flex;
+    }
+    .shadowing-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #888;
+      z-index: 10;
+    }
+    .shadowing-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .shadowing-ctrl-btn {
+      background: #1c1f24;
+      border: 1px solid #333;
+      color: #eee;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .shadowing-ctrl-btn:hover {
+      background: #2b313a;
+      border-color: #666;
+    }
+    .shadowing-scroll-viewport {
+      flex-grow: 1;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      position: relative;
+      padding: 40vh 20px; /* 前後預留空間使聚焦行置中 */
+    }
+    /* 自訂沉浸式滾動條 */
+    .shadowing-scroll-viewport::-webkit-scrollbar {
+      width: 6px;
+    }
+    .shadowing-scroll-viewport::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+    .shadowing-line-card {
+      max-width: 800px;
+      margin: 0 auto 38px auto;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      opacity: 0.28;
+      transform: scale(0.92);
+      user-select: none;
+      padding: 10px;
+    }
+    .shadowing-line-card.active {
+      opacity: 1.0;
+      transform: scale(1.06);
+    }
+    .shadowing-raw {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+    .shadowing-line-card:not(.active) .shadowing-raw {
+      color: #999999;
+    }
+    .shadowing-romaji {
+      font-size: 15px;
+      color: #e57373;
+      font-family: Consolas, monospace;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .shadowing-line-card:not(.active) .shadowing-romaji {
+      color: #775555;
+    }
+    .shadowing-trans {
+      font-size: 15px;
+      color: #81c784;
+      line-height: 1.4;
+    }
+    .shadowing-line-card:not(.active) .shadowing-trans {
+      color: #446644;
+    }
+
+    /* 手機直向自適應 */
+    @media (max-width: 600px) {
+      .shadowing-raw {
+        font-size: 20px;
+      }
+      .shadowing-romaji, .shadowing-trans {
+        font-size: 13px;
+      }
+      .shadowing-line-card {
+        margin-bottom: 28px;
+      }
+    }
+
+    /* 編輯作品條目表格樣式 */
+    .edit-article-table-wrap {
+      max-height: 52vh;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      margin: 12px 0;
+    }
+    .edit-item-row {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      position: relative;
+    }
+    .edit-item-row:last-child {
+      border-bottom: none;
+    }
+    .edit-item-row input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ccd0d5;
+      border-radius: 4px;
+      font-size: 12px;
     }
 
     /* 單字卡與測驗樣式 */
@@ -1468,7 +1617,7 @@
     </div>
   </div>
 
-  <!-- 分頁三：📚 我的資料庫 (文章歌詞庫與單字庫) -->
+  <!-- 分頁三：📚 我的資料庫 -->
   <div id="tabDatabase" class="tab-content">
     <div class="db-sub-nav">
       <button class="db-sub-tab-btn active" id="dbSubTabArticleBtn" onclick="switchDbSubTab('articles')">📂 翻譯文章與歌詞庫 (<span id="dbArticleCountBadge">0</span>)</button>
@@ -1713,15 +1862,19 @@
     </div>
   </div>
 
-  <!-- 檢視作品詳情對話框 (已完全移除拆解全篇單字按鈕) -->
+  <!-- 檢視作品詳情對話框 (支援專注跟讀與編輯按鈕) -->
   <div class="custom-modal-backdrop" id="viewArticleModal">
     <div class="custom-modal-box" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
         <div>
           <div class="modal-title" id="viewModalTitle" style="margin-bottom:4px;">作品標題</div>
           <div style="font-size:12px; color:#718096;" id="viewModalAuthor">作者</div>
         </div>
-        <button type="button" class="card-delete-btn" style="position:static;" onclick="closeViewArticleModal()">✕</button>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button type="button" class="text-action-btn" style="background:#1a202c; color:#fff; border-color:#1a202c; font-weight:600;" onclick="startShadowingMode()">🎧 專注跟讀</button>
+          <button type="button" class="text-action-btn" onclick="openEditArticleModal()">✏️ 編輯</button>
+          <button type="button" class="card-delete-btn" style="position:static;" onclick="closeViewArticleModal()">✕</button>
+        </div>
       </div>
 
       <div style="overflow-y:auto; flex-grow:1; margin-bottom:16px; border:1px solid #edf2f7; border-radius:6px; padding:12px;" id="viewModalContent"></div>
@@ -1729,6 +1882,57 @@
       <div style="display:flex; justify-content:flex-end; align-items:center;">
         <button type="button" class="text-action-btn" onclick="closeViewArticleModal()">關閉</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ✏️ 編輯作品內容對話框 -->
+  <div class="custom-modal-backdrop" id="editArticleModal">
+    <div class="custom-modal-box" style="max-width: 760px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-title" style="margin-bottom:8px;">✏️ 編輯作品內容</div>
+      
+      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:10px;">
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#555;">作品名稱</label>
+          <input type="text" id="editModalTitle" class="settings-input" style="padding:6px 8px; font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#555;">作者 / 歌手</label>
+          <input type="text" id="editModalAuthor" class="settings-input" style="padding:6px 8px; font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#555;">所屬資料夾</label>
+          <select id="editModalFolder" class="settings-select" style="padding:6px 8px; font-size:13px;"></select>
+        </div>
+      </div>
+
+      <div style="font-size:12px; color:#718096; margin-bottom:4px;">逐句編輯（日文原文 / 羅馬拼音 / 純假名讀音 / 中文意譯）：</div>
+      <div class="edit-article-table-wrap" id="editItemsTableWrap">
+        <!-- 動態注入可編輯的輸入框列表 -->
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="text-action-btn" onclick="closeEditArticleModal()">取消</button>
+        <button type="button" class="primary-btn" onclick="saveEditedArticle()">儲存變更</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎧 專注跟讀模式全螢幕沉浸介面 (如參考圖) -->
+  <div class="shadowing-fullscreen-overlay" id="shadowingOverlay">
+    <div class="shadowing-header-bar">
+      <div>
+        <span style="font-size:15px; font-weight:bold; color:#eee;" id="shadowingTitle">作品名</span>
+        <span style="font-size:12px; color:#888; margin-left:8px;" id="shadowingProgress">1 / 1</span>
+      </div>
+      <div class="shadowing-controls">
+        <button type="button" class="shadowing-ctrl-btn" id="shadowingAutoPlayBtn" onclick="toggleShadowingAutoPlay()">▶ 自動跟讀</button>
+        <button type="button" class="shadowing-ctrl-btn" onclick="exitShadowingMode()">✕ 退出</button>
+      </div>
+    </div>
+
+    <!-- 滾動展示視窗 (上下留白讓焦點永遠在中心) -->
+    <div class="shadowing-scroll-viewport" id="shadowingScrollViewport">
+      <div id="shadowingLinesContainer"></div>
     </div>
   </div>
 
@@ -1818,7 +2022,7 @@
       localStorage.setItem(VOICE_PITCH_KEY, voicePitch);
     }
 
-    function speakJapanese(text, readingText = null) {
+    function speakJapanese(text, readingText = null, onEndCallback = null) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
 
@@ -1828,6 +2032,11 @@
       utterance.lang = "ja-JP";
       utterance.rate = voiceRate;
       utterance.pitch = voicePitch;
+
+      if (onEndCallback) {
+        utterance.onend = onEndCallback;
+        utterance.onerror = onEndCallback;
+      }
 
       const voices = window.speechSynthesis.getVoices();
       const jaVoices = voices.filter(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
@@ -2030,6 +2239,19 @@
           items: article.items,
           created_at: Date.now()
         });
+        tx.oncomplete = () => {
+          refreshDatabaseUi();
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    function updateArticleInDb(article) {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_ARTICLES, "readwrite");
+        tx.objectStore(STORE_ARTICLES).put(article);
         tx.oncomplete = () => {
           refreshDatabaseUi();
           if (googleAccessToken) syncWithGoogleDrive(false);
@@ -2304,7 +2526,11 @@
       alert(`已成功將《${title}》儲存至「${folder}」資料夾！`);
     }
 
+    // ================= 檢視與編輯作品 =================
+    let currentViewingArticle = null;
+
     function openViewArticleModal(art) {
+      currentViewingArticle = art;
       document.getElementById("viewModalTitle").innerText = art.title;
       document.getElementById("viewModalAuthor").innerText = `作者/歌手：${art.author || "未知"} | 資料夾：${art.folder}`;
 
@@ -2333,7 +2559,195 @@
       document.getElementById("viewArticleModal").classList.remove("active");
     }
 
-    // ================= ☁️ Google Drive 雲端雙向同步模組 (含自動回傳本地現有項目) =================
+    async function openEditArticleModal() {
+      if (!currentViewingArticle) return;
+      document.getElementById("editModalTitle").value = currentViewingArticle.title || "";
+      document.getElementById("editModalAuthor").value = currentViewingArticle.author || "";
+
+      const folders = await getAllFoldersFromDb();
+      const folderSelect = document.getElementById("editModalFolder");
+      folderSelect.innerHTML = "";
+      folders.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.name;
+        opt.innerText = f.name;
+        if (f.name === currentViewingArticle.folder) opt.selected = true;
+        folderSelect.appendChild(opt);
+      });
+
+      const wrap = document.getElementById("editItemsTableWrap");
+      wrap.innerHTML = "";
+
+      currentViewingArticle.items.forEach((item, idx) => {
+        const row = document.createElement("div");
+        row.className = "edit-item-row";
+        row.innerHTML = `
+          <div>
+            <label style="font-size:11px; color:#666;">日文原文：</label>
+            <input type="text" class="edit-raw-input" data-idx="${idx}" value="${escapeHtml(item.raw)}">
+          </div>
+          <div>
+            <label style="font-size:11px; color:#666;">中文翻譯：</label>
+            <input type="text" class="edit-trans-input" data-idx="${idx}" value="${escapeHtml(item.translation)}">
+          </div>
+          <div>
+            <label style="font-size:11px; color:#666;">羅馬拼音 (Hepburn)：</label>
+            <input type="text" class="edit-romaji-input" data-idx="${idx}" value="${escapeHtml(item.romaji)}">
+          </div>
+          <div>
+            <label style="font-size:11px; color:#666;">純假名讀音 (發音用)：</label>
+            <input type="text" class="edit-reading-input" data-idx="${idx}" value="${escapeHtml(item.reading_ja || item.raw)}">
+          </div>
+        `;
+        wrap.appendChild(row);
+      });
+
+      closeViewArticleModal();
+      document.getElementById("editArticleModal").classList.add("active");
+    }
+
+    function closeEditArticleModal() {
+      document.getElementById("editArticleModal").classList.remove("active");
+      if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
+    }
+
+    async function saveEditedArticle() {
+      if (!currentViewingArticle) return;
+
+      const newTitle = document.getElementById("editModalTitle").value.trim();
+      const newAuthor = document.getElementById("editModalAuthor").value.trim();
+      const newFolder = document.getElementById("editModalFolder").value;
+
+      if (!newTitle) {
+        alert("作品名稱不能為空！");
+        return;
+      }
+
+      const rows = document.querySelectorAll("#editItemsTableWrap .edit-item-row");
+      const updatedItems = [];
+
+      rows.forEach((r, idx) => {
+        const raw = r.querySelector(".edit-raw-input").value.trim();
+        const translation = r.querySelector(".edit-trans-input").value.trim();
+        const romaji = r.querySelector(".edit-romaji-input").value.trim();
+        const reading_ja = r.querySelector(".edit-reading-input").value.trim();
+        updatedItems.push({ raw, translation, romaji, reading_ja: reading_ja || raw });
+      });
+
+      currentViewingArticle.title = newTitle;
+      currentViewingArticle.author = newAuthor;
+      currentViewingArticle.folder = newFolder;
+      currentViewingArticle.items = updatedItems;
+
+      await updateArticleInDb(currentViewingArticle);
+      document.getElementById("editArticleModal").classList.remove("active");
+      openViewArticleModal(currentViewingArticle);
+      alert("作品內容已成功更新！");
+    }
+
+    // ================= 🎧 專注跟讀模式邏輯 (如參考圖) =================
+    let shadowingIndex = 0;
+    let isShadowingAutoPlaying = false;
+
+    function startShadowingMode() {
+      if (!currentViewingArticle || !currentViewingArticle.items || currentViewingArticle.items.length === 0) {
+        alert("此作品目前沒有句子可以跟讀。");
+        return;
+      }
+      closeViewArticleModal();
+
+      document.getElementById("shadowingTitle").innerText = currentViewingArticle.title;
+      const container = document.getElementById("shadowingLinesContainer");
+      container.innerHTML = "";
+
+      currentViewingArticle.items.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "shadowing-line-card";
+        card.id = `shadowLine-${idx}`;
+        card.innerHTML = `
+          <div class="shadowing-raw">${escapeHtml(item.raw)}</div>
+          <div class="shadowing-romaji">${escapeHtml(item.romaji)}</div>
+          <div class="shadowing-trans">${escapeHtml(item.translation)}</div>
+        `;
+        card.onclick = () => focusShadowingLine(idx, true);
+        container.appendChild(card);
+      });
+
+      shadowingIndex = 0;
+      isShadowingAutoPlaying = false;
+      document.getElementById("shadowingAutoPlayBtn").innerText = "▶ 自動跟讀";
+      document.getElementById("shadowingOverlay").classList.add("active");
+
+      // 初次對焦第一句
+      setTimeout(() => focusShadowingLine(0, false), 150);
+    }
+
+    function exitShadowingMode() {
+      window.speechSynthesis.cancel();
+      isShadowingAutoPlaying = false;
+      document.getElementById("shadowingOverlay").classList.remove("active");
+      if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
+    }
+
+    function focusShadowingLine(idx, playVoice = false) {
+      if (!currentViewingArticle || !currentViewingArticle.items) return;
+      if (idx < 0 || idx >= currentViewingArticle.items.length) {
+        if (isShadowingAutoPlaying) {
+          isShadowingAutoPlaying = false;
+          document.getElementById("shadowingAutoPlayBtn").innerText = "▶ 自動跟讀";
+          alert("已完成全曲跟讀！");
+        }
+        return;
+      }
+
+      shadowingIndex = idx;
+
+      // 更新進度文字
+      document.getElementById("shadowingProgress").innerText = `${idx + 1} / ${currentViewingArticle.items.length}`;
+
+      // 高亮焦點樣式切換
+      document.querySelectorAll(".shadowing-line-card").forEach((card, cIdx) => {
+        if (cIdx === idx) card.classList.add("active");
+        else card.classList.remove("active");
+      });
+
+      // 視窗平滑滾動，使焦點句置於中央
+      const targetCard = document.getElementById(`shadowLine-${idx}`);
+      const viewport = document.getElementById("shadowingScrollViewport");
+      if (targetCard && viewport) {
+        const cardTop = targetCard.offsetTop;
+        const cardHeight = targetCard.offsetHeight;
+        const viewportHeight = viewport.clientHeight;
+        const scrollToY = cardTop - (viewportHeight / 2) + (cardHeight / 2);
+        viewport.scrollTo({ top: scrollToY, behavior: "smooth" });
+      }
+
+      if (playVoice) {
+        const curItem = currentViewingArticle.items[idx];
+        const reading = (curItem.reading_ja || curItem.raw).replace(/'/g, "\\'");
+        speakJapanese(curItem.raw, reading, () => {
+          if (isShadowingAutoPlaying) {
+            setTimeout(() => {
+              focusShadowingLine(shadowingIndex + 1, true);
+            }, 600); // 句間停頓緩衝
+          }
+        });
+      }
+    }
+
+    function toggleShadowingAutoPlay() {
+      isShadowingAutoPlaying = !isShadowingAutoPlaying;
+      const btn = document.getElementById("shadowingAutoPlayBtn");
+      if (isShadowingAutoPlaying) {
+        btn.innerText = "⏸ 暫停跟讀";
+        focusShadowingLine(shadowingIndex, true);
+      } else {
+        btn.innerText = "▶ 自動跟讀";
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    // ================= ☁️ Google Drive 雲端雙向同步模組 =================
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
@@ -2533,7 +2947,6 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
-    // 確保登入後，本地建立的內容完整合併並同步進雲端
     async function syncWithGoogleDrive(showNotify = false) {
       if (!googleAccessToken) return;
 
@@ -2560,14 +2973,14 @@
             updateApiKeyBadge(cloudApiKey);
           }
 
-          // 1. 合併單字：本地沒有的從雲端拉取
+          // 1. 合併單字
           const localWords = new Set(localItems.map(i => i.word));
           const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
           if (newFromCloud.length > 0) {
             await saveVocabToDb(newFromCloud);
           }
 
-          // 2. 合併文章：本地沒有的從雲端拉取
+          // 2. 合併文章
           const localArtTitles = new Set(localArticles.map(a => a.title));
           for (const ca of cloudArticles) {
             if (!localArtTitles.has(ca.title)) {
@@ -2583,13 +2996,11 @@
             }
           }
 
-          // 再次提取完整合併後的最完整本地清單
           const fullMergedItems = await getAllVocabFromDb();
           const fullMergedArticles = await getAllArticlesFromDb();
           const fullMergedFolders = await getAllFoldersFromDb();
           const keyToSync = currentLocalKey || cloudApiKey;
 
-          // 覆蓋寫回雲端（此時已包含本地登入前所建立的全部內容）
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -2609,7 +3020,6 @@
             alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 作品庫：已同步 ${fullMergedArticles.length} 部\n• API Key：已同步記錄`);
           }
         } else {
-          // 雲端無檔案時直接上傳本地所有資料
           const metadata = {
             name: DRIVE_FILE_NAME,
             parents: ["appDataFolder"]
@@ -2651,7 +3061,7 @@
       }
       updateApiKeyBadge(savedKey);
 
-      // 預設模型切換為 gemini-3.1-flash-lite
+      // 預設模型為 gemini-3.1-flash-lite
       const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.1-flash-lite";
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
@@ -2872,7 +3282,6 @@
             throw new Error(msg);
           }
 
-          // 記錄管理員 Token 數據
           if (data.usageMetadata) {
             recordTokenUsage(data.usageMetadata);
           }
@@ -3464,6 +3873,7 @@ ${JSON.stringify(sentenceText.trim())}`;
       });
 
       const data = await res.json();
+      if (data.usageMetadata) recordTokenUsage(data.usageMetadata);
       return extractJsonFromResponse(data);
     }
 
