@@ -2617,9 +2617,10 @@
       if (!dbInstance) await initIndexedDB();
       const tx = dbInstance.transaction(STORE_ARTICLES, "readwrite");
       tx.objectStore(STORE_ARTICLES).delete(Number(id));
-      tx.oncomplete = () => {
+      tx.oncomplete = async () => {
         refreshDatabaseUi();
-        if (googleAccessToken) syncWithGoogleDrive(false);
+        // 傳入 isLocalSourceOfTruth = true，強制將本地刪除後的最新狀態覆寫至雲端
+        if (googleAccessToken) await syncWithGoogleDrive(false, true);
       };
     }
 
@@ -2692,9 +2693,10 @@
       const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
       tx.objectStore(STORE_VOCAB).delete(Number(id));
       return new Promise((resolve) => {
-        tx.oncomplete = () => {
+        tx.oncomplete = async () => {
           refreshDatabaseUi();
-          if (googleAccessToken) syncWithGoogleDrive(false);
+          // 傳入 isLocalSourceOfTruth = true，強制同步刪除雲端單字
+          if (googleAccessToken) await syncWithGoogleDrive(false, true);
           resolve();
         };
       });
@@ -2705,9 +2707,9 @@
       if (!dbInstance) await initIndexedDB();
       const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
       tx.objectStore(STORE_VOCAB).clear();
-      tx.oncomplete = () => {
+      tx.oncomplete = async () => {
         refreshDatabaseUi();
-        if (googleAccessToken) syncWithGoogleDrive(false);
+        if (googleAccessToken) await syncWithGoogleDrive(false, true);
         alert("本地單字庫已清空。");
       };
     }
@@ -3349,6 +3351,7 @@
 
     let googleAccessToken = null;
     let tokenClient = null;
+    let isSyncingDrive = false; // 防止重複並行同步的互斥鎖
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
 
     function getEffectiveClientId() {
@@ -3561,11 +3564,13 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
-    async function syncWithGoogleDrive(showNotify = false) {
+    async function syncWithGoogleDrive(showNotify = false, isLocalSourceOfTruth = false) {
       if (!googleAccessToken) {
         if (showNotify) alert("Google 雲端尚未連線，請點擊「恢復 Google 連線」。");
         return;
       }
+      if (isSyncingDrive) return; // 若正在同步中則略過，避免時序競爭
+      isSyncingDrive = true;
 
       try {
         const fileId = await findDriveFileId();
@@ -3575,49 +3580,58 @@
         const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
 
         if (fileId) {
-          const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-            headers: { Authorization: `Bearer ${googleAccessToken}` }
-          });
-          const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], apiKey: "" }));
-          const cloudItems = cloudData.items || [];
-          const cloudArticles = cloudData.articles || [];
-          const cloudFolders = cloudData.folders || [];
-          const cloudApiKey = cloudData.apiKey || "";
+          let fullMergedItems = localItems;
+          let fullMergedArticles = localArticles;
+          let fullMergedFolders = localFolders;
+          let keyToSync = currentLocalKey;
 
-          if (!currentLocalKey && cloudApiKey) {
-            localStorage.setItem(STORAGE_KEY, cloudApiKey);
-            document.getElementById("apiKey").value = cloudApiKey;
-            updateApiKeyBadge(cloudApiKey);
-          }
+          // 只有在非本地主動刪除的情況下（例如啟動或常規雙向同步），才進行雲端合併
+          if (!isLocalSourceOfTruth) {
+            const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+              headers: { Authorization: `Bearer ${googleAccessToken}` }
+            });
+            const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], apiKey: "" }));
+            const cloudItems = cloudData.items || [];
+            const cloudArticles = cloudData.articles || [];
+            const cloudFolders = cloudData.folders || [];
+            const cloudApiKey = cloudData.apiKey || "";
 
-          // 合併單字
-          const localWords = new Set(localItems.map(i => i.word));
-          const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
-          if (newFromCloud.length > 0) {
-            await saveVocabToDb(newFromCloud);
-          }
-
-          // 合併文章
-          const localArtTitles = new Set(localArticles.map(a => a.title));
-          for (const ca of cloudArticles) {
-            if (!localArtTitles.has(ca.title)) {
-              await saveArticleToDb(ca);
+            if (!currentLocalKey && cloudApiKey) {
+              localStorage.setItem(STORAGE_KEY, cloudApiKey);
+              document.getElementById("apiKey").value = cloudApiKey;
+              updateApiKeyBadge(cloudApiKey);
             }
-          }
 
-          // 合併資料夾
-          const localFolderNames = new Set(localFolders.map(f => f.name));
-          for (const cf of cloudFolders) {
-            if (!localFolderNames.has(cf.name)) {
-              await saveFolderToDb(cf.name);
+            // 合併單字
+            const localWords = new Set(localItems.map(i => i.word));
+            const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
+            if (newFromCloud.length > 0) {
+              await saveVocabToDb(newFromCloud);
             }
+
+            // 合併文章
+            const localArtTitles = new Set(localArticles.map(a => a.title));
+            for (const ca of cloudArticles) {
+              if (!localArtTitles.has(ca.title)) {
+                await saveArticleToDb(ca);
+              }
+            }
+
+            // 合併資料夾
+            const localFolderNames = new Set(localFolders.map(f => f.name));
+            for (const cf of cloudFolders) {
+              if (!localFolderNames.has(cf.name)) {
+                await saveFolderToDb(cf.name);
+              }
+            }
+
+            fullMergedItems = await getAllVocabFromDb();
+            fullMergedArticles = await getAllArticlesFromDb();
+            fullMergedFolders = await getAllFoldersFromDb();
+            keyToSync = currentLocalKey || cloudApiKey;
           }
 
-          const fullMergedItems = await getAllVocabFromDb();
-          const fullMergedArticles = await getAllArticlesFromDb();
-          const fullMergedFolders = await getAllFoldersFromDb();
-          const keyToSync = currentLocalKey || cloudApiKey;
-
+          // 將最新狀態寫入 Google Drive（如果是刪除動作，此處會將刪除後的結果覆蓋過去）
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -3665,6 +3679,8 @@
       } catch (err) {
         console.error("Google Drive 同步失敗:", err);
         if (showNotify) alert("Google 雲端同步發生錯誤: " + err.message);
+      } finally {
+        isSyncingDrive = false;
       }
     }
 
