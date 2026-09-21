@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日文分句對照與句法結構分析工具</title>
+  <title>さあ、日本語脳！</title>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <!-- 引入 Google Identity Services (GIS) 官方授權庫 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1438,6 +1438,277 @@
       color: #2e78d6;
       margin-top: 4px;
     }
+
+    /* =================== ✨ 本日のスペシャル 首頁樣式 =================== */
+    .special-hero-banner {
+      background: linear-gradient(135deg, #2e78d6 0%, #6366f1 100%);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 4px 14px rgba(46, 120, 214, 0.22);
+    }
+    .special-hero-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .special-hero-desc {
+      font-size: 13px;
+      color: #e0e7ff;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .special-date-chip {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .special-refresh-btn {
+      background: #ffffff;
+      color: #2e78d6;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: all 0.2s;
+    }
+    .special-refresh-btn:hover {
+      background: #f0f7ff;
+      transform: scale(1.03);
+    }
+    .special-refresh-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .special-section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 22px 0 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .special-words-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .special-word-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .special-word-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      border-color: #cbd5e0;
+    }
+    .special-word-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .special-word-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+    .special-word-main {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a202c;
+    }
+    .special-word-reading {
+      font-size: 13px;
+      color: #718096;
+      margin-left: 6px;
+      font-weight: normal;
+    }
+    .special-word-romaji {
+      font-size: 13px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin-bottom: 8px;
+    }
+    .special-word-meaning {
+      font-size: 14px;
+      color: #2d3748;
+      background: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border-left: 3px solid #6366f1;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .special-example-box {
+      font-size: 13px;
+      background: #ffffff;
+      border: 1px solid #edf2f7;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    .special-example-ja {
+      font-weight: 600;
+      color: #111;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .special-example-zh {
+      color: #257a46;
+      margin-top: 3px;
+    }
+
+    /* 對話聊天視窗樣式 */
+    .dialogue-wrapper-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
+    }
+    .dialogue-scenario-bar {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #166534;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .chat-bubble-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .chat-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .chat-row.reverse {
+      flex-direction: row-reverse;
+    }
+    .chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #4a5568;
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .chat-row.reverse .chat-avatar {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+    .chat-bubble-body {
+      max-width: 80%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      position: relative;
+    }
+    .chat-row.reverse .chat-bubble-body {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+    .chat-speaker-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #718096;
+      margin-bottom: 4px;
+    }
+    .chat-row.reverse .chat-speaker-name {
+      text-align: right;
+      color: #2b6cb0;
+    }
+    .chat-text-ja {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a202c;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chat-text-romaji {
+      font-size: 13px;
+      color: #c93b3b;
+      font-family: Consolas, monospace;
+      margin: 3px 0;
+    }
+    .chat-text-zh {
+      font-size: 13px;
+      color: #257a46;
+      line-height: 1.4;
+    }
+    .culture-tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .culture-tip-card {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #92400e;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -1488,7 +1759,7 @@
     </div>
   </div>
 
-  <h1>日文分句對照與句法結構分析工具</h1>
+  <h1>さあ、日本語脳！</h1>
 
   <!-- 頂部全域狀態列 -->
   <div class="global-bar">
@@ -1501,14 +1772,61 @@
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('tabTranslate')">對照轉換</button>
+    <button class="tab-btn active" onclick="switchTab('tabDailySpecial')">✨ 本日のスペシャル</button>
+    <button class="tab-btn" onclick="switchTab('tabTranslate')">對照轉換</button>
     <button class="tab-btn" onclick="switchTab('tabSyntax')">句法結構與無交錯折線分析</button>
     <button class="tab-btn" onclick="switchTab('tabDatabase')">📚 我的資料庫</button>
     <button class="tab-btn" onclick="switchTab('tabSettings')">⚙️ 帳號與 API 設定</button>
   </div>
 
+  <!-- 分頁首頁：✨ 本日のスペシャル -->
+  <div id="tabDailySpecial" class="tab-content active">
+    <div class="special-hero-banner">
+      <div>
+        <div class="special-date-chip" id="specialDateBadge">2026年9月21日（月）</div>
+        <div class="special-hero-title">✨ 本日のスペシャル</div>
+        <div class="special-hero-desc">由 Gemini 每天即時挑選近期流行流行語與當代年輕人的日常會話，每天不重樣，帶你掌握最道地的現代日語！</div>
+      </div>
+      <div>
+        <button type="button" class="special-refresh-btn" id="refreshDailyBtn" onclick="loadDailySpecial(true)">
+          <span>🔄 換一批</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 流行語塊區 -->
+    <div class="special-section-title">
+      <span>🔥 本日のトレンド単語</span>
+      <span style="font-size:12px; color:#718096; font-weight:normal;">點擊 🔊 試聽發音 · 支援收藏至單字庫</span>
+    </div>
+    <div class="special-words-grid" id="specialWordsGrid"></div>
+
+    <!-- 真實對話區 -->
+    <div class="special-section-title">
+      <span>💬 リアルな日常会話レッスン（年輕人真實生活情境對話）</span>
+      <button type="button" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc; font-weight:600;" onclick="saveDailyDialogueToArticles()">
+        💾 收藏整篇對話至文章庫
+      </button>
+    </div>
+
+    <div class="dialogue-wrapper-card">
+      <div class="dialogue-scenario-bar">
+        <div><strong>情境設定：</strong><span id="dialogueScenarioText">休日にカフェで友達と近況を話す</span></div>
+        <div style="font-size:12px; color:#15803d;" id="dialogueCharactersText">登場人物：アオイ &amp; ソウタ</div>
+      </div>
+
+      <div class="chat-bubble-stream" id="chatBubbleStream"></div>
+
+      <!-- 語感指南 -->
+      <div style="margin-top:24px; border-top:1px dashed #e2e8f0; padding-top:16px;">
+        <div style="font-size:14px; font-weight:700; color:#4a5568; margin-bottom:8px;">💡 若者ことば・ニュアンス解説（現代口語特色與文化指南）</div>
+        <div class="culture-tips-grid" id="cultureTipsGrid"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- 分頁一：對照轉換 -->
-  <div id="tabTranslate" class="tab-content active">
+  <div id="tabTranslate" class="tab-content">
     <div class="textarea-header">
       <span class="field-title">導入對照歌詞或文本（支援多行分句）：</span>
       <button type="button" class="text-action-btn" onclick="clearInput('transInput')">清空輸入</button>
@@ -3373,6 +3691,7 @@
       initShadowingVoicePreference();
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
+      initDailySpecial();
       document.getElementById("globalStatus").innerText = "系統就緒。";
     });
 
@@ -3526,7 +3845,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ["tabTranslate", "tabSyntax", "tabDatabase", "tabSettings"];
+      const tabs = ["tabDailySpecial", "tabTranslate", "tabSyntax", "tabDatabase", "tabSettings"];
       const btns = document.querySelectorAll(".tab-btn");
 
       tabs.forEach((id, idx) => {
@@ -3544,6 +3863,364 @@
         setTimeout(drawStructureGraph, 60);
       } else if (tabId === "tabDatabase") {
         refreshDatabaseUi();
+      } else if (tabId === "tabDailySpecial") {
+        initDailySpecial();
+      }
+    }
+
+    // =================== ✨ 本日のスペシャル 邏輯實作 ===================
+    const DAILY_SPECIAL_STORAGE_KEY_PREFIX = "app_daily_special_data_";
+    let currentDailySpecialData = null;
+
+    // 離線或未填 API Key 時的預設流行語與情境對話（保證畫面隨開即用）
+    const DEFAULT_DAILY_SPECIAL = {
+      date: "2026年9月21日",
+      theme_title: "2026年最新若者言葉・日常トレンド",
+      words: [
+        {
+          word: "界隈",
+          reading: "かいわい",
+          romaji: "kaiwai",
+          tag: "若者名詞",
+          meaning: "原意為「某地理區域或附近」，在社群與年輕人口語中引申為「某個特定愛好、風格或文化圈子」（例：推し活界隈、カフェ巡り界隈）。",
+          example: {
+            ja: "そのアニメ、今うちの界隈ですごいバズってるよ！",
+            reading: "そのアニメ、いまうちのかいわいですごいバズってるよ！",
+            romaji: "sono anime, ima uchi no kaiwai de sugoi bazutteru yo!",
+            zh: "那部動畫現在在我們這圈子超級大爆紅喔！"
+          }
+        },
+        {
+          word: "タイパ",
+          reading: "たいぱ",
+          romaji: "taipa",
+          tag: "新造流行語",
+          meaning: "「タイムパフォーマンス（Time Performance，時間性價比）」的簡稱。表示投入的時間所獲得的效果或滿足度，年輕人常用於倍速看影片或挑選高效率行程。",
+          example: {
+            ja: "倍速でドラマ観るの、タイパ最強だからおすすめ。",
+            reading: "ばいそくでドラマみるの、タイパさいきょうだからおすすめ。",
+            romaji: "baisoku de dorama miru no, taipa saikyou da kara osusume.",
+            zh: "用兩倍速追劇的時間性價比最高了，超推薦。"
+          }
+        }
+      ],
+      dialogue: {
+        scenario: "金曜日の夜にカフェで、週末の予定と推し活の近況について語り合う二人",
+        characters: ["アオイ", "ソウタ"],
+        lines: [
+          {
+            speaker: "アオイ",
+            text: "ソウタ、明日のフェス行くの？チケット取れた？",
+            reading: "ソウタ、あしたのフェスいくの？チケットとれた？",
+            romaji: "Souta, ashita no fesu iku no? chiketto toreta?",
+            zh: "Souta，你明天要去音樂節嗎？搶到門票了嗎？"
+          },
+          {
+            speaker: "ソウタ",
+            text: "それがさ、一般でワンチャン狙ったけど秒殺で落ちた…マジで萎えたわ。",
+            reading: "それがさ、いっぱんでワンチャンねらったけどびょうさつでおちた…マジでなえたわ。",
+            romaji: "sore ga sa, ippan de wanchan neratta kedo byousatsu de ochita... maji de naeta wa.",
+            zh: "別提了，我原本想靠一般販售碰碰運氣，結果幾秒就被秒殺沒搶到…真的整個人超消沉。"
+          },
+          {
+            speaker: "アオイ",
+            text: "あー、それな！あの界隈、最近ファン急増して倍率エグいもんね。",
+            reading: "あー、それな！あのかいわい、さいきんファンきゅうぞうしてばいりつエグいもんね。",
+            romaji: "aa, sore na! ano kaiwai, saikin fan kyuuzou shite bairitsu egui mon ne.",
+            zh: "啊～就是說啊！那一圈最近粉絲暴增，競爭倍率誇張到不行呢。"
+          },
+          {
+            speaker: "ソウタ",
+            text: "ほんとそれ。でも配信あるっぽいから、家でチルしながら観ることにする！",
+            reading: "ほんとそれ。でもはいしんあるっぽいから、いえでチルしながらみることにする！",
+            romaji: "honto sore. demo haishin aru ppoi kara, ie de chiru shinagara miru koto ni suru!",
+            zh: "真的。不過聽說有線上直播，我就打算在家放鬆chill著看啦！"
+          }
+        ],
+        tips: [
+          "「それな」：極高頻率的共鳴句，相當於「對吧！完全就是這樣！」。",
+          "「ワンチャン（one chance）」：口語中表示「說不定還有微小可能性／搞不好可以」。",
+          "「チルする（chill）」：源自英語，指「放鬆、悠閒度過」。",
+          "「エグい」：原指殘酷或噁心，現代年輕人常作為「超猛、太扯、太誇張」的讚嘆或感嘆。"
+        ]
+      }
+    };
+
+    function initDailySpecial() {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10);
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+      const day = today.getDate();
+      const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+      const dayName = weekDays[today.getDay()];
+      const displayDateStr = `${year}年${month}月${day}日（${dayName}）`;
+
+      const dateBadge = document.getElementById("specialDateBadge");
+      if (dateBadge) dateBadge.innerText = displayDateStr;
+
+      loadDailySpecial(false);
+    }
+
+    async function loadDailySpecial(forceRefresh = false) {
+      const today = new Date().toISOString().slice(0, 10);
+      const cacheKey = DAILY_SPECIAL_STORAGE_KEY_PREFIX + today;
+      const refreshBtn = document.getElementById("refreshDailyBtn");
+
+      if (!forceRefresh) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            currentDailySpecialData = JSON.parse(cached);
+            renderDailySpecial(currentDailySpecialData);
+            return;
+          } catch (e) {
+            console.warn("無法解析今日快取資料，將重新產生:", e);
+          }
+        }
+      }
+
+      const apiKey = document.getElementById("apiKey") ? document.getElementById("apiKey").value.trim() : "";
+      if (!apiKey) {
+        // 若尚未設定 API Key，載入豐富的預設精選內容
+        currentDailySpecialData = DEFAULT_DAILY_SPECIAL;
+        renderDailySpecial(currentDailySpecialData);
+        return;
+      }
+
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = `<span>⏳ 生成中...</span>`;
+      }
+
+      const randomSeeds = [
+        "推し活・SNS文化", "カフェ巡り・休日の過ごし方", "大学生活・バイト先の出来事",
+        "トレンドファッション・買い物", "趣味・音楽・アニメの語り合い", "仕事帰りのサシ飲み・愚痴と励まし"
+      ];
+      const randomSeed = randomSeeds[Math.floor(Math.random() * randomSeeds.length)];
+
+      const prompt = `你是一位精通日本現代流行文化與年輕人用語（若者言葉）的日語專家。
+請以「${randomSeed}」為核心情境，創作一份精采道地的【本日のスペシャル（今日特選）】教材。
+
+嚴格要求：
+1. words：精選剛好 2 個「近年日本 SNS、Z世代或時下年輕人高頻使用但課本少教」的真實流行詞彙（如：界隈、タイパ、沼る、チルい、蛙化、バズる、優勝、ビジュ、それな、ワンチャン 等，每次盡可能不重複且真實存在）。
+   - 提供詞彙 (word)、純平假名讀音 (reading)、標準赫本式羅馬拼音 (romaji)、詞性分類標籤 (tag)、詳細有趣的起源及現代語意中文解釋 (meaning)、以及一個生動的年輕人日常例句 (example，包含 ja, reading, romaji, zh)。
+2. dialogue：創作一段雙人對話（4 至 6 句），呈現最自然、生活化的現代日常交流。包含省略句、真實口語縮約、語氣詞與當代俚語。
+   - scenario：情境描寫（中文）。
+   - characters：兩位說話者名字（日文假名或漢字）。
+   - lines：對話語句陣列，每句包含 speaker、日文原句 text、發音專用平假名 reading、標準羅馬拼音 romaji、自然台灣繁體中文意譯 zh。
+   - tips：3 至 4 個針對該對話中出現的俚語、文法縮約或文化語感的重點解說字串。
+
+請嚴格回傳純 JSON 物件：
+{
+  "date": "今日日期",
+  "theme_title": "本主題名稱",
+  "words": [
+    {
+      "word": "流行詞",
+      "reading": "純平假名",
+      "romaji": "Hepburn Romaji",
+      "tag": "如：若者名詞/新造語/動詞",
+      "meaning": "詳細中文意思與用法起源",
+      "example": {
+        "ja": "日文例句",
+        "reading": "平假名讀音",
+        "romaji": "羅馬拼音",
+        "zh": "繁體中文翻譯"
+      }
+    }
+  ],
+  "dialogue": {
+    "scenario": "詳細情境說明",
+    "characters": ["角色A", "角色B"],
+    "lines": [
+      {
+        "speaker": "角色A",
+        "text": "日文句子",
+        "reading": "純平假名發音",
+        "romaji": "romaji",
+        "zh": "中文翻譯"
+      }
+    ],
+    "tips": [
+      "俚語或語感解說1",
+      "口語特色解說2"
+    ]
+  }
+}`;
+
+      try {
+        const result = await requestGeminiWithFallback(prompt, apiKey, (msg) => {
+          const status = document.getElementById("globalStatus");
+          if (status) status.innerText = msg;
+        });
+
+        if (result && result.words && result.dialogue) {
+          result.words = result.words.slice(0, 2);
+          currentDailySpecialData = result;
+          localStorage.setItem(cacheKey, JSON.stringify(result));
+          renderDailySpecial(result);
+        } else {
+          throw new Error("回傳結構不完整");
+        }
+      } catch (err) {
+        console.error("生成本日のスペシャル失敗:", err);
+        currentDailySpecialData = DEFAULT_DAILY_SPECIAL;
+        renderDailySpecial(currentDailySpecialData);
+        alert("今日特選生成時遇限制，已先載入精選示範教材：" + err.message);
+      } finally {
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtn.innerHTML = `<span>🔄 換一批</span>`;
+        }
+      }
+    }
+
+    function renderDailySpecial(data) {
+      if (!data) return;
+
+      // 1. 渲染流行詞卡片（固定呈現 2 個）
+      const wordsGrid = document.getElementById("specialWordsGrid");
+      if (wordsGrid && data.words) {
+        wordsGrid.innerHTML = "";
+        data.words.slice(0, 2).forEach(w => {
+          const card = document.createElement("div");
+          card.className = "special-word-card";
+
+          const safeReading = (w.reading || w.word).replace(/'/g, "\\'");
+          const safeExReading = (w.example?.reading || w.example?.ja || "").replace(/'/g, "\\'");
+
+          card.innerHTML = `
+            <div>
+              <div class="special-word-header">
+                <div>
+                  <span class="special-word-main">${escapeHtml(w.word)}</span>
+                  <span class="special-word-reading">（${escapeHtml(w.reading || "")}）</span>
+                  <button type="button" class="speak-btn" onclick="speakJapanese('${escapeHtml(w.word)}', '${safeReading}')" title="朗讀發音">🔊</button>
+                </div>
+                <span class="special-word-tag">${escapeHtml(w.tag || "トレンド")}</span>
+              </div>
+              <div class="special-word-romaji">${escapeHtml(w.romaji || "")}</div>
+              <div class="special-word-meaning">${escapeHtml(w.meaning || "")}</div>
+
+              ${w.example ? `
+                <div class="special-example-box">
+                  <div class="special-example-ja">
+                    <span>${escapeHtml(w.example.ja)}</span>
+                    <button type="button" class="speak-btn" style="font-size:13px;" onclick="speakJapanese('${escapeHtml(w.example.ja)}', '${safeExReading}')" title="朗讀例句">🔊</button>
+                  </div>
+                  <div style="font-size:12px; color:#c93b3b; font-family:Consolas, monospace;">${escapeHtml(w.example.romaji || "")}</div>
+                  <div class="special-example-zh">${escapeHtml(w.example.zh || "")}</div>
+                </div>
+              ` : ""}
+            </div>
+            <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+              <button type="button" class="text-action-btn" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0; font-weight:600;" onclick='saveDailyWordToVocab(${JSON.stringify(w).replace(/'/g, "&#39;")})'>
+                🎴 收藏此詞到單字庫
+              </button>
+            </div>
+          `;
+          wordsGrid.appendChild(card);
+        });
+      }
+
+      // 2. 渲染真實對話
+      if (data.dialogue) {
+        const scenarioEl = document.getElementById("dialogueScenarioText");
+        if (scenarioEl) scenarioEl.innerText = data.dialogue.scenario || "日常会話";
+
+        const charEl = document.getElementById("dialogueCharactersText");
+        if (charEl && data.dialogue.characters) {
+          charEl.innerText = "登場人物：" + data.dialogue.characters.join(" & ");
+        }
+
+        const chatStream = document.getElementById("chatBubbleStream");
+        if (chatStream && data.dialogue.lines) {
+          chatStream.innerHTML = "";
+          const firstChar = data.dialogue.characters ? data.dialogue.characters[0] : "";
+
+          data.dialogue.lines.forEach(line => {
+            const isSecondPerson = line.speaker !== firstChar;
+            const safeLineReading = (line.reading || line.text).replace(/'/g, "\\'");
+
+            const row = document.createElement("div");
+            row.className = `chat-row ${isSecondPerson ? "reverse" : ""}`;
+            row.innerHTML = `
+              <div class="chat-avatar" title="${escapeHtml(line.speaker)}">${escapeHtml(line.speaker.slice(0, 1))}</div>
+              <div class="chat-bubble-body">
+                <div class="chat-speaker-name">${escapeHtml(line.speaker)}</div>
+                <div class="chat-text-ja">
+                  <span>${escapeHtml(line.text)}</span>
+                  <button type="button" class="speak-btn" style="font-size:14px;" onclick="speakJapanese('${escapeHtml(line.text)}', '${safeLineReading}')" title="朗讀句子">🔊</button>
+                </div>
+                <div class="chat-text-romaji">${escapeHtml(line.romaji || "")}</div>
+                <div class="chat-text-zh">${escapeHtml(line.zh || "")}</div>
+              </div>
+            `;
+            chatStream.appendChild(row);
+          });
+        }
+
+        // 3. 渲染語感文化解說
+        const tipsGrid = document.getElementById("cultureTipsGrid");
+        if (tipsGrid && data.dialogue.tips) {
+          tipsGrid.innerHTML = "";
+          data.dialogue.tips.forEach(t => {
+            const tipEl = document.createElement("div");
+            tipEl.className = "culture-tip-card";
+            tipEl.innerText = "📌 " + t;
+            tipsGrid.appendChild(tipEl);
+          });
+        }
+      }
+    }
+
+    async function saveDailyWordToVocab(w) {
+      if (!w) return;
+      try {
+        await saveVocabToDb([{
+          word: w.word,
+          reading_ja: w.reading || w.word,
+          lemma: w.word,
+          romaji: w.romaji || "",
+          meaning: w.meaning || "",
+          pos: w.tag || "若者言葉・流行語",
+          inflection: "-",
+          conjugations: null,
+          familiarity: 0
+        }]);
+        alert(`已成功將「${w.word}」收藏至單字庫！`);
+      } catch (err) {
+        alert("收藏失敗：" + err.message);
+      }
+    }
+
+    async function saveDailyDialogueToArticles() {
+      if (!currentDailySpecialData || !currentDailySpecialData.dialogue) {
+        alert("目前沒有對話資料可供收藏。");
+        return;
+      }
+      const d = currentDailySpecialData.dialogue;
+      const today = new Date().toLocaleDateString();
+      const title = `【今日日常会話】${d.scenario ? d.scenario.slice(0, 20) : "日常對話"} (${today})`;
+
+      const items = d.lines.map(l => ({
+        raw: `${l.speaker}：「${l.text}」`,
+        reading_ja: `${l.reading || l.text}`,
+        romaji: l.romaji || "",
+        translation: l.zh || ""
+      }));
+
+      try {
+        await saveArticleToDb({
+          title: title,
+          author: d.characters ? d.characters.join(" & ") : "若者日常",
+          folder: "閱讀短文",
+          items: items
+        });
+        alert(`已將《${title}》收藏至作品庫的「閱讀短文」分類中！可隨時使用專注跟讀模式朗讀與複習。`);
+      } catch (err) {
+        alert("收藏失敗：" + err.message);
       }
     }
 
