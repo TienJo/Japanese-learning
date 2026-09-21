@@ -2766,23 +2766,14 @@
         const card = document.createElement("div");
         card.className = "article-card";
 
-        const delBtn = document.createElement("button");
-        delBtn.className = "card-delete-btn";
-        delBtn.title = "刪除此作品";
-        delBtn.innerHTML = "✕";
-        delBtn.onclick = (e) => {
-          e.stopPropagation();
-          deleteArticleFromDb(art.id);
-        };
-        card.appendChild(delBtn);
-
         const previewText = art.items && art.items.length > 0 
           ? art.items.slice(0, 2).map(i => i.raw).join("\n") 
           : "";
 
         const dateStr = new Date(art.created_at).toLocaleDateString();
 
-        card.innerHTML += `
+        card.innerHTML = `
+          <button type="button" class="card-delete-btn" title="刪除此作品">✕</button>
           <div class="article-card-header">
             <div class="article-card-title">${escapeHtml(art.title)}</div>
             <div class="article-card-author">作者/歌手：${escapeHtml(art.author || "未知")}</div>
@@ -2793,6 +2784,12 @@
             <span>共 ${art.items.length} 句 · ${dateStr}</span>
           </div>
         `;
+
+        const delBtn = card.querySelector(".card-delete-btn");
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteArticleFromDb(art.id);
+        };
 
         card.onclick = () => openViewArticleModal(art);
         grid.appendChild(card);
