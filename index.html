@@ -875,7 +875,7 @@
       border-color: #4a5568;
     }
 
-    /* 滾動視窗：上下均勻對稱留白 50dvh，使第一句至最後一句皆能精準抵達螢幕幾何中心 */
+    /* 滾動視窗：加入 cursor: grab 拖曳指標 */
     .shadowing-scroll-viewport {
       flex-grow: 1;
       overflow-y: auto;
@@ -897,18 +897,18 @@
     }
     .shadowing-line-card {
       max-width: 800px;
-      margin: 0 auto 42px auto;
+      margin: 0 auto 38px auto;
       text-align: center;
       cursor: pointer;
       transition: opacity 0.3s ease, transform 0.25s ease;
-      opacity: 0.2;
+      opacity: 0.25;
       transform: scale(0.92);
-      padding: 16px 12px;
+      padding: 12px;
       border-radius: 8px;
     }
     .shadowing-line-card.active {
       opacity: 1.0;
-      transform: scale(1.0);
+      transform: scale(1.05);
     }
     .shadowing-raw {
       font-size: 26px;
@@ -2673,21 +2673,21 @@
     let isShadowingAutoPlaying = false;
     let isShadowingVoiceEnabled = true;
     let shadowingSessionId = 0;
-    let nextSentenceTimer = null;
-    let scrollDebounceTimer = null;
-    let scrollUnlockTimer = null;
-    let isProgrammaticScrolling = false; // 滾動鎖：禁止程式平滑滾動時被 scroll 監聽器誤抓回舊句子
+    // ================= 🎧 專注跟讀模式邏輯 (支援朗讀獨立開關、防時序衝突排程) =================
+    let shadowingIndex = 0;
+    let isShadowingAutoPlaying = false;
+    let isShadowingVoiceEnabled = true; // 獨立朗讀開關狀態
+    let shadowingSessionId = 0;         // 每次停止、暫停或換句時遞增，使舊非同步回調徹底失效
+    let nextSentenceTimer = null;       // 延遲跳下一句的定時器控制
 
-    // 手勢與拖曳狀態變數
     let isShadowingDragging = false;
     let dragStartY = 0;
     let dragStartScrollTop = 0;
     let dragDistanceY = 0;
-
-    // 手機觸控狀態變數
-    let touchStartY = 0;
-    let touchDistanceY = 0;
-    let isTouchActive = false;
+    let scrollDebounceTimer = null;
+    let isProgrammaticScrolling = false; // 滾動互斥鎖：平滑滾動時禁止 scroll 監聽器誤抓舊句子
+    let scrollUnlockTimer = null;
+    let lastTouchTapTime = 0;           // 觸控點擊時間標記，防止 touch 與 click 雙重觸發
 
     function initShadowingVoicePreference() {
       const saved = localStorage.getItem(SHADOWING_VOICE_ENABLED_KEY);
@@ -2785,7 +2785,7 @@
       if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
     }
 
-    // 精準將目標句子置中到目前可視範圍的中軸線（以真實物理中心差值滾動，完美適配手機與動態網址列）
+    // 精準將目標句子置中到目前可視範圍的幾何中心線（物理座標差值）
     function scrollTargetLineToCenter(targetCard, viewport) {
       if (!targetCard || !viewport) return;
       
@@ -2797,10 +2797,12 @@
       const viewCenterY = viewRect.top + (viewRect.height / 2);
       const deltaY = cardCenterY - viewCenterY;
 
-      viewport.scrollBy({
-        top: deltaY,
-        behavior: "smooth"
-      });
+      if (Math.abs(deltaY) > 1) {
+        viewport.scrollBy({
+          top: deltaY,
+          behavior: "smooth"
+        });
+      }
     }
 
     function focusShadowingLine(idx, triggerPlayback = false) {
@@ -2815,13 +2817,14 @@
         return;
       }
 
-      // 啟動滾動鎖：鎖定 550ms 避免平滑滾動過程中的 scroll 事件反向干擾
+      // 啟動滾動互斥鎖（鎖定 550ms），防止平滑滾動期間被原生 scroll 監聽器抓回舊句子
       isProgrammaticScrolling = true;
       if (scrollUnlockTimer) clearTimeout(scrollUnlockTimer);
       scrollUnlockTimer = setTimeout(() => {
         isProgrammaticScrolling = false;
       }, 550);
 
+      // 切換句子時，立即中斷前一任務與定時器
       cancelShadowingSpeech();
       shadowingIndex = idx;
       document.getElementById("shadowingProgress").innerText = `${idx + 1} / ${currentViewingArticle.items.length}`;
@@ -2831,26 +2834,30 @@
         else card.classList.remove("active");
       });
 
-      // 視窗精準平滑置中
+      // 視窗精準平滑對焦置中（透過物理幾何差值，不偏不倚）
       const targetCard = document.getElementById(`shadowLine-${idx}`);
       const viewport = document.getElementById("shadowingScrollViewport");
       if (targetCard && viewport) {
         scrollTargetLineToCenter(targetCard, viewport);
       }
 
+      // 決定是否開始播放語音
       if (triggerPlayback) {
         playCurrentShadowingVoice();
       }
     }
 
+    // 播放當前句子語音（帶專屬 token 驗證保護）
     function playCurrentShadowingVoice() {
       const curSession = shadowingSessionId;
       const curIdx = shadowingIndex;
       const curItem = currentViewingArticle.items[curIdx];
       if (!curItem) return;
 
+      // 若使用者關閉朗讀功能
       if (!isShadowingVoiceEnabled) {
         if (isShadowingAutoPlaying) {
+          // 靜音模式下給予閱讀時間後自動進入下一句
           const delay = Math.max(2000, curItem.raw.length * 280);
           scheduleNextSentenceFallback(curSession, delay);
         }
@@ -2860,6 +2867,7 @@
       const reading = (curItem.reading_ja || curItem.raw).replace(/'/g, "\\'");
 
       speakJapanese(curItem.raw, reading, () => {
+        // 回調觸發時，嚴格驗證 session ID 與 index 是否被重置或被切換
         if (curSession !== shadowingSessionId) return;
         if (curIdx !== shadowingIndex) return;
 
@@ -2896,9 +2904,9 @@
       }
     }
 
-    // 依據視窗中心對齊最近的句子（純手動滑動停下時使用）
+    // 依據視窗中心對齊最近的句子（滾動停止時使用）
     function syncCenterClosestLine(triggerPlayback = false) {
-      if (isProgrammaticScrolling) return; // 處於平滑切換中直接略過
+      if (isProgrammaticScrolling) return; // 處於平滑切換中時略過
       const viewport = document.getElementById("shadowingScrollViewport");
       if (!viewport || !currentViewingArticle || !currentViewingArticle.items) return;
 
@@ -2923,7 +2931,7 @@
       }
     }
 
-    // 初始化專注跟讀模式手勢（手機端點擊切換、慣性滑動偵測、滑鼠拖動相容）
+    // 初始化專注跟讀模式的手勢操作
     function initShadowingGestures() {
       const viewport = document.getElementById("shadowingScrollViewport");
       if (!viewport || viewport.dataset.gesturesBound) return;
@@ -2935,35 +2943,37 @@
 
         clearTimeout(scrollDebounceTimer);
         scrollDebounceTimer = setTimeout(() => {
-          if (!isShadowingDragging && !isTouchActive && !isProgrammaticScrolling) {
+          if (!isShadowingDragging && !isProgrammaticScrolling) {
             syncCenterClosestLine(isShadowingAutoPlaying);
           }
-        }, 140);
+        }, 130);
       }, { passive: true });
 
-      // 2. 手機觸控事件 (touchstart, touchmove, touchend)
+      // 2. 手機觸控手勢（精準區分滑動與點擊）
+      let touchStartY = 0;
       let touchStartTime = 0;
+      let touchDeltaY = 0;
+
       viewport.addEventListener("touchstart", (e) => {
         if (e.touches.length === 1) {
-          isTouchActive = true;
           touchStartY = e.touches[0].clientY;
-          touchDistanceY = 0;
           touchStartTime = Date.now();
+          touchDeltaY = 0;
         }
       }, { passive: true });
 
       viewport.addEventListener("touchmove", (e) => {
         if (e.touches.length === 1) {
-          touchDistanceY = Math.abs(e.touches[0].clientY - touchStartY);
+          touchDeltaY = Math.abs(e.touches[0].clientY - touchStartY);
         }
       }, { passive: true });
 
       viewport.addEventListener("touchend", (e) => {
-        isTouchActive = false;
         const touchDuration = Date.now() - touchStartTime;
 
-        // 若手指移動距離極小 (< 10px) 且觸控時間短 (< 350ms)，直接視為點擊上半部/下半部切換
-        if (touchDistanceY < 10 && touchDuration < 350 && e.changedTouches.length === 1) {
+        // 若位移極小且時間短，判定為手機點擊換句
+        if (touchDeltaY < 8 && touchDuration < 300 && e.changedTouches.length === 1) {
+          lastTouchTapTime = Date.now();
           const clickY = e.changedTouches[0].clientY;
           const viewportRect = viewport.getBoundingClientRect();
           const midY = viewportRect.top + (viewportRect.height / 2);
@@ -2979,16 +2989,7 @@
               focusShadowingLine(shadowingIndex + 1, isShadowingAutoPlaying || isShadowingVoiceEnabled);
             }
           }
-          return;
         }
-
-        // 若為滑動操作，等待慣性滾動平穩後吸附對齊
-        clearTimeout(scrollDebounceTimer);
-        scrollDebounceTimer = setTimeout(() => {
-          if (!isProgrammaticScrolling) {
-            syncCenterClosestLine(isShadowingAutoPlaying);
-          }
-        }, 180);
       }, { passive: true });
 
       // 3. 電腦端滑鼠按住上下拖動滾動
@@ -3014,10 +3015,10 @@
         }
       });
 
-      // 4. 電腦端滑鼠單擊切換（非觸控裝置）
+      // 4. 電腦端滑鼠點擊切換（避開手機觸控產生的重疊 click 事件）
       viewport.addEventListener("click", (e) => {
-        if (dragDistanceY > 8 || touchDistanceY > 8) return;
-        // 點擊在按鈕或控制項上略過
+        if (Date.now() - lastTouchTapTime < 500) return; // 觸控端已處理過則略過
+        if (dragDistanceY > 8) return;
         if (e.target.closest("button") || e.target.closest(".shadowing-header-bar")) return;
 
         const viewportRect = viewport.getBoundingClientRect();
@@ -3139,21 +3140,16 @@
       const savedToken = localStorage.getItem(GOOGLE_TOKEN_KEY);
       const expiresAt = Number(localStorage.getItem(GOOGLE_EXPIRES_AT_KEY) || 0);
 
+      // 若 Token 仍在效期內（預留 2 分鐘緩衝），立即恢復連線
       if (savedToken && Date.now() < expiresAt - 120000) {
         googleAccessToken = savedToken;
         updateGoogleUi(true);
         renderAdminDashboard();
         syncWithGoogleDrive(false);
       } else {
-        // Token 已過期或 GitHub 重新發布，但使用者先前已登入過：保留帳號並設為待續期狀態，不暴力踢出
+        // Token 已過期或 GitHub 重新推送更新：
+        // 保留帳號資訊並更新介面為「⚡ 恢復連線」，絕不在頁面載入時強行自動調用彈窗，防止瀏覽器彈窗攔截器造成卡死
         updateGoogleUi(false, true);
-        if (tokenClient) {
-          try {
-            tokenClient.requestAccessToken({ prompt: "" });
-          } catch (e) {
-            console.warn("靜默自動續期失敗，待使用者操作時喚起:", e);
-          }
-        }
       }
     }
 
@@ -3177,14 +3173,14 @@
         globalBadge.innerText = "已連線";
         globalBadge.className = "status-badge-inline ready";
       } else if (isPendingRenew && email) {
-        // GitHub 更新後或 Token 逾時，保留使用者身分，提供一鍵恢復
+        // GitHub 更新後或 Token 逾時，保留帳號記憶，提供一鍵點擊無感續約
         authBtn.style.display = "inline-block";
-        authBtn.innerText = "⚡ 重新連線雲端";
+        authBtn.innerText = "⚡ 恢復 Google 連線";
         signoutBtn.style.display = "inline-block";
         manualSyncBtn.style.display = "inline-block";
-        statusBadge.innerText = "連線過期 (點擊連線)";
+        statusBadge.innerText = "待重新連線 (點擊即可)";
         statusBadge.className = "status-badge-inline";
-        accountText.innerText = `帳號: ${email} (點擊「重新連線」即可接續同步)`;
+        accountText.innerText = `帳號: ${email} (點擊「恢復連線」即可接續同步)`;
 
         globalBadge.innerText = "待連線";
         globalBadge.className = "status-badge-inline";
@@ -3211,7 +3207,7 @@
       }
       if (!tokenClient) initGoogleClient();
       if (tokenClient) {
-        // 曾登入過的使用者使用精簡提示，提升續期速度
+        // 使用者主動點擊按鈕授權（合規 User Gesture），依是否登入過選擇 prompt
         const hasLoggedIn = localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true";
         tokenClient.requestAccessToken({ prompt: hasLoggedIn ? "" : "consent" });
       } else {
@@ -3246,11 +3242,8 @@
         if (res.status === 401) {
           googleAccessToken = null;
           localStorage.removeItem(GOOGLE_TOKEN_KEY);
-          if (tokenClient && localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true") {
-            tokenClient.requestAccessToken({ prompt: "" });
-          } else {
-            updateGoogleUi(false);
-          }
+          // 標記為待續約狀態，不強行彈窗避免死鎖
+          updateGoogleUi(false, true);
         }
         return null;
       }
@@ -3260,11 +3253,7 @@
 
     async function syncWithGoogleDrive(showNotify = false) {
       if (!googleAccessToken) {
-        // 若 Token 暫時過期但曾授權過，嘗試直接喚醒授權
-        if (localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true" && tokenClient) {
-          tokenClient.requestAccessToken({ prompt: "" });
-        }
-        if (showNotify) alert("Google 雲端尚未連線，請點擊「重新連線雲端」。");
+        if (showNotify) alert("Google 雲端尚未連線，請點擊「恢復 Google 連線」。");
         return;
       }
 
