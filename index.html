@@ -819,6 +819,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       background: #000000;
       z-index: 3000;
       overflow: hidden;
@@ -874,12 +875,12 @@
       border-color: #4a5568;
     }
 
-    /* 滾動視窗：加入 cursor: grab 拖曳指標與原生平滑動態觸控適配 */
+    /* 滾動視窗：上下均勻對稱留白 50dvh，使第一句至最後一句皆能精準抵達螢幕幾何中心 */
     .shadowing-scroll-viewport {
       flex-grow: 1;
       overflow-y: auto;
       position: relative;
-      padding: 46vh 20px;
+      padding: 50dvh 20px;
       cursor: grab;
       -webkit-overflow-scrolling: touch;
       scroll-behavior: smooth;
@@ -896,18 +897,18 @@
     }
     .shadowing-line-card {
       max-width: 800px;
-      margin: 0 auto 38px auto;
+      margin: 0 auto 42px auto;
       text-align: center;
       cursor: pointer;
-      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-      opacity: 0.22;
+      transition: opacity 0.3s ease, transform 0.25s ease;
+      opacity: 0.2;
       transform: scale(0.92);
       padding: 16px 12px;
       border-radius: 8px;
     }
     .shadowing-line-card.active {
       opacity: 1.0;
-      transform: scale(1.08);
+      transform: scale(1.0);
     }
     .shadowing-raw {
       font-size: 26px;
@@ -942,7 +943,7 @@
     /* 手機螢幕適配 */
     @media (max-width: 600px) {
       .shadowing-scroll-viewport {
-        padding: 46vh 14px;
+        padding: 50dvh 14px;
       }
       .shadowing-raw {
         font-size: 21px;
@@ -951,7 +952,7 @@
         font-size: 13px;
       }
       .shadowing-line-card {
-        margin-bottom: 30px;
+        margin-bottom: 34px;
         padding: 12px 8px;
       }
     }
@@ -2788,16 +2789,16 @@
     function scrollTargetLineToCenter(targetCard, viewport) {
       if (!targetCard || !viewport) return;
 
-      const viewportRect = viewport.getBoundingClientRect();
-      const cardRect = targetCard.getBoundingClientRect();
-
-      // 計算卡片中心點與 Viewport 中心點在視窗 Y 軸上的精確差值
-      const viewportCenterY = viewportRect.top + (viewportRect.height / 2);
-      const cardCenterY = cardRect.top + (cardRect.height / 2);
-      const offsetDiff = cardCenterY - viewportCenterY;
-
-      // 加上差值進行精準平滑對齊
-      viewport.scrollBy({ top: offsetDiff, behavior: "smooth" });
+    // 精準將目標句子置中到目前可視範圍的中軸線（完美適配手機與動態網址列）
+    function scrollTargetLineToCenter(targetCard, viewport) {
+      if (!targetCard || !viewport) return;
+      
+      // 使用瀏覽器原生精準置中 API，直接保證目標在視窗 Y 軸 50% 正中央
+      targetCard.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest"
+      });
     }
 
     function focusShadowingLine(idx, triggerPlayback = false) {
@@ -2812,7 +2813,7 @@
         return;
       }
 
-      // 啟動滾動鎖：鎖定 500ms 避免平滑滾動過程中的 scroll 事件反向干擾
+      // 啟動滾動鎖：鎖定 550ms 避免平滑滾動過程中的 scroll 事件反向干擾
       isProgrammaticScrolling = true;
       if (scrollUnlockTimer) clearTimeout(scrollUnlockTimer);
       scrollUnlockTimer = setTimeout(() => {
