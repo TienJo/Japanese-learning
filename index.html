@@ -288,6 +288,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .sentence-item {
       padding: 14px 0;
@@ -625,6 +627,187 @@
     }
     table.analysis-table tr:hover {
       background-color: #f9fbfc;
+    }
+
+    /* =================== 第三分頁：我的資料庫專屬樣式 =================== */
+    .db-sub-nav {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid #edf2f7;
+      padding-bottom: 8px;
+      margin-bottom: 18px;
+    }
+    .db-sub-tab-btn {
+      padding: 8px 16px;
+      background: #edf2f7;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .db-sub-tab-btn.active {
+      background: #2e78d6;
+      color: #ffffff;
+    }
+    .folder-bar-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .folder-tabs-list {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .folder-chip {
+      padding: 5px 12px;
+      background: #ffffff;
+      border: 1px solid #cbd5e0;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #4a5568;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .folder-chip:hover {
+      border-color: #2e78d6;
+      color: #2e78d6;
+    }
+    .folder-chip.active {
+      background: #ebf8ff;
+      border-color: #3182ce;
+      color: #2b6cb0;
+      font-weight: bold;
+    }
+    .article-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .article-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.15s;
+    }
+    .article-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-color: #cbd5e0;
+    }
+    .article-card-header {
+      margin-bottom: 10px;
+      padding-right: 28px;
+    }
+    .article-card-title {
+      font-size: 17px;
+      font-weight: bold;
+      color: #1a202c;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .article-card-author {
+      font-size: 12px;
+      color: #718096;
+    }
+    .article-card-preview {
+      font-size: 13px;
+      color: #4a5568;
+      background: #f7fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+      max-height: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-line;
+      border-left: 3px solid #cbd5e0;
+    }
+    .article-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #a0aec0;
+      border-top: 1px solid #edf2f7;
+      padding-top: 10px;
+    }
+
+    /* 彈跳視窗 (Modal) */
+    .custom-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+    .custom-modal-backdrop.active {
+      display: flex;
+    }
+    .custom-modal-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 24px;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #1a202c;
+    }
+    .modal-field {
+      margin-bottom: 14px;
+    }
+    .modal-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 5px;
+    }
+    .modal-field input, .modal-field select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
     }
 
     /* 單字卡與測驗樣式 */
@@ -987,34 +1170,6 @@
       border-color: #e53e3e !important;
       color: #742a2a;
     }
-    .vocab-book-drawer {
-      margin-top: 24px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-    .vocab-book-drawer summary {
-      padding: 14px 18px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #2d3748;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-      background: #f8fafc;
-      border-radius: 8px;
-    }
-    .vocab-book-drawer[open] summary {
-      border-bottom: 1px solid #e2e8f0;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-    .vocab-book-content {
-      padding: 16px;
-    }
 
     /* =================== 第四分頁：設定中心樣式 =================== */
     .settings-section-card {
@@ -1079,6 +1234,35 @@
       border-radius: 6px;
       border: 1px solid #e2e8f0;
     }
+
+    /* 管理員專屬監控看板樣式 */
+    .admin-dashboard-box {
+      display: none;
+      background: #ffffff;
+      border: 2px solid #2e78d6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .admin-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .admin-stat-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .admin-stat-num {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2e78d6;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -1135,7 +1319,7 @@
   <div class="global-bar">
     <div class="global-indicators">
       <div>API Key：<span id="globalApiKeyBadge" class="status-badge-inline">未設定</span></div>
-      <div>模型：<span id="globalModelBadge" style="font-weight:600; color:#2e78d6;">Gemini 3.5 Flash</span></div>
+      <div>模型：<span id="globalModelBadge" style="font-weight:600; color:#2e78d6;">Gemini 3.1 Flash-Lite</span></div>
       <div>Google 雲端：<span id="globalCloudBadge" class="status-badge-inline">未連線</span></div>
     </div>
     <div id="globalStatus" class="status-msg">系統就緒。</div>
@@ -1144,7 +1328,7 @@
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('tabTranslate')">對照轉換</button>
     <button class="tab-btn" onclick="switchTab('tabSyntax')">句法結構與無交錯折線分析</button>
-    <button class="tab-btn" onclick="switchTab('tabVocab')">日文單字卡與測驗工具</button>
+    <button class="tab-btn" onclick="switchTab('tabDatabase')">📚 我的資料庫</button>
     <button class="tab-btn" onclick="switchTab('tabSettings')">⚙️ 帳號與 API 設定</button>
   </div>
 
@@ -1166,7 +1350,10 @@
     <div id="transResultWrapper" class="result-container">
       <div class="result-header">
         <span style="font-size: 14px; font-weight: 600; color: #555;">對照輸出結果</span>
-        <button id="copyBtn" class="text-action-btn" onclick="copyFormattedWithColors()">複製帶顏色格式</button>
+        <div style="display:flex; gap:8px;">
+          <button id="saveArticleBtn" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc; font-weight:600;" onclick="openSaveArticleModal()">💾 轉存至我的資料庫</button>
+          <button id="copyBtn" class="text-action-btn" onclick="copyFormattedWithColors()">複製帶顏色格式</button>
+        </div>
       </div>
       <div id="transResultList"></div>
     </div>
@@ -1281,113 +1468,123 @@
     </div>
   </div>
 
-  <!-- 分頁三：單字拆解與測驗工具 -->
-  <div id="tabVocab" class="tab-content">
-    <div class="textarea-header">
-      <span class="field-title">輸入日語句子（完整語塊拆解、過濾純英文、自動保存至本地與雲端）：</span>
-      <button type="button" class="text-action-btn" onclick="clearInput('vocabInput')">清空輸入</button>
+  <!-- 分頁三：📚 我的資料庫 (文章歌詞庫與單字庫) -->
+  <div id="tabDatabase" class="tab-content">
+    <div class="db-sub-nav">
+      <button class="db-sub-tab-btn active" id="dbSubTabArticleBtn" onclick="switchDbSubTab('articles')">📂 翻譯文章與歌詞庫 (<span id="dbArticleCountBadge">0</span>)</button>
+      <button class="db-sub-tab-btn" id="dbSubTabVocabBtn" onclick="switchDbSubTab('vocab')">🎴 單字學習與測驗庫 (<span id="dbVocabCountBadge">0</span>)</button>
     </div>
-    <textarea id="vocabInput" placeholder="請輸入日文句子。例如：
+
+    <!-- 子區塊 1：文章與歌詞庫 -->
+    <div id="dbArticlesSection">
+      <div class="folder-bar-container">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:13px; font-weight:bold; color:#4a5568;">資料夾分類：</span>
+          <div class="folder-tabs-list" id="folderChipsList"></div>
+        </div>
+        <button type="button" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc;" onclick="promptCreateNewFolder()">＋ 建立新資料夾</button>
+      </div>
+
+      <div class="article-cards-grid" id="articleCardsGrid"></div>
+    </div>
+
+    <!-- 子區塊 2：單字卡與測驗庫 -->
+    <div id="dbVocabSection" style="display:none;">
+      <div class="textarea-header">
+        <span class="field-title">手動拆解句子（自動保存至單字庫）：</span>
+        <button type="button" class="text-action-btn" onclick="clearInput('vocabInput')">清空輸入</button>
+      </div>
+      <textarea id="vocabInput" placeholder="請輸入日文句子。例如：
 昨日リリースされた新曲、すごくかっこいいよ！
 抹茶ラテのグランデサイズを一つ、アイスでお願いします。"></textarea>
-    <div class="action-row">
-      <div id="vocabStatus" class="status-msg">等待輸入...（拆解時專用 Gemini 3.1 Flash Lite，發音與測驗零 Token）</div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button id="studyToggleBtn" class="text-action-btn" style="background:#e6fffa; color:#234e52; border-color:#b2f5ea; font-weight:600;" onclick="startStudyMode()">
-          🎴 進入學習模式 (翻卡)
-        </button>
-        <button id="quizToggleBtn" class="text-action-btn" style="background:#fefcbf; color:#744210; border-color:#faf089; font-weight:600;" onclick="startQuizMode()">
-          📝 進入測驗模式 (陌生優先)
-        </button>
-        <button id="vocabBtn" class="primary-btn" onclick="runVocabExtraction()">拆解為單字卡</button>
-      </div>
-    </div>
-
-    <!-- 學習模式 (翻卡記憶) -->
-    <div id="studySection" class="study-section">
-      <div class="study-header">
-        <div style="font-weight:bold; font-size:16px; color:#2d3748;">🎴 單字翻卡學習模式</div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <span id="studyProgressText" style="font-size:13px; color:#4a5568;">進度：1 / 1</span>
-          <button class="text-action-btn" onclick="exitStudyMode()">退出學習</button>
+      <div class="action-row">
+        <div id="vocabStatus" class="status-msg">等待輸入...（拆解時專用 Gemini 3.1 Flash Lite，發音與測驗零 Token）</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="studyToggleBtn" class="text-action-btn" style="background:#e6fffa; color:#234e52; border-color:#b2f5ea; font-weight:600;" onclick="startStudyMode()">
+            🎴 進入學習模式 (翻卡)
+          </button>
+          <button id="quizToggleBtn" class="text-action-btn" style="background:#fefcbf; color:#744210; border-color:#faf089; font-weight:600;" onclick="startQuizMode()">
+            📝 進入測驗模式 (陌生優先)
+          </button>
+          <button id="vocabBtn" class="primary-btn" onclick="runVocabExtraction()">拆解為單字卡</button>
         </div>
       </div>
 
-      <div class="flashcard-box" id="flashcardBox" onclick="flipFlashcard()">
-        <span class="flip-hint-badge" id="flipHintBadge">點擊卡片翻面 ↻</span>
-        <div id="flashcardContent"></div>
-      </div>
-
-      <div class="study-nav-row">
-        <button class="text-action-btn" onclick="prevFlashcard()">← 上一張</button>
-        <div id="cardFamiliarityControl" style="display:flex; align-items:center; gap:6px; font-size:12px;">
-          <span>設定熟悉度：</span>
-          <button class="familiarity-tag" data-level="0" onclick="setCardFamiliarityInStudy(0)">陌生</button>
-          <button class="familiarity-tag" data-level="1" onclick="setCardFamiliarityInStudy(1)">模糊</button>
-          <button class="familiarity-tag" data-level="2" onclick="setCardFamiliarityInStudy(2)">掌握</button>
-        </div>
-        <button class="text-action-btn" onclick="nextFlashcard()">下一張 →</button>
-      </div>
-    </div>
-
-    <!-- 測驗卡片互動區塊 -->
-    <div id="quizSection" class="quiz-section">
-      <div class="quiz-header">
-        <div class="quiz-title">📝 單字測驗挑戰（優先測試陌生單字）</div>
-        <div class="quiz-controls-right">
-          <label class="toggle-switch-wrap" style="font-size:12px; color:#4a5568;">
-            <input type="checkbox" id="autoSpeakToggle"> 出題自動朗讀
-          </label>
-          <div class="quiz-stats" id="quizStats">得分: 0 / 0</div>
-          <button class="text-action-btn" onclick="exitQuizMode()">退出測驗</button>
-        </div>
-      </div>
-      <div class="quiz-card-box" id="quizCardBox">
-        <div class="quiz-question-word-wrap">
-          <span class="quiz-question-word" id="quizWord">單字</span>
-          <button class="speak-btn" id="quizSpeakBtn" title="朗讀發音" style="font-size:22px;">🔊</button>
-        </div>
-        <div class="quiz-question-romaji" id="quizRomaji">romaji</div>
-        <div class="quiz-options-list" id="quizOptions"></div>
-      </div>
-    </div>
-
-    <!-- 本次拆解單字卡即時預覽 -->
-    <div id="vocabResultWrapper" class="result-container">
-      <div class="vocab-toolbar">
-        <div class="toggle-switch-wrap">
-          <input type="checkbox" id="romajiToggle" checked onchange="toggleRomajiVisibility()">
-          <label for="romajiToggle"><strong>顯示羅馬拼音 (Hepburn)</strong></label>
-        </div>
-        <div>
-          <span style="font-size:13px; color:#4a5568;" id="vocabCountBadge">本次拆解 0 個單字</span>
-        </div>
-      </div>
-      <div id="vocabCardsGrid" class="vocab-cards-grid"></div>
-    </div>
-
-    <!-- 默認闔上的單字書 -->
-    <details class="vocab-book-drawer" id="vocabBookDrawer" ontoggle="onBookDrawerToggle(this)">
-      <summary>
-        <span>📖 我的已存單字書 (<span id="bookCountText">計算中...</span>)</span>
-        <span style="font-size:12px; font-weight:normal; color:#718096;">點擊展開 / 收起 ▾</span>
-      </summary>
-      <div class="vocab-book-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-          <span style="font-size:13px; color:#666;">資料庫保存於本機 IndexedDB，點擊 🔊 朗讀，點擊熟悉度標籤可手動調整。</span>
-          <div style="display:flex; gap:8px;">
-            <button class="text-action-btn" onclick="clearLocalDatabase()">清空全書單字</button>
+      <!-- 學習模式 (翻卡記憶) -->
+      <div id="studySection" class="study-section">
+        <div class="study-header">
+          <div style="font-weight:bold; font-size:16px; color:#2d3748;">🎴 單字翻卡學習模式</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span id="studyProgressText" style="font-size:13px; color:#4a5568;">進度：1 / 1</span>
+            <button class="text-action-btn" onclick="exitStudyMode()">退出學習</button>
           </div>
+        </div>
+
+        <div class="flashcard-box" id="flashcardBox" onclick="flipFlashcard()">
+          <span class="flip-hint-badge" id="flipHintBadge">點擊卡片翻面 ↻</span>
+          <div id="flashcardContent"></div>
+        </div>
+
+        <div class="study-nav-row">
+          <button class="text-action-btn" onclick="prevFlashcard()">← 上一張</button>
+          <div id="cardFamiliarityControl" style="display:flex; align-items:center; gap:6px; font-size:12px;">
+            <span>設定熟悉度：</span>
+            <button class="familiarity-tag" data-level="0" onclick="setCardFamiliarityInStudy(0)">陌生</button>
+            <button class="familiarity-tag" data-level="1" onclick="setCardFamiliarityInStudy(1)">模糊</button>
+            <button class="familiarity-tag" data-level="2" onclick="setCardFamiliarityInStudy(2)">掌握</button>
+          </div>
+          <button class="text-action-btn" onclick="nextFlashcard()">下一張 →</button>
+        </div>
+      </div>
+
+      <!-- 測驗卡片互動區塊 -->
+      <div id="quizSection" class="quiz-section">
+        <div class="quiz-header">
+          <div class="quiz-title">📝 單字測驗挑戰（優先測試陌生單字）</div>
+          <div class="quiz-controls-right">
+            <label class="toggle-switch-wrap" style="font-size:12px; color:#4a5568;">
+              <input type="checkbox" id="autoSpeakToggle"> 出題自動朗讀
+            </label>
+            <div class="quiz-stats" id="quizStats">得分: 0 / 0</div>
+            <button class="text-action-btn" onclick="exitQuizMode()">退出測驗</button>
+          </div>
+        </div>
+        <div class="quiz-card-box" id="quizCardBox">
+          <div class="quiz-question-word-wrap">
+            <span class="quiz-question-word" id="quizWord">單字</span>
+            <button class="speak-btn" id="quizSpeakBtn" title="朗讀發音" style="font-size:22px;">🔊</button>
+          </div>
+          <div class="quiz-question-romaji" id="quizRomaji">romaji</div>
+          <div class="quiz-options-list" id="quizOptions"></div>
+        </div>
+      </div>
+
+      <!-- 本次拆解單字卡即時預覽 -->
+      <div id="vocabResultWrapper" class="result-container">
+        <div class="vocab-toolbar">
+          <div class="toggle-switch-wrap">
+            <input type="checkbox" id="romajiToggle" checked onchange="toggleRomajiVisibility()">
+            <label for="romajiToggle"><strong>顯示羅馬拼音 (Hepburn)</strong></label>
+          </div>
+          <div>
+            <span style="font-size:13px; color:#4a5568;" id="vocabCountBadge">本次拆解 0 個單字</span>
+          </div>
+        </div>
+        <div id="vocabCardsGrid" class="vocab-cards-grid"></div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:14px; font-weight:bold; color:#2d3748;">已儲存的個人單字卡</span>
+          <button class="text-action-btn" onclick="clearLocalDatabase()">清空所有單字</button>
         </div>
         <div id="bookCardsGrid" class="vocab-cards-grid"></div>
       </div>
-    </details>
+    </div>
   </div>
 
   <!-- 分頁四：⚙️ 帳號與 API 設定 -->
   <div id="tabSettings" class="tab-content">
-    
-    <!-- Gemini 模型與 API Key 設定 -->
     <div class="settings-section-card">
       <div class="settings-section-title">
         <span>🤖 Gemini 模型與 API Key</span>
@@ -1405,16 +1602,15 @@
       <div class="settings-field-group">
         <label for="modelSelect">主要呼叫模型：</label>
         <select id="modelSelect" class="settings-select" onchange="onModelChange()">
-          <option value="gemini-3.5-flash">Gemini 3.5 Flash (推薦，速度與品質平衡)</option>
-          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐、超低延遲)</option>
+          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐、超低延遲，預設)</option>
+          <option value="gemini-3.5-flash">Gemini 3.5 Flash (速度與品質平衡)</option>
           <option value="gemini-3.7-flash">Gemini 3.7 Flash (高智商推理)</option>
           <option value="auto">自動備援 (Auto Fallback)</option>
         </select>
-        <div class="settings-tip">對照轉換與句法分析將優先使用選取的模型；若遇配額限制將自動切換備援。單字拆解固定採用輕量高效的 Flash-Lite 模型。</div>
+        <div class="settings-tip">對照轉換與句法分析將優先使用選取的模型；若遇配額限制將自動切換備援。</div>
       </div>
     </div>
 
-    <!-- Google Drive 雲端同步設定 -->
     <div class="settings-section-card">
       <div class="settings-section-title">
         <span>☁️ Google 帳號與雲端備份同步</span>
@@ -1424,7 +1620,7 @@
         <span style="font-size:24px;">🇬</span>
         <div style="flex-grow:1;">
           <div style="font-weight:600; font-size:14px;" id="gdriveAccountText">尚未登入 Google 帳號</div>
-          <div style="font-size:12px; color:#718096;">雲端同步將自動儲存「單字庫」與「Gemini API Key」至個人專屬 AppData 空間</div>
+          <div style="font-size:12px; color:#718096;">雲端同步將自動儲存「文章庫」、「單字庫」與「Gemini API Key」至個人專屬 AppData 空間</div>
         </div>
         <span class="status-badge-inline" id="gdriveStatusBadge">離線 / 本地保存</span>
       </div>
@@ -1441,7 +1637,7 @@
         </button>
       </div>
 
-      <!-- 進階 Client ID 設定（預設隱藏並設有密碼保護） -->
+      <!-- 進階 Client ID 設定 -->
       <details style="margin-top:16px; border-top:1px dashed #e2e8f0; padding-top:12px;">
         <summary style="font-size:12px; color:#718096; cursor:pointer; user-select:none;">
           🔒 進階開發者設定 (自訂 Client ID) ▾
@@ -1457,9 +1653,83 @@
             系統已內建全域 Client ID，一般使用者無需修改。若為開發維護，需輸入管理者密碼解鎖後方可自訂。
           </div>
         </div>
+
+        <!-- 👑 管理員專屬面板（僅 peterchen3x3@gmail.com 可見） -->
+        <div id="adminPanel" class="admin-dashboard-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:#2e78d6; font-size:15px;">👑 管理員即時後台 (peterchen3x3@gmail.com 專屬)</strong>
+            <button type="button" class="text-action-btn" onclick="resetAdminTodayStats()">重置今日統計</button>
+          </div>
+          <div class="admin-stat-grid">
+            <div class="admin-stat-card">
+              <div style="font-size:12px; color:#718096;">今日造訪/使用人數</div>
+              <div class="admin-stat-num" id="adminUserCount">1</div>
+            </div>
+            <div class="admin-stat-card">
+              <div style="font-size:12px; color:#718096;">今日總計燃燒 Token</div>
+              <div class="admin-stat-num" id="adminTotalTokens">0</div>
+            </div>
+            <div class="admin-stat-card">
+              <div style="font-size:12px; color:#718096;">輸入 (Prompt) Tokens</div>
+              <div class="admin-stat-num" id="adminPromptTokens" style="color:#4a5568; font-size:18px;">0</div>
+            </div>
+            <div class="admin-stat-card">
+              <div style="font-size:12px; color:#718096;">輸出 (Candidates) Tokens</div>
+              <div class="admin-stat-num" id="adminCandidateTokens" style="color:#4a5568; font-size:18px;">0</div>
+            </div>
+          </div>
+        </div>
       </details>
     </div>
+  </div>
 
+  <!-- 儲存作品/歌詞 彈出對話框 -->
+  <div class="custom-modal-backdrop" id="saveArticleModal">
+    <div class="custom-modal-box">
+      <div class="modal-title">💾 儲存作品到我的資料庫</div>
+      
+      <div class="modal-field">
+        <label for="modalArticleTitle">作品名稱 / 歌曲名 *</label>
+        <input type="text" id="modalArticleTitle" placeholder="例如：Lemon、銀色の空...">
+      </div>
+
+      <div class="modal-field">
+        <label for="modalArticleAuthor">作者 / 歌手 / 來源</label>
+        <input type="text" id="modalArticleAuthor" placeholder="例如：米津玄師、redballoon...">
+      </div>
+
+      <div class="modal-field">
+        <label for="modalArticleFolder">存放資料夾分類</label>
+        <div style="display:flex; gap:8px;">
+          <select id="modalArticleFolder" style="flex-grow:1;"></select>
+          <button type="button" class="text-action-btn" onclick="promptCreateNewFolderInModal()">＋ 新資料夾</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="text-action-btn" onclick="closeSaveArticleModal()">取消</button>
+        <button type="button" class="primary-btn" onclick="confirmSaveArticle()">儲存作品</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 檢視作品詳情對話框 (已完全移除拆解全篇單字按鈕) -->
+  <div class="custom-modal-backdrop" id="viewArticleModal">
+    <div class="custom-modal-box" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <div class="modal-title" id="viewModalTitle" style="margin-bottom:4px;">作品標題</div>
+          <div style="font-size:12px; color:#718096;" id="viewModalAuthor">作者</div>
+        </div>
+        <button type="button" class="card-delete-btn" style="position:static;" onclick="closeViewArticleModal()">✕</button>
+      </div>
+
+      <div style="overflow-y:auto; flex-grow:1; margin-bottom:16px; border:1px solid #edf2f7; border-radius:6px; padding:12px;" id="viewModalContent"></div>
+
+      <div style="display:flex; justify-content:flex-end; align-items:center;">
+        <button type="button" class="text-action-btn" onclick="closeViewArticleModal()">關閉</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1469,25 +1739,29 @@
     const GOOGLE_TOKEN_KEY = "gdrive_saved_access_token";
     const GOOGLE_EXPIRES_AT_KEY = "gdrive_saved_token_expires_at";
     const GOOGLE_LOGGED_IN_FLAG = "gdrive_has_logged_in";
+    const GOOGLE_USER_EMAIL_KEY = "gdrive_user_email";
 
-    // 語音全域設定保存 Key
     const VOICE_RATE_KEY = "app_voice_rate";
     const VOICE_PITCH_KEY = "app_voice_pitch";
     const VOICE_GENDER_KEY = "app_voice_gender";
 
-    // 內建固定 Client ID 與維護密碼
+    // 管理員設定
+    const ADMIN_EMAIL = "peterchen3x3@gmail.com";
+    const ADMIN_STATS_KEY = "app_admin_stats_v1";
+
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
     const ADMIN_UNLOCK_PASSWORD = "19980815";
 
     let cachedHtmlPayload = "";
     let cachedTextPayload = "";
+    let latestTranslationResults = null;
     let isolatedSyntaxData = [];
     let currentZoom = 1.0;
 
     // ================= 原生人聲發音核心 (Web Speech API) =================
     let voicePitch = 0.85;
     let voiceRate = 0.92;
-    let voiceGenderPref = "auto"; // "female", "male", "auto"
+    let voiceGenderPref = "auto";
 
     function toggleAudioPopover(e) {
       e.stopPropagation();
@@ -1544,21 +1818,18 @@
       localStorage.setItem(VOICE_PITCH_KEY, voicePitch);
     }
 
-    // 核心發音：優先採用平假名發音文本 (readingText)，徹底防止漢字被念成中文
     function speakJapanese(text, readingText = null) {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
 
-      // 若有平假名或標音文本則以此發音，否則退回原始文本
       const textToSpeak = (readingText && readingText.trim().length > 0) ? readingText.trim() : text;
 
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = "ja-JP"; // 強制日文語系
+      utterance.lang = "ja-JP";
       utterance.rate = voiceRate;
       utterance.pitch = voicePitch;
 
       const voices = window.speechSynthesis.getVoices();
-      // 精準限定日文語系
       const jaVoices = voices.filter(v => v.lang.startsWith("ja") || v.lang === "ja-JP" || v.lang === "ja_JP");
 
       let matchedVoice = null;
@@ -1599,42 +1870,199 @@
       };
     }
 
-    // ================= IndexedDB 單字資料庫核心 =================
+    // ================= 管理員 Token 與造訪人數追蹤 =================
+    function recordTokenUsage(usageMetadata) {
+      if (!usageMetadata) return;
+      const today = new Date().toISOString().slice(0, 10);
+      let stats = JSON.parse(localStorage.getItem(ADMIN_STATS_KEY) || "{}");
+
+      if (stats.date !== today) {
+        stats = {
+          date: today,
+          users: 1,
+          promptTokens: 0,
+          candidateTokens: 0,
+          totalTokens: 0
+        };
+      }
+
+      stats.promptTokens += (usageMetadata.promptTokenCount || 0);
+      stats.candidateTokens += (usageMetadata.candidatesTokenCount || 0);
+      stats.totalTokens += (usageMetadata.totalTokenCount || 0);
+
+      localStorage.setItem(ADMIN_STATS_KEY, JSON.stringify(stats));
+      renderAdminDashboard();
+    }
+
+    function recordVisitorCount() {
+      const today = new Date().toISOString().slice(0, 10);
+      let stats = JSON.parse(localStorage.getItem(ADMIN_STATS_KEY) || "{}");
+      if (stats.date !== today) {
+        stats = { date: today, users: 1, promptTokens: 0, candidateTokens: 0, totalTokens: 0 };
+      }
+      localStorage.setItem(ADMIN_STATS_KEY, JSON.stringify(stats));
+    }
+
+    function renderAdminDashboard() {
+      const panel = document.getElementById("adminPanel");
+      const currentEmail = localStorage.getItem(GOOGLE_USER_EMAIL_KEY);
+
+      if (currentEmail === ADMIN_EMAIL) {
+        panel.style.display = "block";
+        const today = new Date().toISOString().slice(0, 10);
+        const stats = JSON.parse(localStorage.getItem(ADMIN_STATS_KEY) || "{}");
+        if (stats.date === today) {
+          document.getElementById("adminUserCount").innerText = stats.users || 1;
+          document.getElementById("adminTotalTokens").innerText = (stats.totalTokens || 0).toLocaleString();
+          document.getElementById("adminPromptTokens").innerText = (stats.promptTokens || 0).toLocaleString();
+          document.getElementById("adminCandidateTokens").innerText = (stats.candidateTokens || 0).toLocaleString();
+        } else {
+          document.getElementById("adminUserCount").innerText = "1";
+          document.getElementById("adminTotalTokens").innerText = "0";
+          document.getElementById("adminPromptTokens").innerText = "0";
+          document.getElementById("adminCandidateTokens").innerText = "0";
+        }
+      } else {
+        panel.style.display = "none";
+      }
+    }
+
+    function resetAdminTodayStats() {
+      const today = new Date().toISOString().slice(0, 10);
+      const stats = { date: today, users: 1, promptTokens: 0, candidateTokens: 0, totalTokens: 0 };
+      localStorage.setItem(ADMIN_STATS_KEY, JSON.stringify(stats));
+      renderAdminDashboard();
+      alert("今日統計已重置！");
+    }
+
+    // ================= IndexedDB 資料庫核心 =================
     const DB_NAME = "JapaneseVocabDB";
-    const DB_VERSION = 2;
-    const STORE_NAME = "vocab_cards";
+    const DB_VERSION = 3;
+    const STORE_VOCAB = "vocab_cards";
+    const STORE_ARTICLES = "articles_db";
+    const STORE_FOLDERS = "folders_db";
     let dbInstance = null;
+    let currentSelectedFolder = "全部";
 
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
         const req = indexedDB.open(DB_NAME, DB_VERSION);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+          if (!db.objectStoreNames.contains(STORE_VOCAB)) {
+            const store = db.createObjectStore(STORE_VOCAB, { keyPath: "id", autoIncrement: true });
             store.createIndex("word", "word", { unique: false });
             store.createIndex("familiarity", "familiarity", { unique: false });
             store.createIndex("created_at", "created_at", { unique: false });
-          } else {
-            const store = e.target.transaction.objectStore(STORE_NAME);
-            if (!store.indexNames.contains("familiarity")) {
-              store.createIndex("familiarity", "familiarity", { unique: false });
-            }
+          }
+          if (!db.objectStoreNames.contains(STORE_ARTICLES)) {
+            const artStore = db.createObjectStore(STORE_ARTICLES, { keyPath: "id", autoIncrement: true });
+            artStore.createIndex("title", "title", { unique: false });
+            artStore.createIndex("folder", "folder", { unique: false });
+            artStore.createIndex("created_at", "created_at", { unique: false });
+          }
+          if (!db.objectStoreNames.contains(STORE_FOLDERS)) {
+            db.createObjectStore(STORE_FOLDERS, { keyPath: "name" });
           }
         };
-        req.onsuccess = (e) => {
+        req.onsuccess = async (e) => {
           dbInstance = e.target.result;
-          refreshBookSummary();
+          await ensureDefaultFolders();
+          refreshDatabaseUi();
           resolve(dbInstance);
         };
         req.onerror = (e) => reject(e);
       });
     }
 
+    async function ensureDefaultFolders() {
+      const folders = await getAllFoldersFromDb();
+      if (folders.length === 0) {
+        await saveFolderToDb("歌詞本");
+        await saveFolderToDb("閱讀短文");
+      }
+    }
+
+    function getAllFoldersFromDb() {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_FOLDERS, "readonly");
+        const store = tx.objectStore(STORE_FOLDERS);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+      });
+    }
+
+    function saveFolderToDb(name) {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_FOLDERS, "readwrite");
+        tx.objectStore(STORE_FOLDERS).put({ name: name.trim(), created_at: Date.now() });
+        tx.oncomplete = () => resolve();
+      });
+    }
+
+    async function promptCreateNewFolder() {
+      const name = prompt("請輸入新資料夾名稱 (例如：動漫經典台詞、N2讀解)：");
+      if (name && name.trim()) {
+        await saveFolderToDb(name.trim());
+        currentSelectedFolder = name.trim();
+        refreshDatabaseUi();
+      }
+    }
+
+    async function promptCreateNewFolderInModal() {
+      const name = prompt("請輸入新資料夾名稱：");
+      if (name && name.trim()) {
+        await saveFolderToDb(name.trim());
+        await populateFolderSelectOptions(name.trim());
+      }
+    }
+
+    function saveArticleToDb(article) {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_ARTICLES, "readwrite");
+        tx.objectStore(STORE_ARTICLES).add({
+          title: article.title,
+          author: article.author || "未知",
+          folder: article.folder || "未分類",
+          items: article.items,
+          created_at: Date.now()
+        });
+        tx.oncomplete = () => {
+          refreshDatabaseUi();
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    function getAllArticlesFromDb() {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_ARTICLES, "readonly");
+        const store = tx.objectStore(STORE_ARTICLES);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+      });
+    }
+
+    async function deleteArticleFromDb(id) {
+      if (!confirm("確定要刪除這部作品嗎？")) return;
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_ARTICLES, "readwrite");
+      tx.objectStore(STORE_ARTICLES).delete(Number(id));
+      tx.oncomplete = () => {
+        refreshDatabaseUi();
+        if (googleAccessToken) syncWithGoogleDrive(false);
+      };
+    }
+
     async function saveVocabToDb(tokens) {
       if (!dbInstance) await initIndexedDB();
-      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
+      const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
+      const store = tx.objectStore(STORE_VOCAB);
       tokens.forEach(t => {
         store.add({
           word: t.word,
@@ -1651,7 +2079,7 @@
       });
       return new Promise((resolve) => {
         tx.oncomplete = () => {
-          refreshBookSummary();
+          refreshDatabaseUi();
           if (googleAccessToken) syncWithGoogleDrive(false);
           resolve();
         };
@@ -1661,8 +2089,8 @@
     function getAllVocabFromDb() {
       return new Promise(async (resolve) => {
         if (!dbInstance) await initIndexedDB();
-        const tx = dbInstance.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
+        const tx = dbInstance.transaction(STORE_VOCAB, "readonly");
+        const store = tx.objectStore(STORE_VOCAB);
         const req = store.getAll();
         req.onsuccess = () => {
           const res = req.result || [];
@@ -1676,8 +2104,8 @@
 
     async function updateVocabFamiliarityInDb(id, level) {
       if (!dbInstance) await initIndexedDB();
-      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
+      const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
+      const store = tx.objectStore(STORE_VOCAB);
       const getReq = store.get(Number(id));
       getReq.onsuccess = () => {
         const item = getReq.result;
@@ -1688,7 +2116,7 @@
       };
       return new Promise((resolve) => {
         tx.oncomplete = () => {
-          refreshBookSummary();
+          refreshDatabaseUi();
           if (googleAccessToken) syncWithGoogleDrive(false);
           resolve();
         };
@@ -1697,65 +2125,215 @@
 
     async function deleteVocabFromDb(id) {
       if (!dbInstance) await initIndexedDB();
-      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      store.delete(Number(id));
+      const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
+      tx.objectStore(STORE_VOCAB).delete(Number(id));
       return new Promise((resolve) => {
         tx.oncomplete = () => {
-          refreshBookSummary();
+          refreshDatabaseUi();
           if (googleAccessToken) syncWithGoogleDrive(false);
           resolve();
         };
       });
     }
 
-    async function refreshBookSummary() {
-      const items = await getAllVocabFromDb();
-      const countEl = document.getElementById("bookCountText");
-      if (countEl) countEl.innerText = `共累積 ${items.length} 詞`;
-      const drawer = document.getElementById("vocabBookDrawer");
-      if (drawer && drawer.open) {
-        renderBookCards(items);
-      }
-    }
-
-    function onBookDrawerToggle(drawer) {
-      if (drawer.open) {
-        getAllVocabFromDb().then(items => {
-          renderBookCards(items);
-        });
-      }
-    }
-
-    function renderBookCards(items) {
-      const grid = document.getElementById("bookCardsGrid");
-      const showRomaji = document.getElementById("romajiToggle").checked;
-      grid.innerHTML = "";
-
-      if (items.length === 0) {
-        grid.innerHTML = `<div style="color:#a0aec0; font-size:13px; grid-column:1/-1; text-align:center; padding:20px;">單字書內目前沒有單字。</div>`;
-        return;
-      }
-
-      items.slice().reverse().forEach(t => {
-        const card = createCardElement(t, true, showRomaji);
-        grid.appendChild(card);
-      });
-    }
-
     async function clearLocalDatabase() {
-      if (!confirm("確定要清空本地所有已儲存的單字嗎？")) return;
+      if (!confirm("確定要清空本地所有單字卡嗎？")) return;
       if (!dbInstance) await initIndexedDB();
-      const tx = dbInstance.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).clear();
+      const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
+      tx.objectStore(STORE_VOCAB).clear();
       tx.oncomplete = () => {
-        refreshBookSummary();
+        refreshDatabaseUi();
         if (googleAccessToken) syncWithGoogleDrive(false);
         alert("本地單字庫已清空。");
       };
     }
 
-    // ================= ☁️ Google Drive 雲端雙向同步模組 =================
+    async function refreshDatabaseUi() {
+      const articles = await getAllArticlesFromDb();
+      const vocabs = await getAllVocabFromDb();
+      const folders = await getAllFoldersFromDb();
+
+      const artCountBadge = document.getElementById("dbArticleCountBadge");
+      if (artCountBadge) artCountBadge.innerText = articles.length;
+      const vocCountBadge = document.getElementById("dbVocabCountBadge");
+      if (vocCountBadge) vocCountBadge.innerText = vocabs.length;
+
+      renderFolderChips(folders, articles);
+      renderArticleCards(articles);
+      renderBookCards(vocabs);
+    }
+
+    function renderFolderChips(folders, articles) {
+      const list = document.getElementById("folderChipsList");
+      if (!list) return;
+      list.innerHTML = "";
+
+      const allChip = document.createElement("div");
+      allChip.className = `folder-chip ${currentSelectedFolder === "全部" ? "active" : ""}`;
+      allChip.innerHTML = `📁 全部 (${articles.length})`;
+      allChip.onclick = () => { currentSelectedFolder = "全部"; refreshDatabaseUi(); };
+      list.appendChild(allChip);
+
+      folders.forEach(f => {
+        const count = articles.filter(a => a.folder === f.name).length;
+        const chip = document.createElement("div");
+        chip.className = `folder-chip ${currentSelectedFolder === f.name ? "active" : ""}`;
+        chip.innerHTML = `📂 ${escapeHtml(f.name)} (${count})`;
+        chip.onclick = () => { currentSelectedFolder = f.name; refreshDatabaseUi(); };
+        list.appendChild(chip);
+      });
+    }
+
+    function renderArticleCards(articles) {
+      const grid = document.getElementById("articleCardsGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const filtered = currentSelectedFolder === "全部" 
+        ? articles 
+        : articles.filter(a => a.folder === currentSelectedFolder);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="color:#a0aec0; font-size:13px; grid-column:1/-1; text-align:center; padding:36px; background:#fff; border-radius:8px;">目前資料夾沒有作品，請至第一分頁對照轉換後點擊「💾 轉存至我的資料庫」。</div>`;
+        return;
+      }
+
+      filtered.slice().reverse().forEach(art => {
+        const card = document.createElement("div");
+        card.className = "article-card";
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "card-delete-btn";
+        delBtn.title = "刪除此作品";
+        delBtn.innerHTML = "✕";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteArticleFromDb(art.id);
+        };
+        card.appendChild(delBtn);
+
+        const previewText = art.items && art.items.length > 0 
+          ? art.items.slice(0, 2).map(i => i.raw).join("\n") 
+          : "";
+
+        const dateStr = new Date(art.created_at).toLocaleDateString();
+
+        card.innerHTML += `
+          <div class="article-card-header">
+            <div class="article-card-title">${escapeHtml(art.title)}</div>
+            <div class="article-card-author">作者/歌手：${escapeHtml(art.author || "未知")}</div>
+          </div>
+          <div class="article-card-preview" title="點擊檢視全文">${escapeHtml(previewText)}</div>
+          <div class="article-card-meta">
+            <span>📂 ${escapeHtml(art.folder)}</span>
+            <span>共 ${art.items.length} 句 · ${dateStr}</span>
+          </div>
+        `;
+
+        card.onclick = () => openViewArticleModal(art);
+        grid.appendChild(card);
+      });
+    }
+
+    function switchDbSubTab(tab) {
+      const artSection = document.getElementById("dbArticlesSection");
+      const vocSection = document.getElementById("dbVocabSection");
+      const artBtn = document.getElementById("dbSubTabArticleBtn");
+      const vocBtn = document.getElementById("dbSubTabVocabBtn");
+
+      if (tab === "articles") {
+        artSection.style.display = "block";
+        vocSection.style.display = "none";
+        artBtn.classList.add("active");
+        vocBtn.classList.remove("active");
+      } else {
+        artSection.style.display = "none";
+        vocSection.style.display = "block";
+        artBtn.classList.remove("active");
+        vocBtn.classList.add("active");
+      }
+    }
+
+    async function openSaveArticleModal() {
+      if (!latestTranslationResults || latestTranslationResults.length === 0) {
+        alert("請先進行對照轉換後再儲存。");
+        return;
+      }
+      await populateFolderSelectOptions();
+      document.getElementById("modalArticleTitle").value = "";
+      document.getElementById("modalArticleAuthor").value = "";
+      document.getElementById("saveArticleModal").classList.add("active");
+      document.getElementById("modalArticleTitle").focus();
+    }
+
+    async function populateFolderSelectOptions(selectName = null) {
+      const folders = await getAllFoldersFromDb();
+      const select = document.getElementById("modalArticleFolder");
+      select.innerHTML = "";
+      folders.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.name;
+        opt.innerText = f.name;
+        if (selectName && f.name === selectName) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function closeSaveArticleModal() {
+      document.getElementById("saveArticleModal").classList.remove("active");
+    }
+
+    async function confirmSaveArticle() {
+      const title = document.getElementById("modalArticleTitle").value.trim();
+      const author = document.getElementById("modalArticleAuthor").value.trim();
+      const folder = document.getElementById("modalArticleFolder").value;
+
+      if (!title) {
+        alert("請輸入作品名稱！");
+        return;
+      }
+
+      await saveArticleToDb({
+        title: title,
+        author: author,
+        folder: folder,
+        items: latestTranslationResults
+      });
+
+      closeSaveArticleModal();
+      alert(`已成功將《${title}》儲存至「${folder}」資料夾！`);
+    }
+
+    function openViewArticleModal(art) {
+      document.getElementById("viewModalTitle").innerText = art.title;
+      document.getElementById("viewModalAuthor").innerText = `作者/歌手：${art.author || "未知"} | 資料夾：${art.folder}`;
+
+      const content = document.getElementById("viewModalContent");
+      content.innerHTML = "";
+
+      art.items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "sentence-item";
+        const safeReading = (item.reading_ja || item.raw).replace(/'/g, "\\'");
+        div.innerHTML = `
+          <div class="raw-text">${escapeHtml(item.raw)}</div>
+          <div class="romaji-row">
+            <span class="romaji-text">${escapeHtml(item.romaji)}</span>
+            <button type="button" class="romaji-speak-btn" title="朗讀" onclick="speakJapanese('${escapeHtml(item.raw)}', '${safeReading}')">🔊</button>
+          </div>
+          <div class="trans-text">${escapeHtml(item.translation)}</div>
+        `;
+        content.appendChild(div);
+      });
+
+      document.getElementById("viewArticleModal").classList.add("active");
+    }
+
+    function closeViewArticleModal() {
+      document.getElementById("viewArticleModal").classList.remove("active");
+    }
+
+    // ================= ☁️ Google Drive 雲端雙向同步模組 (含自動回傳本地現有項目) =================
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
@@ -1809,7 +2387,7 @@
       if (window.google && google.accounts && google.accounts.oauth2) {
         tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
-          scope: "https://www.googleapis.com/auth/drive.appdata",
+          scope: "https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email",
           callback: async (resp) => {
             if (resp.error) {
               console.warn("Google 授權或靜默更新回傳失敗:", resp);
@@ -1824,12 +2402,31 @@
             localStorage.setItem(GOOGLE_EXPIRES_AT_KEY, String(expiresAt));
             localStorage.setItem(GOOGLE_LOGGED_IN_FLAG, "true");
 
+            await fetchGoogleUserInfo();
             updateGoogleUi(true);
             await syncWithGoogleDrive(false);
           }
         });
 
         checkAndRestoreAuth();
+      }
+    }
+
+    async function fetchGoogleUserInfo() {
+      if (!googleAccessToken) return;
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        });
+        if (res.ok) {
+          const user = await res.json();
+          if (user && user.email) {
+            localStorage.setItem(GOOGLE_USER_EMAIL_KEY, user.email);
+            renderAdminDashboard();
+          }
+        }
+      } catch (err) {
+        console.warn("無法取得使用者信箱:", err);
       }
     }
 
@@ -1843,19 +2440,21 @@
       if (savedToken && Date.now() < expiresAt - 120000) {
         googleAccessToken = savedToken;
         updateGoogleUi(true);
+        renderAdminDashboard();
         syncWithGoogleDrive(false);
       } else if (tokenClient) {
         tokenClient.requestAccessToken({ prompt: "" });
       }
     }
 
-    function updateGoogleUi(isConnected, email = "") {
+    function updateGoogleUi(isConnected) {
       const authBtn = document.getElementById("gdriveAuthBtn");
       const signoutBtn = document.getElementById("gdriveSignoutBtn");
       const manualSyncBtn = document.getElementById("gdriveManualSyncBtn");
       const statusBadge = document.getElementById("gdriveStatusBadge");
       const accountText = document.getElementById("gdriveAccountText");
       const globalBadge = document.getElementById("globalCloudBadge");
+      const email = localStorage.getItem(GOOGLE_USER_EMAIL_KEY) || "";
 
       if (isConnected) {
         authBtn.style.display = "none";
@@ -1878,6 +2477,7 @@
         globalBadge.innerText = "未連線";
         globalBadge.className = "status-badge-inline";
       }
+      renderAdminDashboard();
     }
 
     function handleGoogleAuthClick() {
@@ -1900,6 +2500,7 @@
         localStorage.removeItem(GOOGLE_TOKEN_KEY);
         localStorage.removeItem(GOOGLE_EXPIRES_AT_KEY);
         localStorage.removeItem(GOOGLE_LOGGED_IN_FLAG);
+        localStorage.removeItem(GOOGLE_USER_EMAIL_KEY);
         updateGoogleUi(false);
         alert("已登出 Google 帳號。");
       };
@@ -1932,20 +2533,25 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
+    // 確保登入後，本地建立的內容完整合併並同步進雲端
     async function syncWithGoogleDrive(showNotify = false) {
       if (!googleAccessToken) return;
 
       try {
         const fileId = await findDriveFileId();
         const localItems = await getAllVocabFromDb();
+        const localArticles = await getAllArticlesFromDb();
+        const localFolders = await getAllFoldersFromDb();
         const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
 
         if (fileId) {
           const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
             headers: { Authorization: `Bearer ${googleAccessToken}` }
           });
-          const cloudData = await getRes.json().catch(() => ({ items: [], apiKey: "" }));
+          const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], apiKey: "" }));
           const cloudItems = cloudData.items || [];
+          const cloudArticles = cloudData.articles || [];
+          const cloudFolders = cloudData.folders || [];
           const cloudApiKey = cloudData.apiKey || "";
 
           if (!currentLocalKey && cloudApiKey) {
@@ -1954,15 +2560,36 @@
             updateApiKeyBadge(cloudApiKey);
           }
 
+          // 1. 合併單字：本地沒有的從雲端拉取
           const localWords = new Set(localItems.map(i => i.word));
           const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
           if (newFromCloud.length > 0) {
             await saveVocabToDb(newFromCloud);
           }
 
+          // 2. 合併文章：本地沒有的從雲端拉取
+          const localArtTitles = new Set(localArticles.map(a => a.title));
+          for (const ca of cloudArticles) {
+            if (!localArtTitles.has(ca.title)) {
+              await saveArticleToDb(ca);
+            }
+          }
+
+          // 3. 合併資料夾
+          const localFolderNames = new Set(localFolders.map(f => f.name));
+          for (const cf of cloudFolders) {
+            if (!localFolderNames.has(cf.name)) {
+              await saveFolderToDb(cf.name);
+            }
+          }
+
+          // 再次提取完整合併後的最完整本地清單
           const fullMergedItems = await getAllVocabFromDb();
+          const fullMergedArticles = await getAllArticlesFromDb();
+          const fullMergedFolders = await getAllFoldersFromDb();
           const keyToSync = currentLocalKey || cloudApiKey;
 
+          // 覆蓋寫回雲端（此時已包含本地登入前所建立的全部內容）
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -1972,14 +2599,17 @@
             body: JSON.stringify({
               updated_at: new Date().toISOString(),
               apiKey: keyToSync,
-              items: fullMergedItems
+              items: fullMergedItems,
+              articles: fullMergedArticles,
+              folders: fullMergedFolders
             })
           });
 
           if (updateRes.ok && showNotify) {
-            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個（新增 ${newFromCloud.length} 個）\n• API Key：已同步記錄`);
+            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 作品庫：已同步 ${fullMergedArticles.length} 部\n• API Key：已同步記錄`);
           }
         } else {
+          // 雲端無檔案時直接上傳本地所有資料
           const metadata = {
             name: DRIVE_FILE_NAME,
             parents: ["appDataFolder"]
@@ -1989,7 +2619,9 @@
           form.append("file", new Blob([JSON.stringify({
             updated_at: new Date().toISOString(),
             apiKey: currentLocalKey,
-            items: localItems
+            items: localItems,
+            articles: localArticles,
+            folders: localFolders
           })], { type: "application/json" }));
 
           const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
@@ -1999,10 +2631,10 @@
           });
 
           if (createRes.ok && showNotify) {
-            alert(`已在 Google 雲端建立備份庫！上傳 ${localItems.length} 個單字與 API Key 記錄。`);
+            alert(`已在 Google 雲端建立備份庫！本地累積的 ${localArticles.length} 部作品與 ${localItems.length} 個單字已全部上傳儲存。`);
           }
         }
-        refreshBookSummary();
+        refreshDatabaseUi();
       } catch (err) {
         console.error("Google Drive 同步失敗:", err);
         if (showNotify) alert("Google 雲端同步發生錯誤: " + err.message);
@@ -2011,13 +2643,16 @@
 
     // ================= 初始化監聽 =================
     window.addEventListener("DOMContentLoaded", () => {
+      recordVisitorCount();
+
       const savedKey = localStorage.getItem(STORAGE_KEY);
       if (savedKey) {
         document.getElementById("apiKey").value = savedKey;
       }
       updateApiKeyBadge(savedKey);
 
-      const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.5-flash";
+      // 預設模型切換為 gemini-3.1-flash-lite
+      const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.1-flash-lite";
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
 
@@ -2054,8 +2689,8 @@
 
     function updateModelBadge(modelVal) {
       const modelLabels = {
+        "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite (預設)",
         "gemini-3.5-flash": "Gemini 3.5 Flash",
-        "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite",
         "gemini-3.7-flash": "Gemini 3.7 Flash",
         "auto": "自動備援"
       };
@@ -2180,7 +2815,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ["tabTranslate", "tabSyntax", "tabVocab", "tabSettings"];
+      const tabs = ["tabTranslate", "tabSyntax", "tabDatabase", "tabSettings"];
       const btns = document.querySelectorAll(".tab-btn");
 
       tabs.forEach((id, idx) => {
@@ -2196,15 +2831,15 @@
 
       if (tabId === "tabSyntax") {
         setTimeout(drawStructureGraph, 60);
-      } else if (tabId === "tabVocab") {
-        refreshBookSummary();
+      } else if (tabId === "tabDatabase") {
+        refreshDatabaseUi();
       }
     }
 
     async function requestGeminiWithFallback(prompt, apiKey, updateStatusCallback) {
       const userChoice = document.getElementById("modelSelect").value;
       let candidateModels = [];
-      const standardPool = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.7-flash"];
+      const standardPool = ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3.7-flash"];
 
       if (userChoice === "auto") candidateModels = standardPool;
       else candidateModels = [userChoice, ...standardPool.filter(m => m !== userChoice)];
@@ -2235,6 +2870,11 @@
               continue;
             }
             throw new Error(msg);
+          }
+
+          // 記錄管理員 Token 數據
+          if (data.usageMetadata) {
+            recordTokenUsage(data.usageMetadata);
           }
 
           return extractJsonFromResponse(data);
@@ -2306,6 +2946,8 @@ ${JSON.stringify(rawLines, null, 2)}`;
           status.innerText = msg;
         });
 
+        latestTranslationResults = results;
+
         const htmlBlocks = [];
         const plainBlocks = [];
 
@@ -2313,7 +2955,6 @@ ${JSON.stringify(rawLines, null, 2)}`;
           const div = document.createElement("div");
           div.className = "sentence-item";
 
-          // 發音時直接傳入 reading_ja（純假名讀音），杜絕漢字被念成中文
           const safeReading = (item.reading_ja || item.raw).replace(/'/g, "\\'");
 
           div.innerHTML = `
@@ -2769,7 +3410,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
       }
     });
 
-    // ================= 第三分頁：單字拆解專屬函式 =================
+    // ================= 單字拆解專屬函式 =================
     let currentExtractedTokens = [];
 
     async function executeVocabExtraction(sentenceText, apiKey) {
@@ -2980,6 +3621,23 @@ ${JSON.stringify(sentenceText.trim())}`;
       });
     }
 
+    function renderBookCards(items) {
+      const grid = document.getElementById("bookCardsGrid");
+      if (!grid) return;
+      const showRomaji = document.getElementById("romajiToggle").checked;
+      grid.innerHTML = "";
+
+      if (items.length === 0) {
+        grid.innerHTML = `<div style="color:#a0aec0; font-size:13px; grid-column:1/-1; text-align:center; padding:20px;">單字庫內目前沒有單字。</div>`;
+        return;
+      }
+
+      items.slice().reverse().forEach(t => {
+        const card = createCardElement(t, true, showRomaji);
+        grid.appendChild(card);
+      });
+    }
+
     function toggleRomajiVisibility() {
       const show = document.getElementById("romajiToggle").checked;
       document.querySelectorAll(".vocab-romaji").forEach(el => {
@@ -2996,7 +3654,7 @@ ${JSON.stringify(sentenceText.trim())}`;
     async function startStudyMode() {
       const items = await getAllVocabFromDb();
       if (items.length === 0) {
-        alert("單字書內目前沒有單字，請先拆解儲存一些單字。");
+        alert("單字庫內目前沒有單字，請先輸入句子拆解單字。");
         return;
       }
 
@@ -3107,7 +3765,7 @@ ${JSON.stringify(sentenceText.trim())}`;
       }
     }
 
-    // ================= 測驗模式 (熟悉度優先演算) =================
+    // ================= 測驗模式 =================
     let quizPool = [];
     let currentQuizIndex = 0;
     let quizScore = 0;
@@ -3116,7 +3774,7 @@ ${JSON.stringify(sentenceText.trim())}`;
     async function startQuizMode() {
       const items = await getAllVocabFromDb();
       if (items.length < 4) {
-        alert("單字書中累積不足 4 個詞，請先輸入句子拆解儲存一些單字。");
+        alert("單字庫中累積不足 4 個詞，請先拆解儲存一些單字。");
         return;
       }
 
