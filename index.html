@@ -880,7 +880,7 @@
       flex-grow: 1;
       overflow-y: auto;
       position: relative;
-      padding: 50dvh 20px;
+      padding: 42dvh 20px 60dvh 20px;
       cursor: grab;
       -webkit-overflow-scrolling: touch;
       scroll-behavior: smooth;
@@ -2781,17 +2781,17 @@
       if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
     }
 
-    // 精準將目標句子置中到目前可視範圍的幾何中心線（物理座標差值）
+    // 精準將目標句子對齊至視窗黃金閱讀視線（偏上方約 40% 處）
     function scrollTargetLineToCenter(targetCard, viewport) {
       if (!targetCard || !viewport) return;
       
       const cardRect = targetCard.getBoundingClientRect();
       const viewRect = viewport.getBoundingClientRect();
       
-      // 計算目標卡片中心與可視區域中心的精準 Y 軸差值
+      // 計算目標卡片中心與可視區域焦點基準線（偏上 40%）的精準 Y 軸差值
       const cardCenterY = cardRect.top + (cardRect.height / 2);
-      const viewCenterY = viewRect.top + (viewRect.height / 2);
-      const deltaY = cardCenterY - viewCenterY;
+      const targetFocalY = viewRect.top + (viewRect.height * 0.40);
+      const deltaY = cardCenterY - targetFocalY;
 
       if (Math.abs(deltaY) > 1) {
         viewport.scrollBy({
@@ -2900,14 +2900,14 @@
       }
     }
 
-    // 依據視窗中心對齊最近的句子（滾動停止時使用）
+    // 依據視窗焦點基準線對齊最近的句子（滾動停止時使用）
     function syncCenterClosestLine(triggerPlayback = false) {
       if (isProgrammaticScrolling) return; // 處於平滑切換中時略過
       const viewport = document.getElementById("shadowingScrollViewport");
       if (!viewport || !currentViewingArticle || !currentViewingArticle.items) return;
 
       const viewportRect = viewport.getBoundingClientRect();
-      const viewportCenterY = viewportRect.top + (viewportRect.height / 2);
+      const targetFocalY = viewportRect.top + (viewportRect.height * 0.40);
       const cards = document.querySelectorAll(".shadowing-line-card");
       let closestIdx = 0;
       let minDiff = Infinity;
@@ -2915,7 +2915,7 @@
       cards.forEach((card, idx) => {
         const cardRect = card.getBoundingClientRect();
         const cardCenterY = cardRect.top + (cardRect.height / 2);
-        const diff = Math.abs(cardCenterY - viewportCenterY);
+        const diff = Math.abs(cardCenterY - targetFocalY);
         if (diff < minDiff) {
           minDiff = diff;
           closestIdx = idx;
