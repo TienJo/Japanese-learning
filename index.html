@@ -2668,11 +2668,6 @@
       alert("作品內容已成功更新！");
     }
 
-    // ================= 🎧 專注跟讀模式邏輯 (精準螢幕置中 + 防打架滾動鎖) =================
-    let shadowingIndex = 0;
-    let isShadowingAutoPlaying = false;
-    let isShadowingVoiceEnabled = true;
-    let shadowingSessionId = 0;
     // ================= 🎧 專注跟讀模式邏輯 (支援朗讀獨立開關、防時序衝突排程) =================
     let shadowingIndex = 0;
     let isShadowingAutoPlaying = false;
@@ -2684,6 +2679,7 @@
     let dragStartY = 0;
     let dragStartScrollTop = 0;
     let dragDistanceY = 0;
+    let touchDistanceY = 0;             // 觸控滑動距離
     let scrollDebounceTimer = null;
     let isProgrammaticScrolling = false; // 滾動互斥鎖：平滑滾動時禁止 scroll 監聽器誤抓舊句子
     let scrollUnlockTimer = null;
@@ -2952,19 +2948,18 @@
       // 2. 手機觸控手勢（精準區分滑動與點擊）
       let touchStartY = 0;
       let touchStartTime = 0;
-      let touchDeltaY = 0;
 
       viewport.addEventListener("touchstart", (e) => {
         if (e.touches.length === 1) {
           touchStartY = e.touches[0].clientY;
           touchStartTime = Date.now();
-          touchDeltaY = 0;
+          touchDistanceY = 0;
         }
       }, { passive: true });
 
       viewport.addEventListener("touchmove", (e) => {
         if (e.touches.length === 1) {
-          touchDeltaY = Math.abs(e.touches[0].clientY - touchStartY);
+          touchDistanceY = Math.abs(e.touches[0].clientY - touchStartY);
         }
       }, { passive: true });
 
@@ -2972,7 +2967,7 @@
         const touchDuration = Date.now() - touchStartTime;
 
         // 若位移極小且時間短，判定為手機點擊換句
-        if (touchDeltaY < 8 && touchDuration < 300 && e.changedTouches.length === 1) {
+        if (touchDistanceY < 10 && touchDuration < 350 && e.changedTouches.length === 1) {
           lastTouchTapTime = Date.now();
           const clickY = e.changedTouches[0].clientY;
           const viewportRect = viewport.getBoundingClientRect();
