@@ -823,6 +823,8 @@
       z-index: 3000;
       overflow: hidden;
       flex-direction: column;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .shadowing-fullscreen-overlay.active {
       display: flex;
@@ -832,14 +834,17 @@
       justify-content: space-between;
       align-items: center;
       padding: 14px 24px;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.88);
       color: #888;
-      z-index: 10;
+      z-index: 20;
+      border-bottom: 1px solid #1a1a1a;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .shadowing-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     .shadowing-ctrl-btn {
       background: #1c1f24;
@@ -858,14 +863,28 @@
       background: #2b313a;
       border-color: #666;
     }
+    .shadowing-ctrl-btn.active {
+      background: #1a365d;
+      border-color: #3182ce;
+      color: #90cdf4;
+    }
+    .shadowing-ctrl-btn.muted {
+      background: #2d3748;
+      color: #a0aec0;
+      border-color: #4a5568;
+    }
+
+    /* 滾動視窗：加入 cursor: grab 拖曳指標 */
     .shadowing-scroll-viewport {
       flex-grow: 1;
       overflow-y: auto;
-      scroll-behavior: smooth;
       position: relative;
-      padding: 40vh 20px; /* 前後預留空間使聚焦行置中 */
+      padding: 42vh 20px;
+      cursor: grab;
     }
-    /* 自訂沉浸式滾動條 */
+    .shadowing-scroll-viewport:active {
+      cursor: grabbing;
+    }
     .shadowing-scroll-viewport::-webkit-scrollbar {
       width: 6px;
     }
@@ -879,25 +898,25 @@
       text-align: center;
       cursor: pointer;
       transition: all 0.35s ease;
-      opacity: 0.28;
+      opacity: 0.25;
       transform: scale(0.92);
-      user-select: none;
-      padding: 10px;
+      padding: 12px;
+      border-radius: 8px;
     }
     .shadowing-line-card.active {
       opacity: 1.0;
-      transform: scale(1.06);
+      transform: scale(1.08);
     }
     .shadowing-raw {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #ffffff;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      letter-spacing: 0.6px;
       line-height: 1.4;
     }
     .shadowing-line-card:not(.active) .shadowing-raw {
-      color: #999999;
+      color: #888888;
     }
     .shadowing-romaji {
       font-size: 15px;
@@ -907,7 +926,7 @@
       letter-spacing: 0.5px;
     }
     .shadowing-line-card:not(.active) .shadowing-romaji {
-      color: #775555;
+      color: #664444;
     }
     .shadowing-trans {
       font-size: 15px;
@@ -915,19 +934,19 @@
       line-height: 1.4;
     }
     .shadowing-line-card:not(.active) .shadowing-trans {
-      color: #446644;
+      color: #3b5a3b;
     }
 
-    /* 手機直向自適應 */
+    /* 手機螢幕適配 */
     @media (max-width: 600px) {
       .shadowing-raw {
-        font-size: 20px;
+        font-size: 21px;
       }
       .shadowing-romaji, .shadowing-trans {
         font-size: 13px;
       }
       .shadowing-line-card {
-        margin-bottom: 28px;
+        margin-bottom: 30px;
       }
     }
 
@@ -1862,7 +1881,7 @@
     </div>
   </div>
 
-  <!-- 檢視作品詳情對話框 (支援專注跟讀與編輯按鈕) -->
+  <!-- 檢視作品詳情對話框 -->
   <div class="custom-modal-backdrop" id="viewArticleModal">
     <div class="custom-modal-box" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -1906,9 +1925,7 @@
       </div>
 
       <div style="font-size:12px; color:#718096; margin-bottom:4px;">逐句編輯（日文原文 / 羅馬拼音 / 純假名讀音 / 中文意譯）：</div>
-      <div class="edit-article-table-wrap" id="editItemsTableWrap">
-        <!-- 動態注入可編輯的輸入框列表 -->
-      </div>
+      <div class="edit-article-table-wrap" id="editItemsTableWrap"></div>
 
       <div class="modal-actions">
         <button type="button" class="text-action-btn" onclick="closeEditArticleModal()">取消</button>
@@ -1917,7 +1934,7 @@
     </div>
   </div>
 
-  <!-- 🎧 專注跟讀模式全螢幕沉浸介面 (如參考圖) -->
+  <!-- 🎧 專注跟讀模式全螢幕沉浸介面 -->
   <div class="shadowing-fullscreen-overlay" id="shadowingOverlay">
     <div class="shadowing-header-bar">
       <div>
@@ -1925,12 +1942,14 @@
         <span style="font-size:12px; color:#888; margin-left:8px;" id="shadowingProgress">1 / 1</span>
       </div>
       <div class="shadowing-controls">
+        <!-- 朗讀開關按鈕 -->
+        <button type="button" class="shadowing-ctrl-btn active" id="shadowingVoiceToggleBtn" onclick="toggleShadowingVoice()">🔊 朗讀：開</button>
         <button type="button" class="shadowing-ctrl-btn" id="shadowingAutoPlayBtn" onclick="toggleShadowingAutoPlay()">▶ 自動跟讀</button>
         <button type="button" class="shadowing-ctrl-btn" onclick="exitShadowingMode()">✕ 退出</button>
       </div>
     </div>
 
-    <!-- 滾動展示視窗 (上下留白讓焦點永遠在中心) -->
+    <!-- 支援滾輪、滑鼠按住拖動與上下半部點擊切換的視窗 -->
     <div class="shadowing-scroll-viewport" id="shadowingScrollViewport">
       <div id="shadowingLinesContainer"></div>
     </div>
@@ -1948,8 +1967,8 @@
     const VOICE_RATE_KEY = "app_voice_rate";
     const VOICE_PITCH_KEY = "app_voice_pitch";
     const VOICE_GENDER_KEY = "app_voice_gender";
+    const SHADOWING_VOICE_ENABLED_KEY = "app_shadowing_voice_enabled";
 
-    // 管理員設定
     const ADMIN_EMAIL = "peterchen3x3@gmail.com";
     const ADMIN_STATS_KEY = "app_admin_stats_v1";
 
@@ -2079,7 +2098,6 @@
       };
     }
 
-    // ================= 管理員 Token 與造訪人數追蹤 =================
     function recordTokenUsage(usageMetadata) {
       if (!usageMetadata) return;
       const today = new Date().toISOString().slice(0, 10);
@@ -2144,7 +2162,6 @@
       alert("今日統計已重置！");
     }
 
-    // ================= IndexedDB 資料庫核心 =================
     const DB_NAME = "JapaneseVocabDB";
     const DB_VERSION = 3;
     const STORE_VOCAB = "vocab_cards";
@@ -2526,7 +2543,6 @@
       alert(`已成功將《${title}》儲存至「${folder}」資料夾！`);
     }
 
-    // ================= 檢視與編輯作品 =================
     let currentViewingArticle = null;
 
     function openViewArticleModal(art) {
@@ -2645,9 +2661,70 @@
       alert("作品內容已成功更新！");
     }
 
-    // ================= 🎧 專注跟讀模式邏輯 (如參考圖) =================
+    // ================= 🎧 專注跟讀模式邏輯 (支援朗讀獨立開關、防時序衝突排程) =================
     let shadowingIndex = 0;
     let isShadowingAutoPlaying = false;
+    let isShadowingVoiceEnabled = true; // 獨立朗讀開關狀態
+    let shadowingSessionId = 0;         // 每次停止、暫停或換句時遞增，使舊非同步回調徹底失效
+    let nextSentenceTimer = null;       // 延遲跳下一句的定時器控制
+
+    let isShadowingDragging = false;
+    let dragStartY = 0;
+    let dragStartScrollTop = 0;
+    let dragDistanceY = 0;
+    let scrollDebounceTimer = null;
+
+    function initShadowingVoicePreference() {
+      const saved = localStorage.getItem(SHADOWING_VOICE_ENABLED_KEY);
+      if (saved !== null) {
+        isShadowingVoiceEnabled = (saved === "true");
+      }
+      updateShadowingVoiceBtnUi();
+    }
+
+    function toggleShadowingVoice() {
+      isShadowingVoiceEnabled = !isShadowingVoiceEnabled;
+      localStorage.setItem(SHADOWING_VOICE_ENABLED_KEY, isShadowingVoiceEnabled);
+      updateShadowingVoiceBtnUi();
+
+      if (!isShadowingVoiceEnabled) {
+        // 若關閉朗讀，中斷當前發音任務並取消舊排程
+        cancelShadowingSpeech();
+        // 若正在自動跟讀，則改以計時方式等待後跳下一句
+        if (isShadowingAutoPlaying) {
+          scheduleNextSentenceFallback(shadowingSessionId, 2500);
+        }
+      } else {
+        // 若開啟朗讀且正處於自動跟讀中，立即針對當前句發聲朗讀
+        if (isShadowingAutoPlaying) {
+          playCurrentShadowingVoice();
+        }
+      }
+    }
+
+    function updateShadowingVoiceBtnUi() {
+      const btn = document.getElementById("shadowingVoiceToggleBtn");
+      if (!btn) return;
+      if (isShadowingVoiceEnabled) {
+        btn.innerText = "🔊 朗讀：開";
+        btn.className = "shadowing-ctrl-btn active";
+      } else {
+        btn.innerText = "🔇 朗讀：靜音";
+        btn.className = "shadowing-ctrl-btn muted";
+      }
+    }
+
+    // 清除語音播放及任何跳下一句的延遲計時器
+    function cancelShadowingSpeech() {
+      shadowingSessionId++; // 遞增 token，讓所有進行中的 utterance.onend 與 setTimeout 立即失效
+      if (nextSentenceTimer) {
+        clearTimeout(nextSentenceTimer);
+        nextSentenceTimer = null;
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    }
 
     function startShadowingMode() {
       if (!currentViewingArticle || !currentViewingArticle.items || currentViewingArticle.items.length === 0) {
@@ -2664,54 +2741,56 @@
         const card = document.createElement("div");
         card.className = "shadowing-line-card";
         card.id = `shadowLine-${idx}`;
+        card.dataset.idx = idx;
         card.innerHTML = `
           <div class="shadowing-raw">${escapeHtml(item.raw)}</div>
           <div class="shadowing-romaji">${escapeHtml(item.romaji)}</div>
           <div class="shadowing-trans">${escapeHtml(item.translation)}</div>
         `;
-        card.onclick = () => focusShadowingLine(idx, true);
         container.appendChild(card);
       });
 
+      cancelShadowingSpeech();
       shadowingIndex = 0;
       isShadowingAutoPlaying = false;
       document.getElementById("shadowingAutoPlayBtn").innerText = "▶ 自動跟讀";
       document.getElementById("shadowingOverlay").classList.add("active");
 
-      // 初次對焦第一句
+      initShadowingVoicePreference();
+      initShadowingGestures();
       setTimeout(() => focusShadowingLine(0, false), 150);
     }
 
     function exitShadowingMode() {
-      window.speechSynthesis.cancel();
+      cancelShadowingSpeech();
       isShadowingAutoPlaying = false;
       document.getElementById("shadowingOverlay").classList.remove("active");
       if (currentViewingArticle) openViewArticleModal(currentViewingArticle);
     }
 
-    function focusShadowingLine(idx, playVoice = false) {
+    function focusShadowingLine(idx, triggerPlayback = false) {
       if (!currentViewingArticle || !currentViewingArticle.items) return;
       if (idx < 0 || idx >= currentViewingArticle.items.length) {
         if (isShadowingAutoPlaying) {
           isShadowingAutoPlaying = false;
           document.getElementById("shadowingAutoPlayBtn").innerText = "▶ 自動跟讀";
+          cancelShadowingSpeech();
           alert("已完成全曲跟讀！");
         }
         return;
       }
 
+      // 切換句子時，立即中斷前一任務與定時器
+      cancelShadowingSpeech();
       shadowingIndex = idx;
-
-      // 更新進度文字
       document.getElementById("shadowingProgress").innerText = `${idx + 1} / ${currentViewingArticle.items.length}`;
 
-      // 高亮焦點樣式切換
       document.querySelectorAll(".shadowing-line-card").forEach((card, cIdx) => {
         if (cIdx === idx) card.classList.add("active");
         else card.classList.remove("active");
       });
 
-      // 視窗平滑滾動，使焦點句置於中央
+      // 視窗平滑對焦置中
       const targetCard = document.getElementById(`shadowLine-${idx}`);
       const viewport = document.getElementById("shadowingScrollViewport");
       if (targetCard && viewport) {
@@ -2722,17 +2801,54 @@
         viewport.scrollTo({ top: scrollToY, behavior: "smooth" });
       }
 
-      if (playVoice) {
-        const curItem = currentViewingArticle.items[idx];
-        const reading = (curItem.reading_ja || curItem.raw).replace(/'/g, "\\'");
-        speakJapanese(curItem.raw, reading, () => {
-          if (isShadowingAutoPlaying) {
-            setTimeout(() => {
-              focusShadowingLine(shadowingIndex + 1, true);
-            }, 600); // 句間停頓緩衝
-          }
-        });
+      // 決定是否開始播放語音
+      if (triggerPlayback) {
+        playCurrentShadowingVoice();
       }
+    }
+
+    // 播放當前句子語音（帶專屬 token 驗證保護）
+    function playCurrentShadowingVoice() {
+      const curSession = shadowingSessionId;
+      const curIdx = shadowingIndex;
+      const curItem = currentViewingArticle.items[curIdx];
+      if (!curItem) return;
+
+      // 若使用者關閉朗讀功能
+      if (!isShadowingVoiceEnabled) {
+        if (isShadowingAutoPlaying) {
+          // 靜音模式下給予閱讀時間後自動進入下一句
+          const delay = Math.max(2000, curItem.raw.length * 280);
+          scheduleNextSentenceFallback(curSession, delay);
+        }
+        return;
+      }
+
+      const reading = (curItem.reading_ja || curItem.raw).replace(/'/g, "\\'");
+
+      speakJapanese(curItem.raw, reading, () => {
+        // 回調觸發時，嚴格驗證 session ID 與 index 是否被重置或被切換
+        if (curSession !== shadowingSessionId) return;
+        if (curIdx !== shadowingIndex) return;
+
+        if (isShadowingAutoPlaying) {
+          if (nextSentenceTimer) clearTimeout(nextSentenceTimer);
+          nextSentenceTimer = setTimeout(() => {
+            if (curSession === shadowingSessionId && isShadowingAutoPlaying) {
+              focusShadowingLine(shadowingIndex + 1, true);
+            }
+          }, 600);
+        }
+      });
+    }
+
+    function scheduleNextSentenceFallback(sessionToken, delayMs) {
+      if (nextSentenceTimer) clearTimeout(nextSentenceTimer);
+      nextSentenceTimer = setTimeout(() => {
+        if (sessionToken === shadowingSessionId && isShadowingAutoPlaying) {
+          focusShadowingLine(shadowingIndex + 1, true);
+        }
+      }, delayMs);
     }
 
     function toggleShadowingAutoPlay() {
@@ -2740,14 +2856,101 @@
       const btn = document.getElementById("shadowingAutoPlayBtn");
       if (isShadowingAutoPlaying) {
         btn.innerText = "⏸ 暫停跟讀";
-        focusShadowingLine(shadowingIndex, true);
+        // 重新開始跟讀：重新取得 token 並從當前句完整播放
+        cancelShadowingSpeech();
+        playCurrentShadowingVoice();
       } else {
         btn.innerText = "▶ 自動跟讀";
-        window.speechSynthesis.cancel();
+        // 暫停時徹底取消語音與排程，防止重開時時序競爭
+        cancelShadowingSpeech();
       }
     }
 
-    // ================= ☁️ Google Drive 雲端雙向同步模組 =================
+    // 依據視窗中心對齊最近的句子（滾動停止時使用）
+    function syncCenterClosestLine(triggerPlayback = false) {
+      const viewport = document.getElementById("shadowingScrollViewport");
+      if (!viewport || !currentViewingArticle || !currentViewingArticle.items) return;
+
+      const centerY = viewport.scrollTop + (viewport.clientHeight / 2);
+      const cards = document.querySelectorAll(".shadowing-line-card");
+      let closestIdx = 0;
+      let minDiff = Infinity;
+
+      cards.forEach((card, idx) => {
+        const cardCenter = card.offsetTop + (card.offsetHeight / 2);
+        const diff = Math.abs(cardCenter - centerY);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+
+      if (closestIdx !== shadowingIndex) {
+        // 切換句子：若正在自動跟讀或允許播音，則依設定觸發
+        focusShadowingLine(closestIdx, triggerPlayback || isShadowingAutoPlaying);
+      }
+    }
+
+    // 初始化專注跟讀模式的手勢操作
+    function initShadowingGestures() {
+      const viewport = document.getElementById("shadowingScrollViewport");
+      if (!viewport || viewport.dataset.gesturesBound) return;
+      viewport.dataset.gesturesBound = "true";
+
+      // 1. 滑鼠按住上下拖動滾動
+      viewport.addEventListener("mousedown", (e) => {
+        isShadowingDragging = true;
+        dragStartY = e.pageY;
+        dragStartScrollTop = viewport.scrollTop;
+        dragDistanceY = 0;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isShadowingDragging) return;
+        const delta = e.pageY - dragStartY;
+        dragDistanceY = Math.abs(delta);
+        viewport.scrollTop = dragStartScrollTop - delta;
+      });
+
+      window.addEventListener("mouseup", (e) => {
+        if (!isShadowingDragging) return;
+        isShadowingDragging = false;
+        // 若拖曳距離大於 8px，滾動停止後自動吸附對齊中央最近的句子
+        if (dragDistanceY > 8) {
+          setTimeout(() => syncCenterClosestLine(isShadowingAutoPlaying), 120);
+        }
+      });
+
+      // 2. 滑鼠滾輪移動更換高亮句子
+      viewport.addEventListener("wheel", () => {
+        clearTimeout(scrollDebounceTimer);
+        scrollDebounceTimer = setTimeout(() => {
+          syncCenterClosestLine(isShadowingAutoPlaying);
+        }, 160);
+      }, { passive: true });
+
+      // 3. 按一下上下一句 (點擊上半部上一句，下半部下一句)
+      viewport.addEventListener("click", (e) => {
+        // 如果是按住拖曳產生的位移則不當作單純點擊
+        if (dragDistanceY > 8) return;
+
+        const viewportHeight = window.innerHeight;
+        const clickY = e.clientY;
+
+        if (clickY < viewportHeight * 0.5) {
+          // 上半部 -> 上一句
+          if (shadowingIndex > 0) {
+            focusShadowingLine(shadowingIndex - 1, isShadowingAutoPlaying || isShadowingVoiceEnabled);
+          }
+        } else {
+          // 下半部 -> 下一句
+          if (shadowingIndex < currentViewingArticle.items.length - 1) {
+            focusShadowingLine(shadowingIndex + 1, isShadowingAutoPlaying || isShadowingVoiceEnabled);
+          }
+        }
+      });
+    }
+
     let googleAccessToken = null;
     let tokenClient = null;
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
@@ -2973,14 +3176,14 @@
             updateApiKeyBadge(cloudApiKey);
           }
 
-          // 1. 合併單字
+          // 合併單字
           const localWords = new Set(localItems.map(i => i.word));
           const newFromCloud = cloudItems.filter(ci => !localWords.has(ci.word));
           if (newFromCloud.length > 0) {
             await saveVocabToDb(newFromCloud);
           }
 
-          // 2. 合併文章
+          // 合併文章
           const localArtTitles = new Set(localArticles.map(a => a.title));
           for (const ca of cloudArticles) {
             if (!localArtTitles.has(ca.title)) {
@@ -2988,7 +3191,7 @@
             }
           }
 
-          // 3. 合併資料夾
+          // 合併資料夾
           const localFolderNames = new Set(localFolders.map(f => f.name));
           for (const cf of cloudFolders) {
             if (!localFolderNames.has(cf.name)) {
@@ -3051,7 +3254,6 @@
       }
     }
 
-    // ================= 初始化監聽 =================
     window.addEventListener("DOMContentLoaded", () => {
       recordVisitorCount();
 
@@ -3061,7 +3263,6 @@
       }
       updateApiKeyBadge(savedKey);
 
-      // 預設模型為 gemini-3.1-flash-lite
       const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.1-flash-lite";
       document.getElementById("modelSelect").value = savedModel;
       updateModelBadge(savedModel);
@@ -3070,6 +3271,7 @@
       document.getElementById("gdriveClientIdInput").value = effectiveClientId;
 
       initVoiceSettings();
+      initShadowingVoicePreference();
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
       document.getElementById("globalStatus").innerText = "系統就緒。";
@@ -3323,7 +3525,6 @@
       return JSON.parse(rawText);
     }
 
-    // ================= 對照轉換 =================
     async function runTranslationOnly() {
       const input = document.getElementById("transInput").value;
       if (!input.trim()) return alert("請輸入日文內容。");
@@ -3416,7 +3617,6 @@ ${JSON.stringify(rawLines, null, 2)}`;
       }
     }
 
-    // ================= 句法與結構分析 =================
     async function runSyntaxOnly() {
       const input = document.getElementById("syntaxInput").value;
       if (!input.trim()) return alert("請輸入內容。");
@@ -3819,7 +4019,6 @@ ${JSON.stringify(rawLines, null, 2)}`;
       }
     });
 
-    // ================= 單字拆解專屬函式 =================
     let currentExtractedTokens = [];
 
     async function executeVocabExtraction(sentenceText, apiKey) {
