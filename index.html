@@ -416,14 +416,21 @@
       pointer-events: auto;
     }
     .tree-scroll-container {
-      overflow: auto;
+      overflow: hidden;
       background: #fafbfc;
       border: 1px solid #e1e4e8;
       border-radius: 8px;
       padding: 16px;
       position: relative;
       width: 100%;
-      min-height: 420px;
+      height: 700px;
+      min-height: 700px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .tree-scroll-container.dragging {
+      cursor: grabbing;
     }
     .tree-zoom-spacer {
       position: relative;
@@ -2408,6 +2415,7 @@
     let latestTranslationResults = null;
     let isolatedSyntaxData = [];
     let currentZoom = 1.0;
+    let treePan = { x: 0, y: 0 };
 
     // ================= 原生人聲發音核心 (Web Speech API) =================
     let voicePitch = 0.85;
@@ -4190,7 +4198,8 @@
         // 取寬高較小值，確保完整放入固定視窗
         const fitRatio = Math.min(widthRatio, heightRatio);
 
-        currentZoom = Math.min(1.85, Math.max(0.5, Math.round(fitRatio * 20) / 20));
+        // 預設保持 100%，避免視窗跟著內容縮放
+        currentZoom = 1.0;
       }
 
       wrapper.style.transform = oldTransform;
@@ -4218,12 +4227,44 @@
         wrapper.style.transform = `scale(${currentZoom})`;
         if (label) label.innerText = `${Math.round(currentZoom * 100)}%`;
 
-        // 即時更新佔位容器的大小，確保捲軸能正確滾動到邊緣不被裁切
+        // 縮放只作用於內容，不改變外層視窗大小
         const rect = canvasWrap.getBoundingClientRect();
         spacer.style.width = `${rect.width}px`;
         spacer.style.height = `${rect.height}px`;
+        wrapper.style.transform = `translate(${treePan.x}px, ${treePan.y}px) scale(${currentZoom})`;
       }
     }
+
+    // 結構圖視窗拖曳平移（拖空白處移動，不改變視窗大小）
+    (function initTreePan() {
+      document.addEventListener("DOMContentLoaded", () => {
+        const box = document.querySelector(".tree-scroll-container");
+        if (!box) return;
+
+        let dragging = false;
+        let startX = 0, startY = 0;
+
+        box.addEventListener("mousedown", (e) => {
+          if (e.target.closest("button")) return;
+          dragging = true;
+          box.classList.add("dragging");
+          startX = e.clientX - treePan.x;
+          startY = e.clientY - treePan.y;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          treePan.x = e.clientX - startX;
+          treePan.y = e.clientY - startY;
+          applyZoom();
+        });
+
+        window.addEventListener("mouseup", () => {
+          dragging = false;
+          box.classList.remove("dragging");
+        });
+      });
+    })();
 
     async function captureStructureTree(actionType) {
       const canvasTarget = document.getElementById("treeCanvasWrap");
