@@ -5145,7 +5145,8 @@
       const dateBadge = document.getElementById("specialDateBadge");
       if (dateBadge) dateBadge.innerText = displayDateStr;
 
-      loadDailySpecial(false);
+      // 首頁每次開啟都強制向 Gemini API 重新生成，不使用今天的快取。
+      loadDailySpecial(true);
     }
 
     async function loadDailySpecial(forceRefresh = false) {
@@ -5169,7 +5170,7 @@
 
       const apiKey = document.getElementById("apiKey") ? document.getElementById("apiKey").value.trim() : "";
 
-      // 沒有 API Key：直接使用「當天專屬」內建教材，不再固定顯示同一組。
+      // 沒有 API Key 時無法呼叫 Gemini；保留內建教材作為離線備援。
       if (!apiKey) {
         currentDailySpecialData = getBuiltInDailySpecial(today);
         renderDailySpecial(currentDailySpecialData);
