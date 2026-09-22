@@ -2192,11 +2192,11 @@
         <div class="settings-field-group" style="margin-top:12px;">
           <label for="apiKey">🔑 Gemini API Key：</label>
           <div style="display:flex; gap:8px; max-width:620px; flex-wrap:wrap;">
-            <input type="password" id="apiKey" class="settings-input" style="background:#edf2f7;" readonly autocomplete="off" spellcheck="false">
-            <button type="button" class="text-action-btn" id="unlockApiKeyBtn" onclick="promptUnlockApiKey()">解鎖查看 / 修改 API Key</button>
-            <button type="button" class="text-action-btn" id="saveApiKeyBtn" style="display:none;" onclick="saveCustomApiKey()">儲存變更</button>
+            <input type="password" id="apiKey" class="settings-input" autocomplete="off" spellcheck="false" placeholder="請手動輸入 Gemini API Key">
+            <button type="button" class="text-action-btn" id="saveApiKeyBtn" onclick="saveApiKeyToCloud()">☁️ 儲存到雲端</button>
+            <button type="button" class="text-action-btn" id="clearApiKeyBtn" onclick="clearApiKey()">清除</button>
           </div>
-          <div class="settings-tip">API Key 已移至進階開發者設定，與 Client ID 使用相同的管理員密碼保護。預設使用內建 Key；一般情況無需修改。</div>
+          <div class="settings-tip">API Key 不再寫入 HTML，也不再使用內建 Key。請手動輸入後儲存到你的 Google Drive AppData；換電腦登入同一 Google 帳號後可自動載入。</div>
         </div>
 
         <div class="settings-field-group" style="margin-top:12px;">
@@ -2385,7 +2385,6 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "gemini_admin_api_key_v2";
     const MODEL_STORAGE_KEY = "gemini_saved_model_pref";
     const GOOGLE_CLIENT_ID_KEY = "gdrive_admin_client_id_v2";
     const GOOGLE_TOKEN_KEY = "gdrive_saved_access_token";
@@ -2403,7 +2402,6 @@
 
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
     // 預設 Gemini API Key。UI 顯示與修改受到同一組管理員密碼保護。
-    const BUILTIN_GEMINI_API_KEY = "AQ.Ab8RN6Kdu-FYcyHJ4Gd53JRwLCBweKrkeyoNKMk23kPg4hqeEA";
     const ADMIN_UNLOCK_PASSWORD = "19980815";
 
     let cachedHtmlPayload = "";
@@ -3652,52 +3650,136 @@
     let tokenClient = null;
     let isSyncingDrive = false; // 防止重複並行同步的互斥鎖
     const DRIVE_FILE_NAME = "japanese_vocab_backup.json";
+    const GEMINI_CONFIG_FILE_NAME = "japanese_app_config.json";
 
     function getEffectiveClientId() {
       return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || BUILTIN_GOOGLE_CLIENT_ID;
     }
 
     function getEffectiveApiKey() {
-      return (localStorage.getItem(STORAGE_KEY) || BUILTIN_GEMINI_API_KEY).trim();
+      const input = document.getElementById("apiKey");
+      return input ? input.value.trim() : "";
     }
 
-    function promptUnlockApiKey() {
-      const inputPass = prompt("請輸入管理密碼以解除 API Key 鎖定：");
-      if (inputPass === ADMIN_UNLOCK_PASSWORD) {
-        const inputEl = document.getElementById("apiKey");
-        inputEl.type = "text";
-        inputEl.readOnly = false;
-        inputEl.style.background = "#ffffff";
-        inputEl.focus();
+    async function findGeminiConfigFileId() {
+      if (!googleAccessToken) return null;
+      const q = encodeURIComponent(`name='${GEMINI_CONFIG_FILE_NAME}' and trashed=false`);
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}`, {
+        headers: { Authorization: `Bearer ${googleAccessToken}` }
+      });
+      if (!res.ok) return null;
+      const data = await res.json().catch(() => ({}));
+      return data.files && data.files.length > 0 ? data.files[0].id : null;
+    }
 
-        document.getElementById("unlockApiKeyBtn").style.display = "none";
-        document.getElementById("saveApiKeyBtn").style.display = "inline-block";
-        alert("已驗證身分！現在可以查看或修改 Gemini API Key。");
-      } else if (inputPass !== null) {
-        alert("密碼不正確，無法編輯 API Key！");
+    async function loadGeminiApiKeyFromCloud() {
+      if (!googleAccessToken) return false;
+      try {
+        const fileId = await findGeminiConfigFileId();
+        if (!fileId) return false;
+
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        });
+        if (!res.ok) return false;
+
+        const config = await res.json().catch(() => ({}));
+        const key = typeof config.gemini_api_key === "string" ? config.gemini_api_key.trim() : "";
+        if (key) {
+          document.getElementById("apiKey").value = key;
+          updateApiKeyBadge(key);
+          document.getElementById("globalStatus").innerText = "已從 Google 雲端載入 Gemini API Key。";
+          return true;
+        }
+      } catch (err) {
+        console.warn("載入雲端 Gemini API Key 失敗:", err);
       }
+      return false;
     }
 
-    function saveCustomApiKey() {
+    async function saveApiKeyToCloud(showNotify = true) {
       const inputEl = document.getElementById("apiKey");
-      const val = inputEl.value.trim();
-      if (val) {
-        localStorage.setItem(STORAGE_KEY, val);
-        alert("Gemini API Key 已儲存！");
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-        inputEl.value = BUILTIN_GEMINI_API_KEY;
-        alert("已清除自訂 Key，恢復為內建預設 API Key！");
+      const key = inputEl.value.trim();
+      if (!key) {
+        alert("請先輸入 Gemini API Key。");
+        return false;
+      }
+      if (!googleAccessToken) {
+        alert("請先登入 Google 帳號，才能把 API Key 儲存到你的雲端 AppData。");
+        return false;
       }
 
-      inputEl.type = "password";
-      inputEl.readOnly = true;
-      inputEl.style.background = "#edf2f7";
-      document.getElementById("unlockApiKeyBtn").style.display = "inline-block";
-      document.getElementById("saveApiKeyBtn").style.display = "none";
+      try {
+        const fileId = await findGeminiConfigFileId();
+        const payload = {
+          updated_at: new Date().toISOString(),
+          gemini_api_key: key
+        };
 
-      updateApiKeyBadge(getEffectiveApiKey());
-      if (googleAccessToken) syncWithGoogleDrive(false);
+        let res;
+        if (fileId) {
+          res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${googleAccessToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const metadata = {
+            name: GEMINI_CONFIG_FILE_NAME,
+            parents: ["appDataFolder"]
+          };
+          const form = new FormData();
+          form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+          form.append("file", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+          res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${googleAccessToken}` },
+            body: form
+          });
+        }
+
+        if (!res.ok) {
+          throw new Error(`Google Drive 回應 ${res.status}`);
+        }
+
+        updateApiKeyBadge(key);
+        document.getElementById("globalStatus").innerText = "Gemini API Key 已儲存到 Google 雲端。";
+        if (showNotify) alert("Gemini API Key 已安全儲存到你的 Google Drive AppData。換裝置登入同一帳號後可自動載入。");
+        return true;
+      } catch (err) {
+        console.error("儲存 Gemini API Key 到 Google Drive 失敗:", err);
+        if (showNotify) alert("API Key 雲端儲存失敗：" + err.message);
+        return false;
+      }
+    }
+
+    async function clearApiKey() {
+      document.getElementById("apiKey").value = "";
+      updateApiKeyBadge("");
+      document.getElementById("globalStatus").innerText = "API Key 已從本機畫面清除。";
+
+      if (!googleAccessToken) return;
+      try {
+        const fileId = await findGeminiConfigFileId();
+        if (!fileId) return;
+        const payload = { updated_at: new Date().toISOString(), gemini_api_key: "" };
+        const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${googleAccessToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`Google Drive 回應 ${res.status}`);
+        alert("API Key 已清除，雲端設定也已同步清空。");
+      } catch (err) {
+        console.error("清除雲端 API Key 失敗:", err);
+        alert("本機已清除，但雲端清除失敗：" + err.message);
+      }
     }
 
     function promptUnlockClientId() {
@@ -3762,6 +3844,7 @@
 
             await fetchGoogleUserInfo();
             updateGoogleUi(true);
+            await loadGeminiApiKeyFromCloud();
             await syncWithGoogleDrive(false);
           }
         });
@@ -3800,7 +3883,7 @@
         googleAccessToken = savedToken;
         updateGoogleUi(true);
         renderAdminDashboard();
-        syncWithGoogleDrive(false);
+        loadGeminiApiKeyFromCloud().then(() => syncWithGoogleDrive(false));
       } else {
         // Token 已過期或 GitHub 重新推送更新：
         // 保留帳號資訊並更新介面為「⚡ 恢復連線」，絕不在頁面載入時強行自動調用彈窗，防止瀏覽器彈窗攔截器造成卡死
@@ -3877,8 +3960,10 @@
         localStorage.removeItem(GOOGLE_EXPIRES_AT_KEY);
         localStorage.removeItem(GOOGLE_LOGGED_IN_FLAG);
         localStorage.removeItem(GOOGLE_USER_EMAIL_KEY);
+        document.getElementById("apiKey").value = "";
+        updateApiKeyBadge("");
         updateGoogleUi(false);
-        alert("已登出 Google 帳號。");
+        alert("已登出 Google 帳號。API Key 已從本機畫面清除，雲端資料保留。");
       };
 
       if (googleAccessToken && window.google && google.accounts && google.accounts.oauth2) {
@@ -4008,9 +4093,8 @@
 
       recordVisitorCount();
 
-      const effectiveApiKey = getEffectiveApiKey();
-      document.getElementById("apiKey").value = effectiveApiKey;
-      updateApiKeyBadge(effectiveApiKey);
+      document.getElementById("apiKey").value = "";
+      updateApiKeyBadge("");
 
       const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.1-flash-lite";
       document.getElementById("modelSelect").value = savedModel;
@@ -4029,15 +4113,7 @@
     });
 
     document.getElementById("apiKey").addEventListener("input", (e) => {
-      const val = e.target.value.trim();
-      if (e.target.readOnly) return;
-      if (val) {
-        localStorage.setItem(STORAGE_KEY, val);
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-      updateApiKeyBadge(val || BUILTIN_GEMINI_API_KEY);
-      if (googleAccessToken) syncWithGoogleDrive(false);
+      updateApiKeyBadge(e.target.value.trim());
     });
 
     function updateApiKeyBadge(val) {
@@ -4065,14 +4141,6 @@
       const model = document.getElementById("modelSelect").value;
       localStorage.setItem(MODEL_STORAGE_KEY, model);
       updateModelBadge(model);
-    }
-
-    function clearApiKey() {
-      localStorage.removeItem(STORAGE_KEY);
-      document.getElementById("apiKey").value = BUILTIN_GEMINI_API_KEY;
-      updateApiKeyBadge(BUILTIN_GEMINI_API_KEY);
-      document.getElementById("globalStatus").innerText = "已恢復內建 API Key。";
-      if (googleAccessToken) syncWithGoogleDrive(false);
     }
 
     function clearInput(id) {
