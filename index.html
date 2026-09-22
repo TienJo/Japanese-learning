@@ -2127,7 +2127,7 @@
         <span style="font-size:24px;">🇬</span>
         <div style="flex-grow:1;">
           <div style="font-weight:600; font-size:14px;" id="gdriveAccountText">尚未登入 Google 帳號</div>
-          <div style="font-size:12px; color:#718096;">雲端同步將自動儲存「文章庫」、「單字庫」與「Gemini API Key」至個人專屬 AppData 空間</div>
+          <div style="font-size:12px; color:#718096;">雲端同步將自動儲存「文章庫」與「單字庫」至個人專屬 AppData 空間</div>
         </div>
         <span class="status-badge-inline" id="gdriveStatusBadge">離線 / 本地保存</span>
       </div>
@@ -3878,34 +3878,19 @@
         const fileId = await findDriveFileId();
         const localItems = await getAllVocabFromDb();
         const localArticles = await getAllArticlesFromDb();
-        const localFolders = await getAllFoldersFromDb();
-        const localSyntax = await getAllSyntaxFromDb();
-        const currentLocalKey = getEffectiveApiKey();
 
         if (fileId) {
           let fullMergedItems = localItems;
           let fullMergedArticles = localArticles;
-          let fullMergedFolders = localFolders;
-          let fullMergedSyntax = localSyntax;
-          let keyToSync = currentLocalKey;
 
           // 只有在非本地主動刪除的情況下（例如啟動或常規雙向同步），才進行雲端合併
           if (!isLocalSourceOfTruth) {
             const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
               headers: { Authorization: `Bearer ${googleAccessToken}` }
             });
-            const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], syntax: [], apiKey: "" }));
+            const cloudData = await getRes.json().catch(() => ({ items: [], articles: [] }));
             const cloudItems = cloudData.items || [];
             const cloudArticles = cloudData.articles || [];
-            const cloudFolders = cloudData.folders || [];
-            const cloudSyntax = cloudData.syntax || [];
-            const cloudApiKey = cloudData.apiKey || "";
-
-            if (!currentLocalKey && cloudApiKey) {
-              localStorage.setItem(STORAGE_KEY, cloudApiKey);
-              document.getElementById("apiKey").value = cloudApiKey;
-              updateApiKeyBadge(cloudApiKey);
-            }
 
             // 合併單字
             const localWords = new Set(localItems.map(i => i.word));
@@ -3922,28 +3907,8 @@
               }
             }
 
-            // 合併資料夾
-            const localFolderNames = new Set(localFolders.map(f => f.name));
-            for (const cf of cloudFolders) {
-              if (!localFolderNames.has(cf.name)) {
-                await saveFolderToDb(cf.name);
-              }
-            }
-
-            // 合併句構分析
-            const localSyntaxRaws = new Set(localSyntax.map(s => s.syntaxData?.raw || s.title));
-            for (const cs of cloudSyntax) {
-              const rawKey = cs.syntaxData?.raw || cs.title;
-              if (!localSyntaxRaws.has(rawKey)) {
-                await saveSyntaxToDb(cs);
-              }
-            }
-
             fullMergedItems = await getAllVocabFromDb();
             fullMergedArticles = await getAllArticlesFromDb();
-            fullMergedFolders = await getAllFoldersFromDb();
-            fullMergedSyntax = await getAllSyntaxFromDb();
-            keyToSync = currentLocalKey || cloudApiKey;
           }
 
           // 將最新狀態寫入 Google Drive
@@ -3955,16 +3920,13 @@
             },
             body: JSON.stringify({
               updated_at: new Date().toISOString(),
-              apiKey: keyToSync,
               items: fullMergedItems,
-              articles: fullMergedArticles,
-              folders: fullMergedFolders,
-              syntax: fullMergedSyntax
+              articles: fullMergedArticles
             })
           });
 
           if (updateRes.ok && showNotify) {
-            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 作品庫：已同步 ${fullMergedArticles.length} 部\n• 句構分析：已同步 ${fullMergedSyntax.length} 筆\n• API Key：已同步記錄`);
+            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 文章庫：已同步 ${fullMergedArticles.length} 部`);
           }
         } else {
           const metadata = {
@@ -3975,11 +3937,8 @@
           form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
           form.append("file", new Blob([JSON.stringify({
             updated_at: new Date().toISOString(),
-            apiKey: currentLocalKey,
             items: localItems,
-            articles: localArticles,
-            folders: localFolders,
-            syntax: localSyntax
+            articles: localArticles
           })], { type: "application/json" }));
 
           const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
@@ -3989,7 +3948,7 @@
           });
 
           if (createRes.ok && showNotify) {
-            alert(`已在 Google 雲端建立備份庫！本地累積的 ${localArticles.length} 部作品、${localSyntax.length} 筆句構分析與 ${localItems.length} 個單字已全部上傳儲存。`);
+            alert(`已在 Google 雲端建立備份庫！本地累積的 ${localArticles.length} 部文章與 ${localItems.length} 個單字已全部上傳儲存。`);
           }
         }
         refreshDatabaseUi();
