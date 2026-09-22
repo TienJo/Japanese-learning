@@ -5505,10 +5505,15 @@
         if (updateStatusCallback) updateStatusCallback(`正在使用 ${model} 處理中...`);
 
         try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          // Google 目前的新式 AQ. 認證 Key 建議透過 x-goog-api-key 傳送。
+          // 不再把 API Key 放進 URL 的 ?key= 參數，避免新版認證金鑰被當成 OAuth 憑證處理。
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
           const res = await fetch(endpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
               generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
