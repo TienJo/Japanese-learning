@@ -4191,85 +4191,950 @@
 
     // =================== ✨ 本日のスペシャル 邏輯實作 ===================
     const DAILY_SPECIAL_STORAGE_KEY_PREFIX = "app_daily_special_data_";
+    const DAILY_SPECIAL_HISTORY_KEY = "app_daily_special_history_v2";
     let currentDailySpecialData = null;
 
-    // 離線或未填 API Key 時的預設流行語與情境對話（保證畫面隨開即用）
-    const DEFAULT_DAILY_SPECIAL = {
-      date: "2026年9月21日",
-      theme_title: "2026年最新若者言葉・日常トレンド",
-      words: [
-        {
-          word: "界隈",
-          reading: "かいわい",
-          romaji: "kaiwai",
-          tag: "若者名詞",
-          meaning: "原意為「某地理區域或附近」，在社群與年輕人口語中引申為「某個特定愛好、風格或文化圈子」（例：推し活界隈、カフェ巡り界隈）。",
-          example: {
-            ja: "そのアニメ、今うちの界隈ですごいバズってるよ！",
-            reading: "そのアニメ、いまうちのかいわいですごいバズってるよ！",
-            romaji: "sono anime, ima uchi no kaiwai de sugoi bazutteru yo!",
-            zh: "那部動畫現在在我們這圈子超級大爆紅喔！"
-          }
-        },
-        {
-          word: "タイパ",
-          reading: "たいぱ",
-          romaji: "taipa",
-          tag: "新造流行語",
-          meaning: "「タイムパフォーマンス（Time Performance，時間性價比）」的簡稱。表示投入的時間所獲得的效果或滿足度，年輕人常用於倍速看影片或挑選高效率行程。",
-          example: {
-            ja: "倍速でドラマ観るの、タイパ最強だからおすすめ。",
-            reading: "ばいそくでドラマみるの、タイパさいきょうだからおすすめ。",
-            romaji: "baisoku de dorama miru no, taipa saikyou da kara osusume.",
-            zh: "用兩倍速追劇的時間性價比最高了，超推薦。"
-          }
-        }
-      ],
-      dialogue: {
-        scenario: "金曜日の夜にカフェで、週末の予定と推し活の近況について語り合う二人",
-        characters: ["アオイ", "ソウタ"],
-        lines: [
+    /*
+     * 每日內容機制：
+     * 1. 日期使用「本機時間」，避免 UTC 跨日造成台灣/日本凌晨顯示前一天。
+     * 2. 沒有 Gemini API Key 時，也會依日期自動換一組內建教材。
+     * 3. 內建教材有 12 組，並避開最近 11 天已使用的組合，因此連續 12 天不會重複。
+     * 4. 有 Gemini API Key 時，會把最近使用過的流行詞告訴 Gemini，要求避開重複。
+     * 5. AI 生成失敗時，會自動回退到「當天專屬」的內建教材，而不是永遠顯示同一組。
+     */
+
+    const DAILY_SPECIAL_POOL = [
+      {
+        theme_title: "休日のチル時間",
+        words: [
           {
-            speaker: "アオイ",
-            text: "ソウタ、明日のフェス行くの？チケット取れた？",
-            reading: "ソウタ、あしたのフェスいくの？チケットとれた？",
-            romaji: "Souta, ashita no fesu iku no? chiketto toreta?",
-            zh: "Souta，你明天要去音樂節嗎？搶到門票了嗎？"
+            word: "チルい", reading: "ちるい", romaji: "chirui", tag: "形容詞",
+            meaning: "源自英語 chill。表示「放鬆、悠閒、舒服到不想動」的感覺，常用來形容咖啡店、音樂、房間或週末氣氛。",
+            example: {
+              ja: "このカフェ、雰囲気チルすぎて帰りたくない。",
+              reading: "このカフェ、ふんいきちるすぎてかえりたくない。",
+              romaji: "Kono kafe, fun'iki chiru sugite kaeritakunai.",
+              zh: "這間咖啡店氣氛太 chill 了，完全不想回家。"
+            }
           },
           {
-            speaker: "ソウタ",
-            text: "それがさ、一般でワンチャン狙ったけど秒殺で落ちた…マジで萎えたわ。",
-            reading: "それがさ、いっぱんでワンチャンねらったけどびょうさつでおちた…マジでなえたわ。",
-            romaji: "sore ga sa, ippan de wanchan neratta kedo byousatsu de ochita... maji de naeta wa.",
-            zh: "別提了，我原本想靠一般販售碰碰運氣，結果幾秒就被秒殺沒搶到…真的整個人超消沉。"
-          },
-          {
-            speaker: "アオイ",
-            text: "あー、それな！あの界隈、最近ファン急増して倍率エグいもんね。",
-            reading: "あー、それな！あのかいわい、さいきんファンきゅうぞうしてばいりつエグいもんね。",
-            romaji: "aa, sore na! ano kaiwai, saikin fan kyuuzou shite bairitsu egui mon ne.",
-            zh: "啊～就是說啊！那一圈最近粉絲暴增，競爭倍率誇張到不行呢。"
-          },
-          {
-            speaker: "ソウタ",
-            text: "ほんとそれ。でも配信あるっぽいから、家でチルしながら観ることにする！",
-            reading: "ほんとそれ。でもはいしんあるっぽいから、いえでチルしながらみることにする！",
-            romaji: "honto sore. demo haishin aru ppoi kara, ie de chiru shinagara miru koto ni suru!",
-            zh: "真的。不過聽說有線上直播，我就打算在家放鬆chill著看啦！"
+            word: "優勝", reading: "ゆうしょう", romaji: "yuushou", tag: "名詞/形容動詞",
+            meaning: "原本是「獲得冠軍」，現在網路與年輕人口語中常用來誇張表示「太完美了、這就是最棒的選擇」。",
+            example: {
+              ja: "仕事終わりのラーメン、これはもう優勝でしょ。",
+              reading: "しごとおわりのラーメン、これはもうゆうしょうでしょ。",
+              romaji: "Shigoto owari no raamen, kore wa mou yuushou desho.",
+              zh: "下班來一碗拉麵，這根本就是滿分享受吧。"
+            }
           }
         ],
-        tips: [
-          "「それな」：極高頻率的共鳴句，相當於「對吧！完全 প্রচです」。",
-          "「ワンチャン（one chance）」：口語中表示「說不定還有微小可能性／搞不好可以」。",
-          "「チルする（chill）」：源自英語，指「放鬆、悠閒度過」。",
-          "「エグい」：原指殘酷或噁心，現代年輕人常作為「超猛、太扯、太誇張」的讚嘆或感嘆。"
-        ]
+        dialogue: {
+          scenario: "週末の午後、カフェでゆっくり過ごしながら最近の疲れについて話す二人",
+          characters: ["ミナ", "ユウト"],
+          lines: [
+            {speaker:"ミナ", text:"今日このカフェ、めっちゃチルいね。", reading:"きょうこのカフェ、めっちゃちるいね。", romaji:"Kyou kono kafe, meccha chirui ne.", zh:"今天這間咖啡店超 chill 的耶。"},
+            {speaker:"ユウト", text:"わかる。音楽も静かだし、ずっといられるわ。", reading:"わかる。おんがくもしずかだし、ずっといられるわ。", romaji:"Wakaru. Ongaku mo shizuka dashi, zutto irareru wa.", zh:"懂。音樂又很安靜，真的可以一直待下去。"},
+            {speaker:"ミナ", text:"しかもプリンうまい。今日ここ選んだの優勝じゃん。", reading:"しかもプリンうまい。きょうここえらんだのゆうしょうじゃん。", romaji:"Shikamo purin umai. Kyou koko eranda no yuushou jan.", zh:"而且布丁超好吃。今天選這裡根本選對了吧。"},
+            {speaker:"ユウト", text:"じゃ、もう一杯頼んでから帰ろ。", reading:"じゃ、もういっぱいたのんでからかえろ。", romaji:"Ja, mou ippai tanonde kara kaero.", zh:"那就再點一杯再回去吧。"}
+          ],
+          tips: ["「チルい」：用來描述放鬆、悠閒、舒服的氛圍。", "「めっちゃ」：非常口語的「很、超級」。", "「優勝」：網路語感中的「這也太完美了」。"]
+        }
+      },
+      {
+        theme_title: "SNSと若者の時間術",
+        words: [
+          {
+            word: "界隈", reading: "かいわい", romaji: "kaiwai", tag: "若者名詞",
+            meaning: "原本指某個地區或附近一帶。現在 SNS 上常指「某種興趣、文化或生活方式的圈子」，例如音樂界隈、カフェ界隈。",
+            example: {
+              ja: "最近このゲーム、うちの界隈でも流行ってるよ。",
+              reading: "さいきんこのゲーム、うちのかいわいでもはやってるよ。",
+              romaji: "Saikin kono geemu, uchi no kaiwai demo hayatteru yo.",
+              zh: "最近這遊戲在我們這個圈子也很紅喔。"
+            }
+          },
+          {
+            word: "タイパ", reading: "たいぱ", romaji: "taipa", tag: "新造語",
+            meaning: "「タイムパフォーマンス」的縮寫，指投入時間後得到的效率或滿足感，常用於影片、學習、購物和工作。",
+            example: {
+              ja: "倍速で見るほうがタイパいいよね。",
+              reading: "ばいそくでみるほうがたいぱいいよね。",
+              romaji: "Baisoku de miru hou ga taipa ii yo ne.",
+              zh: "用倍速看的話時間效益比較高吧。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "晚上聊天時，兩個朋友討論最近追劇和滑 SNS 的習慣",
+          characters: ["アオイ", "ソウタ"],
+          lines: [
+            {speaker:"アオイ", text:"最近、動画見る時間なくない？", reading:"さいきん、どうがみるじかんなくない？", romaji:"Saikin, douga miru jikan nakunai?", zh:"最近是不是根本沒時間看影片？"},
+            {speaker:"ソウタ", text:"だから全部倍速。タイパ重視でいってる。", reading:"だからぜんぶばいそく。たいぱじゅうしでいってる。", romaji:"Dakara zenbu baisoku. Taipa juushi de itteru.", zh:"所以全部都倍速啊。現在就是重視時間效益。"},
+            {speaker:"アオイ", text:"わかる。しかもSNS見始めると止まらん。", reading:"わかる。しかもエスエヌエスみはじめるととまらん。", romaji:"Wakaru. Shikamo SNS mihajimeru to tomaran.", zh:"懂，而且一開始滑 SNS 就停不下來。"},
+            {speaker:"ソウタ", text:"その界隈、抜け出すの無理だわ。", reading:"そのかいわい、ぬけだすのむりだわ。", romaji:"Sono kaiwai, nukedasu no muri da wa.", zh:"那個圈子真的很難戒掉。"}
+          ],
+          tips: ["「タイパ」：時間效率、時間性價比。", "「止まらん」：口語縮約，等於「止まらない」。", "「界隈」：現代 SNS 常指某個興趣圈或文化圈。"]
+        }
+      },
+      {
+        theme_title: "推し活とハマる感覚",
+        words: [
+          {
+            word: "沼る", reading: "ぬまる", romaji: "numaru", tag: "動詞",
+            meaning: "來自「沼」，比喻越陷越深。常表示對某個人、作品、遊戲或興趣上癮到停不下來。",
+            example: {
+              ja: "最初は興味なかったのに、今めっちゃ沼ってる。",
+              reading: "さいしょはきょうみなかったのに、いまめっちゃぬまってる。",
+              romaji: "Saisho wa kyoumi nakatta noni, ima meccha numatteru.",
+              zh: "一開始明明沒興趣，結果現在整個陷進去了。"
+            }
+          },
+          {
+            word: "ビジュ", reading: "びじゅ", romaji: "biju", tag: "若者名詞",
+            meaning: "「ビジュアル（visual）」的縮短說法，常用來稱讚一個人的外貌、造型或整體視覺狀態。",
+            example: {
+              ja: "今日のビジュ、過去一レベルでいいじゃん。",
+              reading: "きょうのビジュ、かこいちレベルでいいじゃん。",
+              romaji: "Kyou no biju, kakoichi reberu de ii jan.",
+              zh: "你今天的造型也太好看了吧，根本歷代最佳。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友在討論最近迷上的偶像與新造型",
+          characters: ["レナ", "カイ"],
+          lines: [
+            {speaker:"レナ", text:"ねえ、昨日の新ビジュ見た？", reading:"ねえ、きのうのしんビジュみた？", romaji:"Nee, kinou no shin biju mita?", zh:"欸，你看到昨天的新造型了嗎？"},
+            {speaker:"カイ", text:"見た。あれは反則でしょ。", reading:"みた。あれははんそくでしょ。", romaji:"Mita. Are wa hansoku desho.", zh:"看了。那根本犯規了吧。"},
+            {speaker:"レナ", text:"わかる。そこから完全に沼った。", reading:"わかる。そこからかんぜんにぬまった。", romaji:"Wakaru. Soko kara kanzen ni numatta.", zh:"懂。我從那之後就徹底陷進去了。"},
+            {speaker:"カイ", text:"もう抜けられないやつじゃん。", reading:"もうぬけられないやつじゃん。", romaji:"Mou nukerarenai yatsu jan.", zh:"這已經是完全出不來的那種了吧。"}
+          ],
+          tips: ["「ビジュ」：ビジュアル的口語縮寫。", "「沼る」：對人、作品或興趣越陷越深。", "「反則」：本義是犯規，口語可誇張表示「太犯規、太強」。"]
+        }
+      },
+      {
+        theme_title: "SNSの共感とリアクション",
+        words: [
+          {
+            word: "それな", reading: "それな", romaji: "sore na", tag: "口語表現",
+            meaning: "非常常見的共鳴用語，表示「就是啊、完全同意、你說到重點了」。語氣通常比正式的「その通り」輕鬆。",
+            example: {
+              ja: "それな、月曜って何回あっても慣れない。",
+              reading: "それな、げつようってなんかいあってもなれない。",
+              romaji: "Sore na, getsuyou tte nankai atte mo narenai.",
+              zh: "就是啊，星期一不管來幾次都還是習慣不了。"
+            }
+          },
+          {
+            word: "蛙化", reading: "かえるか", romaji: "kaeruka", tag: "流行名詞",
+            meaning: "「蛙化現象」的簡稱。現代年輕人常用來描述原本有好感的人突然做了某個行為，自己瞬間冷掉或幻滅的感覺。",
+            example: {
+              ja: "そこで自撮り始めるのはちょっと蛙化する。",
+              reading: "そこでじどりはじめるのはちょっとかえるかする。",
+              romaji: "Soko de jidori hajimeru no wa chotto kaeruka suru.",
+              zh: "在那種地方突然開始自拍，真的會讓人瞬間冷掉。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友吃飯時聊到約會中的尷尬瞬間",
+          characters: ["ナナ", "リョウ"],
+          lines: [
+            {speaker:"ナナ", text:"昨日のデート、最後ちょっと蛙化した。", reading:"きのうのデート、さいごちょっとかえるかした。", romaji:"Kinou no deeto, saigo chotto kaeruka shita.", zh:"昨天約會最後有一點讓我瞬間冷掉。"},
+            {speaker:"リョウ", text:"え、何したの？", reading:"え、なにしたの？", romaji:"E, nani shita no?", zh:"欸，他做了什麼？"},
+            {speaker:"ナナ", text:"店員さんにめっちゃ横柄でさ…。", reading:"てんいんさんにめっちゃおうへいでさ…。", romaji:"Ten'in-san ni meccha ouhei de sa...", zh:"他對店員態度超傲慢的……"},
+            {speaker:"リョウ", text:"あー、それな。そこは無理だわ。", reading:"あー、それな。そこはむりだわ。", romaji:"Aa, sore na. Soko wa muri da wa.", zh:"啊～就是啊，那個真的不行。"}
+          ],
+          tips: ["「蛙化」：現代口語中常指好感瞬間冷掉。", "「それな」：表示強烈共鳴。", "「〜でさ」：很自然的聊天接續方式，有「然後啊……」的感覺。"]
+        }
+      },
+      {
+        theme_title: "写真とSNS映え",
+        words: [
+          {
+            word: "盛れる", reading: "もれる", romaji: "moreru", tag: "動詞",
+            meaning: "來自「盛る」，在 SNS 語境中指照片、妝容或角度讓自己看起來比平常更好看、更上鏡。",
+            example: {
+              ja: "この照明、めっちゃ盛れるよ。",
+              reading: "このしょうめい、めっちゃもれるよ。",
+              romaji: "Kono shoumei, meccha moreru yo.",
+              zh: "這個燈光超顯好看喔。"
+            }
+          },
+          {
+            word: "バズる", reading: "ばずる", romaji: "bazuru", tag: "動詞",
+            meaning: "源自 buzz，表示內容在 SNS 上突然獲得大量觀看、轉發或討論，也就是「爆紅」。",
+            example: {
+              ja: "昨日の動画、急にバズったんだけど。",
+              reading: "きのうのどうが、きゅうにばずったんだけど。",
+              romaji: "Kinou no douga, kyuu ni bazutta n da kedo.",
+              zh: "我昨天那支影片突然爆紅了耶。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友在咖啡店幫彼此拍照，順便聊 SNS",
+          characters: ["ユイ", "ハル"],
+          lines: [
+            {speaker:"ユイ", text:"ちょっとそこで撮って。", reading:"ちょっとそこでとって。", romaji:"Chotto soko de totte.", zh:"幫我在那邊拍一下。"},
+            {speaker:"ハル", text:"ここ？ それとも窓際？", reading:"ここ？それともまどぎわ？", romaji:"Koko? Soretomo madogiwa?", zh:"這裡？還是窗邊？"},
+            {speaker:"ユイ", text:"窓際！そっちのほうが盛れる。", reading:"まどぎわ！そっちのほうがもれる。", romaji:"Madogiwa! Sotchi no hou ga moreru.", zh:"窗邊！那邊比較顯好看。"},
+            {speaker:"ハル", text:"これ投稿したらバズるかもよ。", reading:"これとうこうしたらばずるかもよ。", romaji:"Kore toukou shitara bazuru kamo yo.", zh:"這張發出去搞不好會爆紅喔。"}
+          ],
+          tips: ["「盛れる」：照片或造型「很上鏡」。", "「バズる」：SNS 內容突然爆紅。", "「〜かも」：口語中的「可能、搞不好」。"]
+        }
+      },
+      {
+        theme_title: "友達とのワンチャン作戦",
+        words: [
+          {
+            word: "ワンチャン", reading: "わんちゃん", romaji: "wanchan", tag: "口語名詞",
+            meaning: "源自 one chance。現代日語中表示「說不定、搞不好、還有一絲可能」，常用於半開玩笑的語氣。",
+            example: {
+              ja: "ワンチャンまだ間に合うかも。",
+              reading: "わんちゃんまだまにあうかも。",
+              romaji: "Wanchan mada maniau kamo.",
+              zh: "搞不好現在還來得及。"
+            }
+          },
+          {
+            word: "エモい", reading: "えもい", romaji: "emoi", tag: "形容詞",
+            meaning: "來自 emotional 的網路用語，表示某個畫面、音樂或回憶帶來強烈情緒，難以用單一詞形容。",
+            example: {
+              ja: "この曲、昔を思い出してエモい。",
+              reading: "このきょく、むかしをおもいだしてえもい。",
+              romaji: "Kono kyoku, mukashi o omoidashite emoi.",
+              zh: "這首歌讓我想起以前，真的好有情緒。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友臨時決定去看一場快結束的活動",
+          characters: ["ケン", "マイ"],
+          lines: [
+            {speaker:"ケン", text:"まだイベントやってるかな？", reading:"まだイベントやってるかな？", romaji:"Mada ibento yatteru kana?", zh:"活動現在還在進行嗎？"},
+            {speaker:"マイ", text:"ワンチャン間に合うんじゃない？", reading:"わんちゃんまにあうんじゃない？", romaji:"Wanchan maniau n janai?", zh:"搞不好還來得及吧？"},
+            {speaker:"ケン", text:"じゃ、行ってみる？", reading:"じゃ、いってみる？", romaji:"Ja, itte miru?", zh:"那要不要去看看？"},
+            {speaker:"マイ", text:"行こ。夜の街並みもエモそう。", reading:"いこ。よるのまちなみもえもそう。", romaji:"Iko. Yoru no machinami mo emo sou.", zh:"走啊。晚上的街景感覺也會很有氛圍。"}
+          ],
+          tips: ["「ワンチャン」：表示「搞不好、說不定」。", "「エモい」：描述帶來強烈情緒或回憶感的事物。", "「〜そう」：表示「看起來好像……」。"]
+        }
+      },
+      {
+        theme_title: "ゲームとガチ勢トーク",
+        words: [
+          {
+            word: "ガチ勢", reading: "がちぜい", romaji: "gachizei", tag: "若者名詞",
+            meaning: "「ガチ（認真、真格）」加上「勢（某一類人）」的組合，指非常投入、認真鑽研某個遊戲或興趣的人。",
+            example: {
+              ja: "あの人、完全にガチ勢だから勝てない。",
+              reading: "あのひと、かんぜんにがちぜいだからかてない。",
+              romaji: "Ano hito, kanzen ni gachizei da kara katenai.",
+              zh: "那個人完全是認真派，根本打不贏。"
+            }
+          },
+          {
+            word: "詰む", reading: "つむ", romaji: "tsumu", tag: "動詞",
+            meaning: "原本指「陷入無法前進的狀態」，遊戲與網路口語中常表示「完蛋了、沒救了、卡死了」。",
+            example: {
+              ja: "ここで回復切れたらもう詰む。",
+              reading: "ここでかいふくきれたらもうつむ。",
+              romaji: "Koko de kaifuku kiretara mou tsumu.",
+              zh: "如果在這裡把補血用完就真的完蛋了。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "晚上兩個朋友一起打遊戲，討論隊友和攻略",
+          characters: ["タクミ", "ショウ"],
+          lines: [
+            {speaker:"タクミ", text:"その装備、強くない？", reading:"そのそうび、つよくない？", romaji:"Sono soubi, tsuyokunai?", zh:"那個裝備是不是很強？"},
+            {speaker:"ショウ", text:"強いけど、使いこなせるのガチ勢だけだよ。", reading:"つよいけど、つかいこなせるのがちぜいだけだよ。", romaji:"Tsuyoi kedo, tsukaikonaseru no gachizei dake da yo.", zh:"很強啊，但只有硬核玩家用得來。"},
+            {speaker:"タクミ", text:"じゃあ俺には無理じゃん。", reading:"じゃあおれにはむりじゃん。", romaji:"Jaa ore ni wa muri jan.", zh:"那對我來說不就沒戲了。"},
+            {speaker:"ショウ", text:"ここでミスったら普通に詰むから気をつけて。", reading:"ここでミスったらふつうにつむからきをつけて。", romaji:"Koko de misuttara futsuu ni tsumu kara ki o tsukete.", zh:"這裡失誤的話真的會直接完蛋，小心點。"}
+          ],
+          tips: ["「ガチ勢」：非常投入、認真的玩家或愛好者。", "「詰む」：陷入無法挽回的狀態。", "「〜じゃん」：聊天中很常用的確認、吐槽語氣。"]
+        }
+      },
+      {
+        theme_title: "SNSで草が生える日",
+        words: [
+          {
+            word: "草", reading: "くさ", romaji: "kusa", tag: "網路用語",
+            meaning: "「笑」在網路上連續出現時看起來像草，因此「草」成為表示「笑死、太好笑了」的網路用語。",
+            example: {
+              ja: "その返しは草。",
+              reading: "そのかえしはくさ。",
+              romaji: "Sono kaeshi wa kusa.",
+              zh: "你這個回覆也太好笑了。"
+            }
+          },
+          {
+            word: "だるい", reading: "だるい", romaji: "darui", tag: "形容詞",
+            meaning: "原本有身體疲倦、不舒服的意思，日常口語中也常表示「麻煩、懶得做、好煩」。",
+            example: {
+              ja: "今日はもう外出るのだるい。",
+              reading: "きょうはもうそとでるのだるい。",
+              romaji: "Kyou wa mou soto deru no darui.",
+              zh: "今天已經懶得出門了。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友在群組裡分享一段很荒謬的聊天截圖",
+          characters: ["ナオ", "ユウ"],
+          lines: [
+            {speaker:"ナオ", text:"これ見て。", reading:"これみて。", romaji:"Kore mite.", zh:"你看這個。"},
+            {speaker:"ユウ", text:"なにこれ、草。", reading:"なにこれ、くさ。", romaji:"Nani kore, kusa.", zh:"這什麼啦，笑死。"},
+            {speaker:"ナオ", text:"しかも本人は大まじめなんだよ。", reading:"しかもほんにんはおおまじめなんだよ。", romaji:"Shikamo honnin wa oomajime nan da yo.", zh:"而且本人還是超認真的喔。"},
+            {speaker:"ユウ", text:"もう返信考えるのだるいわ。", reading:"もうへんしんかんがえるのだるいわ。", romaji:"Mou henshin kangaeru no darui wa.", zh:"我已經懶得想要怎麼回了。"}
+          ],
+          tips: ["「草」：網路上表示「笑死、很好笑」。", "「だるい」：可指累，也可指「麻煩、懶得做」。", "「大まじめ」：非常認真，這裡和荒謬情境形成反差。"]
+        }
+      },
+      {
+        theme_title: "予定調整とリアタイ",
+        words: [
+          {
+            word: "リアタイ", reading: "りあたい", romaji: "riatai", tag: "縮略語",
+            meaning: "「リアルタイム（real time）」的縮寫，表示「即時、同步觀看或參與」，追直播和節目時很常見。",
+            example: {
+              ja: "今日はリアタイで見るつもり。",
+              reading: "きょうはりあたいでみるつもり。",
+              romaji: "Kyou wa riatai de miru tsumori.",
+              zh: "我今天打算同步觀看。"
+            }
+          },
+          {
+            word: "供給", reading: "きょうきゅう", romaji: "kyoukyuu", tag: "推し活用語",
+            meaning: "原本是「供應」。在推し活語境中，指喜歡的偶像、作品或角色推出新照片、新影片、新作品等「讓粉絲得到滿足的新內容」。",
+            example: {
+              ja: "今日の供給多すぎて追いつかない。",
+              reading: "きょうのきょうきゅうおおすぎておいつかない。",
+              romaji: "Kyou no kyoukyuu oosugite oitsukanai.",
+              zh: "今天的新內容多到根本追不完。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "朋友們約時間一起看直播，同時聊最近收到的新內容",
+          characters: ["サキ", "トモ"],
+          lines: [
+            {speaker:"サキ", text:"今日の配信、リアタイする？", reading:"きょうのはいしん、りあたいする？", romaji:"Kyou no haishin, riatai suru?", zh:"今天的直播要同步看嗎？"},
+            {speaker:"トモ", text:"するする。絶対見たい。", reading:"するする。ぜったいみたい。", romaji:"Suru suru. Zettai mitai.", zh:"要啊要啊。絕對想看。"},
+            {speaker:"サキ", text:"最近ほんと供給多いよね。", reading:"さいきんほんときょうきゅうおおいよね。", romaji:"Saikin honto kyoukyuu ooi yo ne.", zh:"最近真的好多新內容喔。"},
+            {speaker:"トモ", text:"うれしいけど、財布が追いつかん。", reading:"うれしいけど、さいふがおいつかん。", romaji:"Ureshii kedo, saifu ga oitsukan.", zh:"是很開心啦，但錢包跟不上了。"}
+          ],
+          tips: ["「リアタイ」：real time 的縮寫，表示同步觀看。", "「供給」：推し活中指偶像或作品提供的新內容。", "「追いつかん」：比「追いつかない」更口語、帶點隨意感。"]
+        }
+      },
+      {
+        theme_title: "買い物と解像度高めトーク",
+        words: [
+          {
+            word: "解像度高い", reading: "かいぞうどたかい", romaji: "kaizoudo takai", tag: "網路表現",
+            meaning: "原本是影像清晰度高。網路語境中引申為「對某件事的細節理解非常具體、精準」，也常用來稱讚創作。",
+            example: {
+              ja: "そのレビュー、解像度高すぎる。",
+              reading: "そのレビュー、かいぞうどたかすぎる。",
+              romaji: "Sono rebyuu, kaizoudo takasugiru.",
+              zh: "那個評論對細節的理解也太精準了。"
+            }
+          },
+          {
+            word: "推せる", reading: "おせる", romaji: "oseru", tag: "推し活用語",
+            meaning: "來自「推す」。表示某人或某件事「值得支持、值得推薦、我可以推」，比單純的「好き」更有支持感。",
+            example: {
+              ja: "このブランド、デザインも値段も推せる。",
+              reading: "このブランド、デザインもねだんもおせる。",
+              romaji: "Kono burando, dezain mo nedan mo oseru.",
+              zh: "這個品牌不論設計還是價格都很值得推。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友逛街時討論一個新品牌和商品細節",
+          characters: ["ミホ", "レン"],
+          lines: [
+            {speaker:"ミホ", text:"このブランド、初めて見た。", reading:"このブランド、はじめてみた。", romaji:"Kono burando, hajimete mita.", zh:"這品牌我第一次看到。"},
+            {speaker:"レン", text:"最近出てきたんだよ。", reading:"さいきんでてきたんだよ。", romaji:"Saikin dete kita n da yo.", zh:"最近才冒出來的。"},
+            {speaker:"ミホ", text:"説明めっちゃ解像度高いね。", reading:"せつめいめっちゃかいぞうどたかいね。", romaji:"Setsumei meccha kaizoudo takai ne.", zh:"它的說明對細節講得超清楚耶。"},
+            {speaker:"レン", text:"でしょ？デザインも推せる。", reading:"でしょ？デザインもおせる。", romaji:"Desho? Dezain mo oseru.", zh:"對吧？設計也很值得推。"}
+          ],
+          tips: ["「解像度高い」：比喻對細節理解得很清楚。", "「推せる」：值得支持、推薦。", "「でしょ？」：聊天中常用來尋求認同或強調自己的判斷。"]
+        }
+      },
+      {
+        theme_title: "友達との日常あるある",
+        words: [
+          {
+            word: "ガチ", reading: "がち", romaji: "gachi", tag: "副詞/名詞",
+            meaning: "「本気」的口語說法，表示「認真的、真的、不是開玩笑」。可單獨使用，也可放在名詞前加強語氣。",
+            example: {
+              ja: "それガチでおいしいよ。",
+              reading: "それがちでおいしいよ。",
+              romaji: "Sore gachi de oishii yo.",
+              zh: "那個真的超好吃喔。"
+            }
+          },
+          {
+            word: "秒で", reading: "びょうで", romaji: "byou de", tag: "口語表現",
+            meaning: "字面是「用秒來計算」，口語中誇張表示「馬上、瞬間、超快就……」。",
+            example: {
+              ja: "連絡したら秒で返事きた。",
+              reading: "れんらくしたらびょうでへんじきた。",
+              romaji: "Renraku shitara byou de henji kita.",
+              zh: "我一聯絡，他馬上就回覆了。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友臨時約吃飯，聊著聊著發現彼此最近都很忙",
+          characters: ["アキ", "ソラ"],
+          lines: [
+            {speaker:"アキ", text:"今日ご飯どうする？", reading:"きょうごはんどうする？", romaji:"Kyou gohan dou suru?", zh:"今天吃飯要吃什麼？"},
+            {speaker:"ソラ", text:"何でもいいよ。ガチでお腹すいた。", reading:"なんでもいいよ。がちでおなかすいた。", romaji:"Nandemo ii yo. Gachi de onaka suita.", zh:"都可以，我真的餓爆了。"},
+            {speaker:"アキ", text:"じゃあ駅前の店、秒で行こ。", reading:"じゃあえきまえのみせ、びょうでいこ。", romaji:"Jaa ekimae no mise, byou de iko.", zh:"那就去車站前那間，直接馬上出發。"},
+            {speaker:"ソラ", text:"賛成。もう歩きながら決めよう。", reading:"さんせい。もうあるきながらきめよう。", romaji:"Sansei. Mou arukinagara kimeyou.", zh:"贊成，我們邊走邊決定吧。"}
+          ],
+          tips: ["「ガチ」：真的、認真地，常用來加強語氣。", "「秒で」：誇張表示「馬上、瞬間」。", "「何でもいい」：朋友間很自然的「都可以」。"]
+        }
+      },
+      {
+        theme_title: "推し活の小さな事件",
+        words: [
+          {
+            word: "現場", reading: "げんば", romaji: "genba", tag: "推し活用語",
+            meaning: "原本是「現場」。在追星語境中常指實際到場參加演唱會、活動或見面會的地點與活動本身。",
+            example: {
+              ja: "やっぱ現場で見ると迫力が違う。",
+              reading: "やっぱげんばでみるとはくりょくがちがう。",
+              romaji: "Yappa genba de miru to hakuryoku ga chigau.",
+              zh: "果然現場看的震撼感就是不一樣。"
+            }
+          },
+          {
+            word: "尊い", reading: "とうとい", romaji: "toutoi", tag: "推し活用語",
+            meaning: "原本是「珍貴、神聖」。在粉絲文化中常用來表示「可愛到不行、珍貴到讓人情緒滿出來」的感受。",
+            example: {
+              ja: "二人並んでるだけで尊い。",
+              reading: "ふたりならんでるだけでとうとい。",
+              romaji: "Futari naranderu dake de toutoi.",
+              zh: "光是兩個人站在一起就讓人覺得太珍貴了。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "活動結束後，兩個粉絲在回程電車上討論剛才看到的舞台",
+          characters: ["ユナ", "メイ"],
+          lines: [
+            {speaker:"ユナ", text:"今日の現場、やばかったね。", reading:"きょうのげんば、やばかったね。", romaji:"Kyou no genba, yabakatta ne.", zh:"今天的現場真的太誇張了。"},
+            {speaker:"メイ", text:"うん、近すぎてまだ信じられない。", reading:"うん、ちかすぎてまだしんじられない。", romaji:"Un, chikasugite mada shinjirarenai.", zh:"嗯，近到我現在還不敢相信。"},
+            {speaker:"ユナ", text:"最後に二人で笑ったとこ、尊すぎた。", reading:"さいごにふたりでわらったとこ、とうとすぎた。", romaji:"Saigo ni futari de waratta toko, toutosugita.", zh:"最後兩個人一起笑的那一幕，真的珍貴到不行。"},
+            {speaker:"メイ", text:"わかる。今日は一生語れる。", reading:"わかる。きょうはいっしょうかたれる。", romaji:"Wakaru. Kyou wa isshou katareru.", zh:"懂。今天這場可以講一輩子。"}
+          ],
+          tips: ["「現場」：粉絲文化中指實際參加活動的現場。", "「尊い」：表示珍貴到讓人情緒滿出來。", "「やばい」：依語境可表示很厲害、很誇張、糟糕等多種意思。"]
+        }
+      },
+      {
+        theme_title: "仕事帰りのゆるトーク",
+        words: [
+          {
+            word: "マジで", reading: "まじで", romaji: "maji de", tag: "口語副詞",
+            meaning: "表示「真的、認真地、確實」。現代口語中頻率很高，可用來加強驚訝、抱怨或肯定。",
+            example: {
+              ja: "今日マジで疲れた。",
+              reading: "きょうまじでつかれた。",
+              romaji: "Kyou maji de tsukareta.",
+              zh: "今天真的累爆了。"
+            }
+          },
+          {
+            word: "無理ゲー", reading: "むりげー", romaji: "murigee", tag: "網路名詞",
+            meaning: "「無理なゲーム」的縮寫，原本指難到不可能玩的遊戲，現在也可泛指「根本不可能完成的事情」。",
+            example: {
+              ja: "この納期で全部やるのは無理ゲー。",
+              reading: "こののうきですべてやるのはむりげー。",
+              romaji: "Kono nouki de subete yaru no wa murigee.",
+              zh: "這個期限要全部做完根本是不可能任務。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "下班後兩個同事在便利商店外休息，聊今天的工作",
+          characters: ["カナ", "タク"],
+          lines: [
+            {speaker:"カナ", text:"今日マジで長かった…。", reading:"きょうまじでながかった…。", romaji:"Kyou maji de nagakatta...", zh:"今天真的超漫長……"},
+            {speaker:"タク", text:"わかる。午後からずっとバタバタ。", reading:"わかる。ごごからずっとバタバタ。", romaji:"Wakaru. Gogo kara zutto batabata.", zh:"懂。下午開始就一直忙成一團。"},
+            {speaker:"カナ", text:"しかも明日までに全部やれって無理ゲーでしょ。", reading:"しかもあしたまでにぜんぶやれってむりげーでしょ。", romaji:"Shikamo ashita made ni zenbu yare tte murigee desho.", zh:"而且叫我們明天前全部做完根本不可能吧。"},
+            {speaker:"タク", text:"今日はもう何も考えたくない。", reading:"きょうはもうなにもかんがえたくない。", romaji:"Kyou wa mou nani mo kangaetakunai.", zh:"今天真的什麼都不想想了。"}
+          ],
+          tips: ["「マジで」：真的、非常，口語強調語氣。", "「無理ゲー」：根本不可能完成的事情。", "「バタバタ」：忙亂、手忙腳亂的擬態語。"]
+        }
+      },
+      {
+        theme_title: "友達の恋バナ",
+        words: [
+          {
+            word: "匂わせ", reading: "におわせ", romaji: "niowase", tag: "SNS名詞",
+            meaning: "來自「匂わせる」。在 SNS 語境中指故意發布讓人聯想到某件事、但不直接說破的內容，常見於戀愛或追星話題。",
+            example: {
+              ja: "その投稿、匂わせじゃない？",
+              reading: "そのとうこう、におわせじゃない？",
+              romaji: "Sono toukou, niowase janai?",
+              zh: "那篇貼文是不是故意在暗示什麼啊？"
+            }
+          },
+          {
+            word: "それっぽい", reading: "それっぽい", romaji: "soreppoi", tag: "口語形容詞",
+            meaning: "表示「看起來很像那回事、很有那種感覺」。可用來描述氣氛、造型、證據或某種風格。",
+            example: {
+              ja: "写真だけ見ると、それっぽいね。",
+              reading: "しゃしんだけみると、それっぽいね。",
+              romaji: "Shashin dake miru to, soreppoi ne.",
+              zh: "光看照片的話，真的很像那麼回事耶。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "兩個朋友吃甜點時，八卦朋友最近在 SNS 上的奇怪貼文",
+          characters: ["マコ", "エリ"],
+          lines: [
+            {speaker:"マコ", text:"あの投稿、見た？", reading:"あのとうこう、みた？", romaji:"Ano toukou, mita?", zh:"你看到那篇貼文了嗎？"},
+            {speaker:"エリ", text:"見た見た。あれ絶対匂わせでしょ。", reading:"みたみた。あれぜったいにおわせでしょ。", romaji:"Mita mita. Are zettai niowase desho.", zh:"看了看了。那絕對是在暗示什麼吧。"},
+            {speaker:"マコ", text:"でも証拠はないんだよね。", reading:"でもしょうこはないんだよね。", romaji:"Demo shouko wa nai n da yo ne.", zh:"但也沒有證據就是了。"},
+            {speaker:"エリ", text:"まあ、写真だけならそれっぽいけどね。", reading:"まあ、しゃしんだけならそれっぽいけどね。", romaji:"Maa, shashin dake nara soreppoi kedo ne.", zh:"嗯，不過光看照片確實很像那回事啦。"}
+          ],
+          tips: ["「匂わせ」：不明說、但故意留下讓人聯想的訊息。", "「それっぽい」：看起來很像、很有那種感覺。", "「見た見た」：朋友聊天中很自然的重複回答。"]
+        }
+      },
+      {
+        theme_title: "週末の予定を決める",
+        words: [
+          {
+            word: "ゆるく", reading: "ゆるく", romaji: "yuruku", tag: "副詞",
+            meaning: "來自「ゆるい」，表示不要太緊湊、輕鬆隨意地進行。常用於週末計畫、聚會或生活方式。",
+            example: {
+              ja: "週末はゆるく過ごしたい。",
+              reading: "しゅうまつはゆるくすごしたい。",
+              romaji: "Shuumatsu wa yuruku sugoshitai.",
+              zh: "週末想輕鬆隨意地過。"
+            }
+          },
+          {
+            word: "あり", reading: "あり", romaji: "ari", tag: "口語表現",
+            meaning: "來自「あり／ありだ」的省略用法，表示「可以、這個選項不錯、可行」。非常常見於朋友討論選項時。",
+            example: {
+              ja: "それ、全然ありだと思う。",
+              reading: "それ、ぜんぜんありだとおもう。",
+              romaji: "Sore, zenzen ari da to omou.",
+              zh: "我覺得那個完全可以。"
+            }
+          }
+        ],
+        dialogue: {
+          scenario: "星期五晚上，兩個朋友討論週末要不要安排得很滿",
+          characters: ["ユリ", "コウ"],
+          lines: [
+            {speaker:"ユリ", text:"週末どうする？", reading:"しゅうまつどうする？", romaji:"Shuumatsu dou suru?", zh:"週末要幹嘛？"},
+            {speaker:"コウ", text:"特に決めてない。ゆるく過ごしたいかな。", reading:"とくにきめてない。ゆるくすごしたいかな。", romaji:"Toku ni kimetenai. Yuruku sugoshitai kana.", zh:"還沒特別決定。想輕鬆過吧。"},
+            {speaker:"ユリ", text:"じゃあ昼だけカフェ行くのありじゃない？", reading:"じゃあひるだけカフェいくのありじゃない？", romaji:"Jaa hiru dake kafe iku no ari janai?", zh:"那只在白天去咖啡店一下，不是也可以嗎？"},
+            {speaker:"コウ", text:"それいい。夜は家でゲームしよ。", reading:"それいい。よるはいえでゲームしよ。", romaji:"Sore ii. Yoru wa ie de geemu shiyo.", zh:"這個不錯。晚上就在家打遊戲吧。"}
+          ],
+          tips: ["「ゆるく」：輕鬆、不排太滿。", "「あり」：表示「可以、這方案不錯」。", "「〜かな」：讓語氣變得比較柔和、不武斷。"]
+        }
+      }      ,
+      {
+        theme_title: "友達との共感トーク",
+        words: [
+          { word: "それな", reading: "それな", romaji: "sorena", tag: "相づち・若者表現", meaning: "表示強烈的共感，相當於「就是啊」「真的」。常用於朋友聊天時快速表示自己完全同意對方。", example: { ja: "それな。私も同じこと思ってた。", reading: "それな。わたしもおなじことおもってた。", romaji: "Sorena. Watashi mo onaji koto omotteta.", zh: "就是啊，我也正這麼想。" } },
+          { word: "エモい", reading: "えもい", romaji: "emoi", tag: "形容詞・SNS語", meaning: "源自 emotional 的日式縮略語，表示某個畫面、音樂或回憶讓人產生強烈情緒與懷舊感。", example: { ja: "この曲、昔を思い出してエモい。", reading: "このきょく、むかしをおもいだしてえもい。", romaji: "Kono kyoku, mukashi o omoidashite emoi.", zh: "這首歌讓我想起以前，真的很有感覺。" } }
+        ],
+        dialogue: { scenario: "兩個朋友在晚上散步，聊起學生時代常聽的歌。", characters: ["ナナ", "レン"], lines: [
+          { speaker:"ナナ", text:"この曲、久しぶりに聴いた。", reading:"このきょく、ひさしぶりにきいた。", romaji:"Kono kyoku, hisashiburi ni kiita.", zh:"這首歌，好久沒聽了。" },
+          { speaker:"レン", text:"うわ、懐かし。", reading:"うわ、なつかし。", romaji:"Uwa, natsukashi.", zh:"哇，好懷念。" },
+          { speaker:"ナナ", text:"それな。高校の帰り道思い出す。", reading:"それな。こうこうのかえりみちおもいだす。", romaji:"Sorena. Koukou no kaerimichi omoidasu.", zh:"就是啊，會想起高中放學回家的路。" },
+          { speaker:"レン", text:"こういうの、なんかエモいよね。", reading:"こういうの、なんかえもいよね。", romaji:"Kou iu no, nanka emoi yo ne.", zh:"這種東西就是莫名很有感覺。" }
+        ], tips: ["「それな」：強烈同意對方，朋友間非常自然。", "「エモい」：帶有情緒、懷舊或氛圍感的『有感覺』。", "「懐かし」：口語中省略「懐かしい」。"] }
+      },
+      {
+        theme_title: "最近ハマってるもの",
+        words: [
+          { word: "沼る", reading: "ぬまる", romaji: "numaru", tag: "動詞・SNS語", meaning: "原意是陷入泥沼，現在常指對某個作品、遊戲、偶像或興趣越陷越深，到了難以脫身的程度。", example: { ja: "このゲーム、気づいたらめっちゃ沼ってた。", reading: "このゲーム、きづいたらめっちゃぬまってた。", romaji: "Kono geemu, kizuitara meccha numatteta.", zh: "這遊戲回過神來已經整個沉迷了。" } },
+          { word: "ハマる", reading: "はまる", romaji: "hamaru", tag: "動詞・口語", meaning: "表示喜歡上、沉迷於某件事。雖然不是新造語，但在日常年輕人口語中使用頻率很高。", example: { ja: "最近このドラマにハマってる。", reading: "さいきんこのドラマにはまってる。", romaji: "Saikin kono dorama ni hamatteru.", zh: "最近迷上這部劇了。" } }
+        ],
+        dialogue: { scenario: "兩個朋友交換最近沉迷的遊戲與影集。", characters: ["ユウ", "ミホ"], lines: [
+          { speaker:"ユウ", text:"最近なんかハマってる？", reading:"さいきんなんかはまってる？", romaji:"Saikin nanka hamatteru?", zh:"最近有迷上什麼嗎？" },
+          { speaker:"ミホ", text:"あの新しいゲーム。", reading:"あたらしいゲーム。", romaji:"Ano atarashii geemu.", zh:"那款新遊戲啊。" },
+          { speaker:"ユウ", text:"またゲーム？", reading:"またゲーム？", romaji:"Mata geemu?", zh:"又是遊戲？" },
+          { speaker:"ミホ", text:"うん。完全に沼ってる。", reading:"うん。かんぜんにぬまってる。", romaji:"Un. Kanzen ni numatteru.", zh:"嗯，完全陷進去了。" }
+        ], tips: ["「沼る」：比「ハマる」更有『越陷越深』的語感。", "「なんか」：口語中常用來柔化或模糊語氣。", "「完全に」：完全、徹底地。"] }
+      },
+      {
+        theme_title: "SNSで話題のもの",
+        words: [
+          { word: "バズる", reading: "ばずる", romaji: "bazuru", tag: "動詞・SNS語", meaning: "來自 buzz，指貼文、影片或話題在 SNS 上短時間大量擴散、獲得大量瀏覽與討論。", example: { ja: "この動画、昨日からめっちゃバズってる。", reading: "このどうが、きのうからめっちゃばずってる。", romaji: "Kono douga, kinou kara meccha bazutteru.", zh: "這支影片從昨天開始就爆紅了。" } },
+          { word: "伸びる", reading: "のびる", romaji: "nobiru", tag: "SNS口語", meaning: "在 SNS 語境中指貼文的瀏覽、讚數或轉發快速增加，也就是『數據長起來了』。", example: { ja: "この投稿、思ったより伸びてる。", reading: "このとうこう、おもったよりのびてる。", romaji: "Kono toukou, omotta yori nobiteru.", zh: "這篇貼文比想像中更有流量。" } }
+        ],
+        dialogue: { scenario: "兩個朋友查看自己剛發布的影片數據。", characters: ["ケン", "アヤ"], lines: [
+          { speaker:"ケン", text:"昨日の動画、見た？", reading:"きのうのどうが、みた？", romaji:"Kinou no douga, mita?", zh:"你看昨天那支影片了嗎？" },
+          { speaker:"アヤ", text:"見た。数字すごくない？", reading:"みた。すうじすごくない？", romaji:"Mita. Suuji sugokunai?", zh:"看了，數字是不是很誇張？" },
+          { speaker:"ケン", text:"うん、朝からめっちゃ伸びてる。", reading:"うん、あさからめっちゃのびてる。", romaji:"Un, asa kara meccha nobiteru.", zh:"嗯，從早上開始就一直漲。" },
+          { speaker:"アヤ", text:"これ、普通にバズるかも。", reading:"これ、ふつうにばずるかも。", romaji:"Kore, futsuu ni bazuru kamo.", zh:"這個搞不好真的會爆。" }
+        ], tips: ["「バズる」：SNS 爆紅。", "「伸びる」：流量、讚數等數據增加。", "「〜かも」：『搞不好……』，比斷言更自然。"] }
+      },
+      {
+        theme_title: "推しの話で盛り上がる",
+        words: [
+          { word: "推し", reading: "おし", romaji: "oshi", tag: "名詞・オタク語", meaning: "來自『推す』，指自己特別支持、喜愛的偶像、角色、藝人或作品人物。", example: { ja: "最近の推し、ほんとにかわいい。", reading: "さいきんのおし、ほんとにかわいい。", romaji: "Saikin no oshi, honto ni kawaii.", zh: "我最近推的那個真的超可愛。" } },
+          { word: "尊い", reading: "とうとい", romaji: "toutoi", tag: "形容詞・オタク語", meaning: "原意為珍貴、高貴；在粉絲文化中常用來形容喜愛的角色或互動美好到讓人感動、無法用普通的『可愛』表達。", example: { ja: "この二人の絡み、尊すぎる。", reading: "このふたりのからみ、とうとすぎる。", romaji: "Kono futari no karami, toutosugiru.", zh: "這兩人的互動也太珍貴了吧。" } }
+        ],
+        dialogue: { scenario: "兩個朋友在咖啡店交換最近追的偶像消息。", characters: ["サキ", "メイ"], lines: [
+          { speaker:"サキ", text:"最近、推し変した？", reading:"さいきん、おしへんした？", romaji:"Saikin, oshihen shita?", zh:"你最近換推了嗎？" },
+          { speaker:"メイ", text:"ちょっとだけね。", reading:"ちょっとだけね。", romaji:"Chotto dake ne.", zh:"有一點啦。" },
+          { speaker:"サキ", text:"この前のライブ見た？", reading:"このまえのライブみた？", romaji:"Kono mae no raibu mita?", zh:"你看前幾天的演唱會了嗎？" },
+          { speaker:"メイ", text:"見た。あの衣装、尊すぎた。", reading:"みた。あのいしょう、とうとすぎた。", romaji:"Mita. Ano ishou, toutosugita.", zh:"看了，那套服裝真的太神了。" }
+        ], tips: ["「推し」：自己特別支持的人或角色。", "「推し変」：換了自己主要支持的對象。", "「尊い」：粉絲文化中表示『珍貴到讓人感動』。"] }
+      },
+      {
+        theme_title: "アニメを語る夜",
+        words: [
+          { word: "神回", reading: "かみかい", romaji: "kamikai", tag: "名詞・ネット語", meaning: "『神』加上『回』，指一部作品中品質特別高、讓觀眾印象深刻的一集。", example: { ja: "今回の話、完全に神回だった。", reading: "こんかいのはなし、かんぜんにかみかいだった。", romaji: "Konkai no hanashi, kanzen ni kamikai datta.", zh: "這一集完全是神回。" } },
+          { word: "作画", reading: "さくが", romaji: "sakuga", tag: "動畫用語", meaning: "原本是動畫製作中的作畫；在粉絲討論中常特別指動畫畫面、動作或作畫品質。", example: { ja: "今回、作画めっちゃ良かった。", reading: "こんかい、さくがめっちゃよかった。", romaji: "Konkai, sakuga meccha yokatta.", zh: "這一集作畫真的超棒。" } }
+        ],
+        dialogue: { scenario: "兩個朋友熬夜追完動畫最新一集後討論畫面。", characters: ["ハル", "トモ"], lines: [
+          { speaker:"ハル", text:"最新話見た？", reading:"さいしんわみた？", romaji:"Saishinwa mita?", zh:"最新一集看了嗎？" },
+          { speaker:"トモ", text:"見た。やばかった。", reading:"みた。やばかった。", romaji:"Mita. Yabakatta.", zh:"看了，太誇張了。" },
+          { speaker:"ハル", text:"作画、気合い入りすぎでしょ。", reading:"さくが、きあいいりすぎでしょ。", romaji:"Sakuga, kiai iri sugidesho.", zh:"作畫也太用力了吧。" },
+          { speaker:"トモ", text:"うん、これは神回認定。", reading:"うん、これはかみかいにんてい。", romaji:"Un, kore wa kamikai nintei.", zh:"嗯，這集可以認證是神回。" }
+        ], tips: ["「神回」：作品中特別精彩的一集。", "「作画」：動畫畫面與作畫品質的討論用語。", "「認定」：口語中表示『我認定它就是……』。"] }
+      },
+      {
+        theme_title: "仕事ができる人の話",
+        words: [
+          { word: "しごでき", reading: "しごでき", romaji: "shigodeki", tag: "若者名詞", meaning: "『仕事ができる』的縮略說法，指做事俐落、能力強、可靠的人，也可帶有稱讚語氣。", example: { ja: "あの先輩、ほんとしごできだよね。", reading: "あのせんぱい、ほんとしごできだよね。", romaji: "Ano senpai, honto shigodeki da yo ne.", zh: "那個前輩真的很能幹耶。" } },
+          { word: "ガチ", reading: "がち", romaji: "gachi", tag: "副詞・口語", meaning: "表示『認真、真的、不是開玩笑』。在朋友聊天中常用來加強語氣。", example: { ja: "ガチで忘れてた。", reading: "がちでわすれてた。", romaji: "Gachi de wasureteta.", zh: "我真的完全忘了。" } }
+        ],
+        dialogue: { scenario: "兩個同事聊到公司裡一位很可靠的前輩。", characters: ["リナ", "ユウキ"], lines: [
+          { speaker:"リナ", text:"昨日の先輩、対応早すぎなかった？", reading:"きのうのせんぱい、たいおうはやすぎなかった？", romaji:"Kinou no senpai, taiou hayasuginakatta?", zh:"昨天那個前輩處理事情是不是快得誇張？" },
+          { speaker:"ユウキ", text:"あの人、ガチで仕事できる。", reading:"あのひと、がちでしごとできる。", romaji:"Ano hito, gachi de shigoto dekiru.", zh:"那個人真的超能幹。" },
+          { speaker:"リナ", text:"しかも説明わかりやすいし。", reading:"しかもせつめいわかりやすいし。", romaji:"Shikamo setsumei wakariyasui shi.", zh:"而且解釋又很容易懂。" },
+          { speaker:"ユウキ", text:"うん、しごできってああいう人だよね。", reading:"うん、しごできってああいうひとだよね。", romaji:"Un, shigodeki tte aa iu hito da yo ne.", zh:"嗯，所謂能幹的人就是那種吧。" }
+        ], tips: ["「しごでき」：『仕事ができる』的口語縮略。", "「ガチで」：真的、認真地。", "「〜って」：口語中可用來引出定義或話題。"] }
+      },
+      {
+        theme_title: "今日はもう無理",
+        words: [
+          { word: "メンブレ", reading: "めんぶれ", romaji: "menbure", tag: "若者名詞", meaning: "『メンタルブレイク』的縮略語，表示精神狀態受到打擊、情緒低落或心理上有點撐不住。", example: { ja: "今日は仕事でメンブレしてる。", reading: "きょうはしごとでめんぶれしてる。", romaji: "Kyou wa shigoto de menbure shiteru.", zh: "今天被工作搞得有點精神崩潰。" } },
+          { word: "詰んだ", reading: "つんだ", romaji: "tsunda", tag: "網路口語", meaning: "原意來自將棋等棋類的『詰む』，現在常泛指事情陷入無法挽回的狀態，相當於『完蛋了、沒救了』。", example: { ja: "財布忘れた。詰んだ。", reading: "さいふわすれた。つんだ。", romaji: "Saifu wasureta. Tsunda.", zh: "忘記帶錢包了，完蛋。" } }
+        ],
+        dialogue: { scenario: "下班後兩個朋友互相吐槽今天遇到的倒楣事。", characters: ["マナ", "ショウ"], lines: [
+          { speaker:"マナ", text:"今日、朝からミス連発だった。", reading:"きょう、あさからミスれんぱつだった。", romaji:"Kyou, asa kara misu renpatsu datta.", zh:"今天從早上開始就一直出錯。" },
+          { speaker:"ショウ", text:"それはしんどい。", reading:"それはしんどい。", romaji:"Sore wa shindoi.", zh:"那真的很累。" },
+          { speaker:"マナ", text:"しかも帰ったら鍵ない。", reading:"しかもかえったらかぎない。", romaji:"Shikamo kaettara kagi nai.", zh:"而且回家才發現沒帶鑰匙。" },
+          { speaker:"ショウ", text:"うわ、それは詰んだね。", reading:"うわ、それはつんだね。", romaji:"Uwa, sore wa tsunda ne.", zh:"哇，那真的完蛋了。" }
+        ], tips: ["「メンブレ」：情緒或精神狀態受到打擊。", "「詰んだ」：事情陷入無法挽回的狀態。", "「しんどい」：累、難受、吃不消，日常使用很廣。"] }
+      },
+      {
+        theme_title: "買い物で迷う午後",
+        words: [
+          { word: "コスパ", reading: "こすぱ", romaji: "kosupa", tag: "新造語", meaning: "『コストパフォーマンス』的縮寫，指價格與得到的品質、效果或滿足感之間的平衡。", example: { ja: "この店、コスパいいよ。", reading: "このみせ、こすぱいいよ。", romaji: "Kono mise, kosupa ii yo.", zh: "這家店性價比很高喔。" } },
+          { word: "神", reading: "かみ", romaji: "kami", tag: "網路用語", meaning: "原意是神；在口語和 SNS 中可誇張表示某人或某件事非常厲害、優秀或令人滿意。", example: { ja: "この機能、神すぎる。", reading: "このきのう、かみすぎる。", romaji: "Kono kinou, kami sugiru.", zh: "這個功能也太神了。" } }
+        ],
+        dialogue: { scenario: "兩個朋友在商場挑選耳機，討論價格與功能。", characters: ["カイ", "ユナ"], lines: [
+          { speaker:"カイ", text:"これ、ちょっと高くない？", reading:"これ、ちょっとたかくない？", romaji:"Kore, chotto takakunai?", zh:"這個是不是有點貴？" },
+          { speaker:"ユナ", text:"でも音いいし、長く使えるよ。", reading:"でもおといいし、ながくつかえるよ。", romaji:"Demo oto ii shi, nagaku tsukaeru yo.", zh:"但音質好，而且可以用很久。" },
+          { speaker:"カイ", text:"じゃあコスパは悪くないか。", reading:"じゃあこすぱはわるくないか。", romaji:"Jaa kosupa wa warukunai ka.", zh:"那性價比倒是不差。" },
+          { speaker:"ユナ", text:"しかも今ならケース付き。神じゃん。", reading:"しかもいまならケースつき。かみじゃん。", romaji:"Shikamo ima nara keesu-tsuki. Kami jan.", zh:"而且現在還附保護殼，太神了吧。" }
+        ], tips: ["「コスパ」：價格與得到的價值之間的平衡。", "「神」：網路語境中表示『超棒、超強』。", "「〜付き」：附帶某個東西。"] }
+      },
+      {
+        theme_title: "じわじわ好きになる",
+        words: [
+          { word: "じわる", reading: "じわる", romaji: "jiwaru", tag: "動詞・SNS語", meaning: "來自『じわじわ』，指某件事不是瞬間爆笑，而是越想越覺得有趣、好笑或有味道。", example: { ja: "あの写真、あとからじわる。", reading: "あのしゃしん、あとからじわる。", romaji: "Ano shashin, ato kara jiwaru.", zh: "那張照片回頭想越覺得好笑。" } },
+          { word: "クセになる", reading: "くせになる", romaji: "kuse ni naru", tag: "口語表現", meaning: "表示某種味道、音樂、行為或內容讓人產生習慣，會不知不覺想再來一次。", example: { ja: "この味、なんかクセになる。", reading: "このあじ、なんかくせになる。", romaji: "Kono aji, nanka kuse ni naru.", zh: "這個味道莫名會讓人上癮。" } }
+        ],
+        dialogue: { scenario: "兩個朋友吃到一款味道很特別的零食。", characters: ["レオ", "カナ"], lines: [
+          { speaker:"レオ", text:"これ、最初は普通じゃない？", reading:"これ、さいしょはふつうじゃない？", romaji:"Kore, saisho wa futsuu janai?", zh:"這個一開始不是很普通嗎？" },
+          { speaker:"カナ", text:"うん。でも食べてるとクセになる。", reading:"うん。でもたべてるとくせになる。", romaji:"Un. Demo tabeteru to kuse ni naru.", zh:"嗯，但吃著吃著會上癮。" },
+          { speaker:"レオ", text:"わかる。パッケージの顔もじわるし。", reading:"わかる。パッケージのかおもじわるし。", romaji:"Wakaru. Pakkeeji no kao mo jiwaru shi.", zh:"懂，而且包裝上的那張臉越看越好笑。" },
+          { speaker:"カナ", text:"もう一個買っとく？", reading:"もういっこかっとく？", romaji:"Mou ikko kattoku?", zh:"要不要再買一個？" }
+        ], tips: ["「じわる」：後勁式地覺得好笑或有趣。", "「クセになる」：越接觸越上癮。", "「〜とく」：『〜ておく』的口語縮約。"] }
+      },
+      {
+        theme_title: "旅行の計画を立てる",
+        words: [
+          { word: "ワンチャン", reading: "わんちゃん", romaji: "wanchan", tag: "若者副詞", meaning: "源自 one chance，表示『搞不好、也許有機會』，通常帶有一點期待或半開玩笑的語氣。", example: { ja: "ワンチャン間に合うかも。", reading: "わんちゃんまにあうかも。", romaji: "Wanchan maniau kamo.", zh: "搞不好還來得及。" } },
+          { word: "弾丸", reading: "だんがん", romaji: "dangan", tag: "旅行口語", meaning: "原本指子彈；『弾丸旅行』中表示行程非常短、快速來回，常帶有臨時出發的語感。", example: { ja: "週末に弾丸で大阪行かない？", reading: "しゅうまつにだんがんでおおさかいかない？", romaji: "Shuumatsu ni dangan de Oosaka ikanai?", zh: "週末要不要快閃去大阪？" } }
+        ],
+        dialogue: { scenario: "兩個朋友臨時討論週末的小旅行。", characters: ["ユウタ", "ナオ"], lines: [
+          { speaker:"ユウタ", text:"今週末、暇？", reading:"こんしゅうまつ、ひま？", romaji:"Konshuumatsu, hima?", zh:"這週末有空嗎？" },
+          { speaker:"ナオ", text:"たぶん。なんで？", reading:"たぶん。なんで？", romaji:"Tabun. Nande?", zh:"應該有，怎麼了？" },
+          { speaker:"ユウタ", text:"弾丸で大阪行くのどう？", reading:"だんがんでおおさかいくのどう？", romaji:"Dangan de Oosaka iku no dou?", zh:"快閃去大阪怎麼樣？" },
+          { speaker:"ナオ", text:"ワンチャンあり。", reading:"わんちゃんあり。", romaji:"Wanchan ari.", zh:"搞不好可以喔。" }
+        ], tips: ["「ワンチャン」：也許、搞不好有機會。", "「弾丸旅行」：短時間快速完成的旅行。", "「あり」：表示某個方案可行。"] }
+      },
+      {
+        theme_title: "服を選ぶ朝",
+        words: [
+          { word: "ビジュ", reading: "びじゅ", romaji: "biju", tag: "SNS名詞", meaning: "『ビジュアル』的縮寫，常用來形容一個人的外表、造型或整體視覺狀態。", example: { ja: "今日ビジュいいじゃん。", reading: "きょうびじゅいいじゃん。", romaji: "Kyou biju ii jan.", zh: "你今天的造型狀態很好耶。" } },
+          { word: "盛れる", reading: "もれる", romaji: "moreru", tag: "SNS動詞", meaning: "來自『盛る』，在自拍與 SNS 語境中指照片把人拍得比平常更好看，或某種造型特別顯效果。", example: { ja: "この角度、めっちゃ盛れる。", reading: "このかくど、めっちゃもれる。", romaji: "Kono kakudo, meccha moreru.", zh: "這個角度拍起來超好看。" } }
+        ],
+        dialogue: { scenario: "出門前兩個朋友互相確認今天的穿搭和自拍角度。", characters: ["ミキ", "アキ"], lines: [
+          { speaker:"ミキ", text:"今日の服、どう？", reading:"きょうのふく、どう？", romaji:"Kyou no fuku, dou?", zh:"今天這套衣服怎麼樣？" },
+          { speaker:"アキ", text:"いいじゃん。今日ビジュいい。", reading:"いいじゃん。きょうびじゅいい。", romaji:"Ii jan. Kyou biju ii.", zh:"很好啊，你今天狀態很好。" },
+          { speaker:"ミキ", text:"写真撮るならどこがいい？", reading:"しゃしんとるならどこがいい？", romaji:"Shashin toru nara doko ga ii?", zh:"要拍照的話哪裡比較好？" },
+          { speaker:"アキ", text:"あの壁の前、盛れるよ。", reading:"あのかべのまえ、もれるよ。", romaji:"Ano kabe no mae, moreru yo.", zh:"那面牆前面拍起來很好看喔。" }
+        ], tips: ["「ビジュ」：『ビジュアル』縮寫，常談外表或造型狀態。", "「盛れる」：照片或造型特別顯好看。", "「〜じゃん」：口語中表示『不是很好嗎／果然……』。"] }
+      },
+      {
+        theme_title: "恋愛トークの夜",
+        words: [
+          { word: "蛙化", reading: "かえるか", romaji: "kaeruka", tag: "恋愛・SNS語", meaning: "現代 SNS 語境中的『蛙化現象』，指原本喜歡的人做出某個行為後，自己突然冷掉、幻滅或失去好感。", example: { ja: "急に上から目線になって、ちょっと蛙化した。", reading: "きゅうにうえからめせんになって、ちょっとかえるかした。", romaji: "Kyuu ni ue kara mesen ni natte, chotto kaeruka shita.", zh: "他突然開始用高高在上的態度，我有點幻滅了。" } },
+          { word: "匂わせ", reading: "におわせ", romaji: "niowase", tag: "SNS名詞", meaning: "故意發布讓人聯想到某件事、卻不直接說明的內容，戀愛與追星 SNS 中尤其常見。", example: { ja: "その写真、匂わせっぽくない？", reading: "そのしゃしん、におわせっぽくない？", romaji: "Sono shashin, niowase-ppokunai?", zh: "那張照片是不是有點像在暗示什麼？" } }
+        ],
+        dialogue: { scenario: "兩個朋友聊天時討論一段曖昧關係。", characters: ["エマ", "リオ"], lines: [
+          { speaker:"エマ", text:"昨日、彼と会ったんでしょ？", reading:"きのう、かれとあったんでしょ？", romaji:"Kinou, kare to atta n desho?", zh:"你昨天跟他見面了吧？" },
+          { speaker:"リオ", text:"うん。でもちょっと冷めた。", reading:"うん。でもちょっとさめた。", romaji:"Un. Demo chotto sameta.", zh:"嗯，但有點冷掉了。" },
+          { speaker:"エマ", text:"何かあった？", reading:"なにかあった？", romaji:"Nanika atta?", zh:"發生什麼了？" },
+          { speaker:"リオ", text:"急に自慢ばっかりで、蛙化したかも。", reading:"きゅうにじまんばっかりで、かえるかしたかも。", romaji:"Kyuu ni jiman bakkari de, kaeruka shita kamo.", zh:"他突然一直炫耀，我搞不好有點幻滅了。" }
+        ], tips: ["「蛙化」：現代 SNS 常用的『突然幻滅』語感。", "「匂わせ」：不明說但故意暗示。", "「〜ばっかり」：表示『淨是……、一直……』。"] }
+      },
+      {
+        theme_title: "コンビニで小さな発見",
+        words: [
+          { word: "秒で", reading: "びょうで", romaji: "byou de", tag: "副詞・若者表現", meaning: "字面是『幾秒內』，口語中誇張表示『立刻、馬上』，用來強調反應或行動非常快。", example: { ja: "それ見たら秒で買うわ。", reading: "それみたらびょうでかうわ。", romaji: "Sore mitara byou de kau wa.", zh: "看到那個我會秒買。" } },
+          { word: "しか勝たん", reading: "しかかたん", romaji: "shika katan", tag: "若者表現", meaning: "『只有……才是最棒』的強烈支持表達，原本帶有網路語感，現在也常被用來半開玩笑地表達偏好。", example: { ja: "結局、ブラックコーヒーしか勝たん。", reading: "けっきょく、ブラックコーヒーしかかたん。", romaji: "Kekkyoku, burakku koohii shika katan.", zh: "說到底，還是黑咖啡最棒。" } }
+        ],
+        dialogue: { scenario: "兩個朋友在便利商店挑晚上的零食和飲料。", characters: ["ソラ", "ユキ"], lines: [
+          { speaker:"ソラ", text:"新作スイーツ出てる。", reading:"しんさくスイーツでてる。", romaji:"Shinsaku suiitsu deteru.", zh:"出新甜點了。" },
+          { speaker:"ユキ", text:"え、買う。", reading:"え、かう。", romaji:"E, kau.", zh:"欸，買。" },
+          { speaker:"ソラ", text:"秒で決めたね。", reading:"びょうできめたね。", romaji:"Byou de kimeta ne.", zh:"你也決定得太快了吧。" },
+          { speaker:"ユキ", text:"甘いものしか勝たん。", reading:"あまいものしかかたん。", romaji:"Amai mono shika katan.", zh:"甜食才是王道。" }
+        ], tips: ["「秒で」：誇張表示『立刻、馬上』。", "「しか勝たん」：強調『只有……最棒』。", "「新作」：新推出的商品或作品。"] }
+      },
+      {
+        theme_title: "ゲーム仲間との作戦会議",
+        words: [
+          { word: "無双", reading: "むそう", romaji: "musou", tag: "ゲーム・ネット語", meaning: "原意是無與倫比；遊戲和網路語境中常表示某人強到幾乎沒人能擋，或在某個領域表現壓倒性。", example: { ja: "今日はずっと無双してたね。", reading: "きょうはずっとむそうしてたね。", romaji: "Kyou wa zutto musou shiteta ne.", zh: "你今天根本一路無雙欸。" } },
+          { word: "キャリー", reading: "きゃりー", romaji: "kyarii", tag: "遊戲用語", meaning: "來自 carry，指在團隊遊戲中靠自己的表現帶著隊友取得勝利。", example: { ja: "昨日は完全にキャリーしてもらった。", reading: "きのうはかんぜんにきゃりーしてもらった。", romaji: "Kinou wa kanzen ni kyarii shite moratta.", zh: "昨天完全是被隊友帶飛的。" } }
+        ],
+        dialogue: { scenario: "兩個遊戲朋友討論昨晚的一場對戰。", characters: ["レン", "カズ"], lines: [
+          { speaker:"レン", text:"昨日の試合、見た？", reading:"きのうのしあい、みた？", romaji:"Kinou no shiai, mita?", zh:"昨天那場比賽看了嗎？" },
+          { speaker:"カズ", text:"見た。レン、無双してたじゃん。", reading:"みた。れん、むそうしてたじゃん。", romaji:"Mita. Ren, musou shiteta jan.", zh:"看了，你根本在無雙啊。" },
+          { speaker:"レン", text:"いやいや、みんなのおかげ。", reading:"いやいや、みんなのおかげ。", romaji:"Iya iya, minna no okage.", zh:"沒有啦，都是大家的功勞。" },
+          { speaker:"カズ", text:"俺なんて完全にキャリー待ちだったわ。", reading:"おれなんてかんぜんにきゃりーまちだったわ。", romaji:"Ore nante kanzen ni kyarii-machi datta wa.", zh:"我根本就是等著被帶飛。" }
+        ], tips: ["「無双」：壓倒性強大、幾乎沒人能擋。", "「キャリー」：遊戲中靠一人表現帶隊獲勝。", "「〜待ち」：等待某件事發生或等待某種幫助。"] }
+      },
+      {
+        theme_title: "友達の写真を見ながら",
+        words: [
+          { word: "解像度高い", reading: "かいぞうどたかい", romaji: "kaizoudo takai", tag: "ネット表現", meaning: "原本是影像解析度高；在網路語境中延伸指描述非常具體、細節豐富，或對某個角色、情境的理解非常到位。", example: { ja: "その考察、解像度高すぎる。", reading: "そのこうさつ、かいぞうどたかすぎる。", romaji: "Sono kousatsu, kaizoudo takasugiru.", zh: "你這個分析也太有細節了。" } },
+          { word: "ガチ勢", reading: "がちぜい", romaji: "gachizei", tag: "ネット名詞", meaning: "『ガチ』加上『勢』，指對某個遊戲、興趣或活動非常認真投入的人，帶有『重度玩家』的語感。", example: { ja: "あの人、完全にガチ勢だよ。", reading: "あのひと、かんぜんにがちぜいだよ。", romaji: "Ano hito, kanzen ni gachizei da yo.", zh: "那個人完全是重度玩家。" } }
+        ],
+        dialogue: { scenario: "兩個朋友看著某位玩家的遊戲收藏與攻略。", characters: ["ユウ", "タクミ"], lines: [
+          { speaker:"ユウ", text:"この人、詳しすぎない？", reading:"このひと、くわしすぎない？", romaji:"Kono hito, kuwashisuginai?", zh:"這個人也太懂了吧？" },
+          { speaker:"タクミ", text:"完全にガチ勢だね。", reading:"かんぜんにがちぜいだね。", romaji:"Kanzen ni gachizei da ne.", zh:"完全是重度玩家。" },
+          { speaker:"ユウ", text:"しかも考察めっちゃ具体的。", reading:"しかもこうさつめっちゃぐたいてき。", romaji:"Shikamo kousatsu meccha gutaiteki.", zh:"而且分析超具體。" },
+          { speaker:"タクミ", text:"うん、解像度高すぎて笑う。", reading:"うん、かいぞうどたかすぎてわらう。", romaji:"Un, kaizoudo takasugite warau.", zh:"嗯，細節多到有點好笑。" }
+        ], tips: ["「解像度高い」：網路語境中指理解或描述非常細。", "「ガチ勢」：對某項興趣投入非常深的人。", "「〜すぎる」：表示『太……了』。"] }
+      },
+      {
+        theme_title: "忙しい日のひとこと",
+        words: [
+          { word: "だるい", reading: "だるい", romaji: "darui", tag: "形容詞・口語", meaning: "表示身體或精神上覺得疲倦、懶得動、麻煩。朋友間非常常見，也可表示對某件事感到煩。", example: { ja: "今日はもうだるい。", reading: "きょうはもうだるい。", romaji: "Kyou wa mou darui.", zh: "今天真的已經累到不想動了。" } },
+          { word: "しんどい", reading: "しんどい", romaji: "shindoi", tag: "形容詞・口語", meaning: "表示身心疲累、辛苦、難受；比單純的『累』更能表達『真的撐得很辛苦』。", example: { ja: "このスケジュール、普通にしんどい。", reading: "このスケジュール、ふつうにしんどい。", romaji: "Kono sukejuuru, futsuu ni shindoi.", zh: "這個行程真的累得有點誇張。" } }
+        ],
+        dialogue: { scenario: "工作繁忙的一天結束後，兩個同事在車站告別。", characters: ["アキラ", "マユ"], lines: [
+          { speaker:"アキラ", text:"今日、長かったな。", reading:"きょう、ながかったな。", romaji:"Kyou, nagakatta na.", zh:"今天真漫長啊。" },
+          { speaker:"マユ", text:"わかる。普通にしんどい。", reading:"わかる。ふつうにしんどい。", romaji:"Wakaru. Futsuu ni shindoi.", zh:"懂，真的累。" },
+          { speaker:"アキラ", text:"帰ったら何する？", reading:"かえったらなにする？", romaji:"Kaettara nani suru?", zh:"回家後要幹嘛？" },
+          { speaker:"マユ", text:"何もしない。もうだるい。", reading:"なにもしない。もうだるい。", romaji:"Nani mo shinai. Mou darui.", zh:"什麼都不做，已經懶得動了。" }
+        ], tips: ["「だるい」：疲倦、懶得動，也可表示『很煩』。", "「しんどい」：身心上覺得很辛苦。", "「普通に」：口語中可用來表示『真的、說真的』。"] }
+      },
+      {
+        theme_title: "カフェでのんびり",
+        words: [
+          { word: "ゆるい", reading: "ゆるい", romaji: "yurui", tag: "形容詞・生活語", meaning: "表示不嚴格、不緊繃、輕鬆隨意。可形容規則、氣氛、計畫或生活方式。", example: { ja: "この店、雰囲気がゆるくて好き。", reading: "このみせ、ふんいきがゆるくてすき。", romaji: "Kono mise, fun'iki ga yurukute suki.", zh: "我喜歡這家店輕鬆自在的氣氛。" } },
+          { word: "あり", reading: "あり", romaji: "ari", tag: "口語表現", meaning: "表示某個方案『可以、可行、值得考慮』，是朋友討論選項時很常見的簡短回答。", example: { ja: "そのプラン、全然あり。", reading: "そのプラン、ぜんぜんあり。", romaji: "Sono puran, zenzen ari.", zh: "那個方案完全可以。" } }
+        ],
+        dialogue: { scenario: "兩個朋友在咖啡店討論週末要不要排得輕鬆一點。", characters: ["ナオ", "コウ"], lines: [
+          { speaker:"ナオ", text:"週末、予定入れすぎたかも。", reading:"しゅうまつ、よていいれすぎたかも。", romaji:"Shuumatsu, yotei iresugita kamo.", zh:"週末可能排太多行程了。" },
+          { speaker:"コウ", text:"じゃあ一個くらい減らせば？", reading:"じゃあひとつくらいへらせば？", romaji:"Jaa hitotsu kurai heraseba?", zh:"那刪掉一個不就好了？" },
+          { speaker:"ナオ", text:"それありだね。", reading:"それありだね。", romaji:"Sore ari da ne.", zh:"這個可以。" },
+          { speaker:"コウ", text:"たまにはゆるくいこう。", reading:"たまにはゆるくいこう。", romaji:"Tamani wa yuruku ikou.", zh:"偶爾就輕鬆一點吧。" }
+        ], tips: ["「ゆるい」：輕鬆、不緊繃。", "「あり」：表示『可以、這方案不錯』。", "「たまには」：偶爾、難得一次。"] }
+      },
+      {
+        theme_title: "SNSで見つけた新作",
+        words: [
+          { word: "案件", reading: "あんけん", romaji: "anken", tag: "ネット・SNS語", meaning: "原本指工作案件；在 SNS 上也常半開玩笑地指某個內容看起來像業配、合作或品牌宣傳。", example: { ja: "この投稿、案件っぽくない？", reading: "このとうこう、あんけんっぽくない？", romaji: "Kono toukou, anken-ppokunai?", zh: "這篇貼文看起來是不是有點像業配？" } },
+          { word: "ステマ", reading: "すてま", romaji: "sutema", tag: "SNS名詞", meaning: "『ステルスマーケティング』的縮寫，指不明確揭露廣告或商業關係、卻讓內容看起來像自然推薦的宣傳方式。", example: { ja: "広告なのかステマなのか、わかりにくい。", reading: "こうこくなのかすてまなのか、わかりにくい。", romaji: "Koukoku na no ka sutema na no ka, wakarinikui.", zh: "到底是廣告還是隱性宣傳，很難分辨。" } }
+        ],
+        dialogue: { scenario: "兩個朋友看到一篇推薦新產品的 SNS 貼文。", characters: ["リサ", "ケイ"], lines: [
+          { speaker:"リサ", text:"これ、めっちゃ褒めてるね。", reading:"これ、めっちゃほめてるね。", romaji:"Kore, meccha hometeru ne.", zh:"這篇也太誇了吧。" },
+          { speaker:"ケイ", text:"なんか案件っぽい。", reading:"なんかあんけんっぽい。", romaji:"Nanka anken-ppoi.", zh:"感覺有點像業配。" },
+          { speaker:"リサ", text:"でも広告表記はあるよ。", reading:"でもこうこくひょうきはあるよ。", romaji:"Demo koukoku hyouki wa aru yo.", zh:"但它有標示廣告喔。" },
+          { speaker:"ケイ", text:"それならステマではないか。", reading:"それならすてまではないか。", romaji:"Sore nara sutema dewa nai ka.", zh:"那樣的話就不是隱性宣傳了吧。" }
+        ], tips: ["「案件」：SNS 中常用來指商業合作或業配。", "「ステマ」：隱性行銷的縮寫。", "「〜っぽい」：有……的感覺、看起來像……。"] }
+      },
+      {
+        theme_title: "週末のカラオケ",
+        words: [
+          { word: "テンアゲ", reading: "てんあげ", romaji: "tenage", tag: "若者表現", meaning: "『テンション上げ』的縮略語，表示情緒、興致或現場氣氛被拉高，常用於朋友聚會。", example: { ja: "この曲流れたらテンアゲだわ。", reading: "このきょくながれたらてんあげだわ。", romaji: "Kono kyoku nagaretara tenage da wa.", zh: "這首歌一播出來氣氛就嗨了。" } },
+          { word: "アガる", reading: "あがる", romaji: "agaru", tag: "口語動詞", meaning: "表示情緒變興奮、開心或亢奮。與『テンションが上がる』相關，朋友間很常使用。", example: { ja: "その曲きたらアガる！", reading: "そのきょくきたらあがる！", romaji: "Sono kyoku kitara agaru!", zh: "那首歌一出來我就嗨了！" } }
+        ],
+        dialogue: { scenario: "朋友們在卡拉 OK 裡選歌，準備把氣氛炒熱。", characters: ["ユウ", "サラ"], lines: [
+          { speaker:"ユウ", text:"次、何入れる？", reading:"つぎ、なにいれる？", romaji:"Tsugi, nani ireru?", zh:"下一首點什麼？" },
+          { speaker:"サラ", text:"これ！絶対テンアゲ。", reading:"これ！ぜったいてんあげ。", romaji:"Kore! Zettai tenage.", zh:"這首！絕對嗨。" },
+          { speaker:"ユウ", text:"懐かしいけど、いいね。", reading:"なつかしいけど、いいね。", romaji:"Natsukashii kedo, ii ne.", zh:"雖然很懷念，但不錯耶。" },
+          { speaker:"サラ", text:"サビきたらアガるよ。", reading:"サビきたらあがるよ。", romaji:"Sabi kitara agaru yo.", zh:"副歌一來你就會嗨了。" }
+        ], tips: ["「テンアゲ」：情緒被拉高、氣氛超嗨。", "「アガる」：興奮、開心、情緒高漲。", "「サビ」：歌曲的副歌或最高潮段落。"] }
+      },
+      {
+        theme_title: "友達に相談する夜",
+        words: [
+          { word: "ガチ恋", reading: "がちこい", romaji: "gachikoi", tag: "SNS・恋愛語", meaning: "『ガチで恋してる』的縮略，指對偶像、角色、主播等產生非常認真的戀愛感情。", example: { ja: "あの俳優、ちょっとガチ恋しそう。", reading: "あのはいゆう、ちょっとがちこいしそう。", romaji: "Ano haiyuu, chotto gachikoi shisou.", zh: "我好像快要真的喜歡上那個演員了。" } },
+          { word: "刺さる", reading: "ささる", romaji: "sasaru", tag: "網路口語", meaning: "字面是『刺中』；在網路語境中表示某個作品、台詞、造型或觀點正好擊中自己的喜好與情緒。", example: { ja: "この歌詞、めっちゃ刺さる。", reading: "このかし、めっちゃささる。", romaji: "Kono kashi, meccha sasaru.", zh: "這句歌詞真的超戳我。" } }
+        ],
+        dialogue: { scenario: "朋友聊天時談到最近很喜歡的一位藝人。", characters: ["マリ", "ユウナ"], lines: [
+          { speaker:"マリ", text:"最近あの俳優、気になってる。", reading:"さいきんあのはいゆう、きになってる。", romaji:"Saikin ano haiyuu, ki ni natteru.", zh:"我最近有點在意那個演員。" },
+          { speaker:"ユウナ", text:"もしかしてガチ恋？", reading:"もしかしてがちこい？", romaji:"Moshikashite gachikoi?", zh:"難道是真心喜歡上了？" },
+          { speaker:"マリ", text:"まだそこまでは…。", reading:"まだそこまでは…。", romaji:"Mada soko made wa...", zh:"還沒到那程度啦……" },
+          { speaker:"ユウナ", text:"でもこの役、めっちゃ刺さるよね。", reading:"でもこのやく、めっちゃささるよね。", romaji:"Demo kono yaku, meccha sasaru yo ne.", zh:"不過他這個角色真的很戳人對吧。" }
+        ], tips: ["「ガチ恋」：對偶像等產生認真的戀愛感情。", "「刺さる」：正中自己的喜好或情緒。", "「そこまで」：到那種程度。"] }
+      },
+      {
+        theme_title: "新しい趣味を始める",
+        words: [
+          { word: "ハードル高い", reading: "はーどるたかい", romaji: "haadoru takai", tag: "口語表現", meaning: "表示某件事的進入門檻高、需要勇氣或條件，不容易開始。", example: { ja: "一人で行くのはちょっとハードル高い。", reading: "ひとりでいくのはちょっとはーどるたかい。", romaji: "Hitori de iku no wa chotto haadoru takai.", zh: "一個人去的話門檻有點高。" } },
+          { word: "ゆるっと", reading: "ゆるっと", romaji: "yurutto", tag: "副詞・口語", meaning: "『ゆるく』的可愛、輕鬆語感，表示不要太嚴格或有壓力地做某件事。", example: { ja: "まずはゆるっと始めよう。", reading: "まずはゆるっとはじめよう。", romaji: "Mazu wa yurutto hajimeyou.", zh: "先輕鬆地開始吧。" } }
+        ],
+        dialogue: { scenario: "兩個朋友討論要不要一起開始新的運動興趣。", characters: ["カホ", "ナツ"], lines: [
+          { speaker:"カホ", text:"最近、何か運動したい。", reading:"さいきん、なにかうんどうしたい。", romaji:"Saikin, nanika undou shitai.", zh:"最近想做點運動。" },
+          { speaker:"ナツ", text:"ジムとか？", reading:"ジムとか？", romaji:"Jimu toka?", zh:"健身房之類？" },
+          { speaker:"カホ", text:"一人で行くの、ちょっとハードル高い。", reading:"ひとりでいくの、ちょっとはーどるたかい。", romaji:"Hitori de iku no, chotto haadoru takai.", zh:"一個人去有點門檻高。" },
+          { speaker:"ナツ", text:"じゃあ二人でゆるっと行こ。", reading:"じゃあふたりでゆるっといこ。", romaji:"Jaa futari de yurutto iko.", zh:"那我們兩個輕鬆去吧。" }
+        ], tips: ["「ハードル高い」：門檻高、不容易開始。", "「ゆるっと」：輕鬆、不帶壓力地。", "「〜とか」：列舉『……之類的』。"] }
+      },
+      {
+        theme_title: "ネットで見つけた面白動画",
+        words: [
+          { word: "草", reading: "くさ", romaji: "kusa", tag: "ネット用語", meaning: "來自日文網路用語『w（笑）』大量連續出現像草地一樣，因此用『草』表示『笑死、很好笑』。", example: { ja: "そのオチは草。", reading: "そのおちはくさ。", romaji: "Sono ochi wa kusa.", zh: "那個結局笑死。" } },
+          { word: "おもろい", reading: "おもろい", romaji: "omoroi", tag: "口語形容詞", meaning: "『おもしろい』的口語變體，表示有趣、好笑。關西腔尤其常見，現在也廣泛出現在網路與年輕人對話中。", example: { ja: "その話、おもろい。", reading: "そのはなし、おもろい。", romaji: "Sono hanashi, omoroi.", zh: "你這故事也太有趣了。" } }
+        ],
+        dialogue: { scenario: "兩個朋友互傳短影片，看到一個意想不到的結尾。", characters: ["ダイ", "ミオ"], lines: [
+          { speaker:"ダイ", text:"これ見て。", reading:"これみて。", romaji:"Kore mite.", zh:"看這個。" },
+          { speaker:"ミオ", text:"何これ、展開おもろい。", reading:"なにこれ、てんかいおもろい。", romaji:"Nani kore, tenkai omoroi.", zh:"什麼啦，這發展也太好笑。" },
+          { speaker:"ダイ", text:"最後まで見て。", reading:"さいごまでみて。", romaji:"Saigo made mite.", zh:"看到最後。" },
+          { speaker:"ミオ", text:"いや、これは草。", reading:"いや、これはくさ。", romaji:"Iya, kore wa kusa.", zh:"不行，這真的笑死。" }
+        ], tips: ["「草」：網路用語中的『笑死、哈哈哈』。", "「おもろい」：『おもしろい』的口語變體。", "「展開」：故事或事件接下來如何發展。"] }
+      },
+      {
+        theme_title: "予定変更のひとこと",
+        words: [
+          { word: "ドタキャン", reading: "どたきゃん", romaji: "dotakyan", tag: "口語名詞・動詞", meaning: "『土壇場キャンセル』的縮略，指到了最後一刻才取消原本約好的行程或約會。", example: { ja: "直前のドタキャンは困るよ。", reading: "ちょくぜんのどたきゃんはこまるよ。", romaji: "Chokuzen no dotakyan wa komaru yo.", zh: "最後一刻才取消真的很困擾。" } },
+          { word: "リスケ", reading: "りすけ", romaji: "risuke", tag: "商務・口語縮略", meaning: "『リスケジュール』的縮寫，表示重新安排時間。原本偏商務用語，現在一般生活中也很常聽到。", example: { ja: "ごめん、来週にリスケできる？", reading: "ごめん、らいしゅうにりすけできる？", romaji: "Gomen, raishuu ni risuke dekiru?", zh: "抱歉，可以改到下週嗎？" } }
+        ],
+        dialogue: { scenario: "兩個朋友原本約好吃飯，其中一人臨時需要改期。", characters: ["アオ", "ケンタ"], lines: [
+          { speaker:"アオ", text:"ごめん、今日ちょっと無理かも。", reading:"ごめん、きょうちょっとむりかも。", romaji:"Gomen, kyou chotto muri kamo.", zh:"抱歉，今天可能有點不行。" },
+          { speaker:"ケンタ", text:"え、ドタキャン？", reading:"え、どたきゃん？", romaji:"E, dotakyan?", zh:"欸，臨時取消？" },
+          { speaker:"アオ", text:"ほんとごめん。来週にリスケしたい。", reading:"ほんとごめん。らいしゅうにりすけしたい。", romaji:"Honto gomen. Raishuu ni risuke shitai.", zh:"真的抱歉，我想改到下週。" },
+          { speaker:"ケンタ", text:"まあ、来週なら大丈夫。", reading:"まあ、らいしゅうならだいじょうぶ。", romaji:"Maa, raishuu nara daijoubu.", zh:"嗯，下週的話沒問題。" }
+        ], tips: ["「ドタキャン」：最後一刻取消約定。", "「リスケ」：重新安排時間。", "「〜かも」：表示可能性，語氣較柔和。"] }
+      },
+      {
+        theme_title: "友達の新しい服",
+        words: [
+          { word: "一軍", reading: "いちぐん", romaji: "ichigun", tag: "若者名詞", meaning: "原本指隊伍中的主力；在年輕人語境中可指自己最喜歡、最常用或最重要的一組東西，例如一軍服裝、一軍コスメ。", example: { ja: "これは私の一軍コスメ。", reading: "これはわたしのいちぐんコスメ。", romaji: "Kore wa watashi no ichigun kosume.", zh: "這是我最愛用的主力彩妝。" } },
+          { word: "優秀", reading: "ゆうしゅう", romaji: "yuushuu", tag: "口語・SNS表現", meaning: "原本就是『優秀』；在 SNS 或朋友聊天中也可單獨用來誇獎某個商品、功能或設計非常實用。", example: { ja: "このポケット、優秀すぎる。", reading: "このポケット、ゆうしゅうすぎる。", romaji: "Kono poketto, yuushuu sugiru.", zh: "這個口袋也太實用了。" } }
+        ],
+        dialogue: { scenario: "朋友試穿新衣服，討論哪些單品值得留下。", characters: ["ミナ", "レイ"], lines: [
+          { speaker:"ミナ", text:"そのジャケット、新しい？", reading:"そのジャケット、あたらしい？", romaji:"Sono jaketto, atarashii?", zh:"那件外套新的？" },
+          { speaker:"レイ", text:"うん。最近買った。", reading:"うん。さいきんかった。", romaji:"Un. Saikin katta.", zh:"嗯，最近買的。" },
+          { speaker:"ミナ", text:"それ、一軍入りだね。", reading:"それ、いちぐんいりだね。", romaji:"Sore, ichigun-iri da ne.", zh:"這件可以進主力名單了吧。" },
+          { speaker:"レイ", text:"しかもポケットが優秀なの。", reading:"しかもポケットがゆうしゅうなの。", romaji:"Shikamo poketto ga yuushuu na no.", zh:"而且口袋超實用。" }
+        ], tips: ["「一軍」：最常用、最喜歡、主力的那一組。", "「一軍入り」：進入自己的主力名單。", "「優秀」：口語中也可誇獎商品設計很實用。"] }
+      },
+
+    ];
+
+    function getLocalDateKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getRecentDailySpecialHistory() {
+      try {
+        const raw = localStorage.getItem(DAILY_SPECIAL_HISTORY_KEY);
+        const history = raw ? JSON.parse(raw) : [];
+        return Array.isArray(history) ? history : [];
+      } catch (e) {
+        return [];
       }
-    };
+    }
+
+    function saveDailySpecialHistory(data, dateKey) {
+      try {
+        let history = getRecentDailySpecialHistory().filter(item => item && item.date !== dateKey);
+        history.push({
+          date: dateKey,
+          words: (data.words || []).map(w => w.word).filter(Boolean)
+        });
+        // 只保留最近 30 天，避免 localStorage 無限增加
+        history = history.slice(-30);
+        localStorage.setItem(DAILY_SPECIAL_HISTORY_KEY, JSON.stringify(history));
+      } catch (e) {
+        console.warn("無法保存每日特選歷史:", e);
+      }
+    }
+
+    function getBuiltInDailySpecial(dateKey) {
+      const history = getRecentDailySpecialHistory();
+      const recentUsed = new Set(
+        history.slice(-11).flatMap(item => item.words || [])
+      );
+
+      // 先找一組最近 11 天沒有用過的教材；找到後即能保證連續 12 天不重複。
+      const available = DAILY_SPECIAL_POOL.filter(item =>
+        !(item.words || []).some(w => recentUsed.has(w.word))
+      );
+
+      let pool = available.length ? available : DAILY_SPECIAL_POOL;
+      let hash = 0;
+      for (let i = 0; i < dateKey.length; i++) {
+        hash = ((hash << 5) - hash + dateKey.charCodeAt(i)) | 0;
+      }
+      const index = Math.abs(hash) % pool.length;
+      const selected = JSON.parse(JSON.stringify(pool[index]));
+
+      selected.date = dateKey;
+      selected.theme_title = selected.theme_title || "2026年最新若者言葉・日常トレンド";
+      return selected;
+    }
+
+    function getRecentDailyWordsForPrompt() {
+      return getRecentDailySpecialHistory()
+        .slice(-14)
+        .flatMap(item => item.words || [])
+        .filter(Boolean)
+        .filter((word, index, arr) => arr.indexOf(word) === index);
+    }
+
+    function validateDailySpecialData(data) {
+      if (!data || !Array.isArray(data.words) || data.words.length < 2) return false;
+      if (!data.dialogue || !Array.isArray(data.dialogue.lines) || data.dialogue.lines.length < 4) return false;
+
+      const recentWords = new Set(getRecentDailyWordsForPrompt());
+      const hasDuplicate = data.words.slice(0, 2).some(w => recentWords.has(w.word));
+      return !hasDuplicate;
+    }
 
     function initDailySpecial() {
       const today = new Date();
-      const dateStr = today.toISOString().slice(0, 10);
+      const dateStr = getLocalDateKey(today);
       const year = today.getFullYear();
       const month = today.getMonth() + 1;
       const day = today.getDate();
@@ -4284,7 +5149,8 @@
     }
 
     async function loadDailySpecial(forceRefresh = false) {
-      const today = new Date().toISOString().slice(0, 10);
+      // 使用本機日期，不使用 toISOString()，避免時區造成「今天」錯一天
+      const today = getLocalDateKey();
       const cacheKey = DAILY_SPECIAL_STORAGE_KEY_PREFIX + today;
       const refreshBtn = document.getElementById("refreshDailyBtn");
 
@@ -4302,10 +5168,14 @@
       }
 
       const apiKey = document.getElementById("apiKey") ? document.getElementById("apiKey").value.trim() : "";
+
+      // 沒有 API Key：直接使用「當天專屬」內建教材，不再固定顯示同一組。
       if (!apiKey) {
-        // 若尚未設定 API Key，載入豐富的預設精選內容
-        currentDailySpecialData = DEFAULT_DAILY_SPECIAL;
+        currentDailySpecialData = getBuiltInDailySpecial(today);
         renderDailySpecial(currentDailySpecialData);
+        saveDailySpecialHistory(currentDailySpecialData, today);
+        const status = document.getElementById("globalStatus");
+        if (status) status.innerText = "今日特選已更新。";
         return;
       }
 
@@ -4316,15 +5186,25 @@
 
       const randomSeeds = [
         "推し活・SNS文化", "カフェ巡り・休日の過ごし方", "大学生活・バイト先の出来事",
-        "トレンドファッション・買い物", "趣味・音楽・アニメの語り合い", "仕事帰りのサシ飲み・愚痴と励まし"
+        "トレンドファッション・買い物", "趣味・音楽・アニメの語り合い", "仕事帰りのサシ飲み・愚痴と励まし",
+        "ゲーム・配信・ネット文化", "恋愛・友達との雑談", "コンビニ・日常生活", "旅行・街歩き"
       ];
       const randomSeed = randomSeeds[Math.floor(Math.random() * randomSeeds.length)];
+      const recentWords = getRecentDailyWordsForPrompt();
 
       const prompt = `你是一位精通日本現代流行文化與年輕人用語（若者言葉）的日語專家。
+今天日期是「${today}」。
 請以「${randomSeed}」為核心情境，創作一份精采道地的【本日のスペシャル（今日特選）】教材。
 
+【非常重要的每日不重複規則】
+- 今天的 2 個 words 必須與最近使用過的詞彙不同。
+- 最近使用過的詞彙如下：${recentWords.length ? recentWords.join("、") : "目前沒有歷史紀錄"}。
+- 不可以選上面清單中的任何詞。
+- dialogue 也必須重新創作，不能直接套用其他日期的對話。
+- 內容要符合現代日本年輕人的自然口語，但不要為了追求流行而使用明顯過時或虛構的詞。
+
 嚴格要求：
-1. words：精選剛好 2 個「近年日本 SNS、Z世代或時下年輕人高頻使用但課本少教」的真實流行詞彙（如：界隈、タイパ、沼る、チルい、蛙化、バズる、優勝、ビジュ、それな、ワンチャン 等，每次盡可能不重複且真實存在）。
+1. words：精選剛好 2 個「近年日本 SNS、Z世代或時下年輕人高頻使用但課本少教」的真實流行詞彙。
    - 提供詞彙 (word)、純平假名讀音 (reading)、標準赫本式羅馬拼音 (romaji)、詞性分類標籤 (tag)、詳細有趣的起源及現代語意中文解釋 (meaning)、以及一個生動的年輕人日常例句 (example，包含 ja, reading, romaji, zh)。
 2. dialogue：創作一段雙人對話（4 至 6 句），呈現最自然、生活化的現代日常交流。包含省略句、真實口語縮約、語氣詞與當代俚語。
    - scenario：情境描寫（中文）。
@@ -4334,7 +5214,7 @@
 
 請嚴格回傳純 JSON 物件：
 {
-  "date": "今日日期",
+  "date": "${today}",
   "theme_title": "本主題名稱",
   "words": [
     {
@@ -4376,20 +5256,31 @@
           if (status) status.innerText = msg;
         });
 
-        if (result && result.words && result.dialogue) {
+        if (validateDailySpecialData(result)) {
           result.words = result.words.slice(0, 2);
+          result.date = today;
           currentDailySpecialData = result;
           localStorage.setItem(cacheKey, JSON.stringify(result));
+          saveDailySpecialHistory(result, today);
           renderDailySpecial(result);
         } else {
-          throw new Error("回傳結構不完整");
+          // AI 若不符合「今日不重複」規則，直接使用當天內建內容。
+          console.warn("AI 回傳內容與最近每日教材重複或結構不完整，改用當天內建教材。");
+          currentDailySpecialData = getBuiltInDailySpecial(today);
+          renderDailySpecial(currentDailySpecialData);
+          saveDailySpecialHistory(currentDailySpecialData, today);
         }
       } catch (err) {
         console.error("生成本日のスペシャル失敗:", err);
-        currentDailySpecialData = DEFAULT_DAILY_SPECIAL;
+        currentDailySpecialData = getBuiltInDailySpecial(today);
         renderDailySpecial(currentDailySpecialData);
-        alert("今日特選生成時遇限制，已先載入精選示範教材：" + err.message);
+        saveDailySpecialHistory(currentDailySpecialData, today);
+        alert("今日特選生成時遇限制，已先載入今日專屬教材：" + err.message);
       } finally {
+        // Gemini 完成後清除「正在使用 xxx 處理中...」狀態，避免成功更新後畫面仍一直顯示處理中。
+        const status = document.getElementById("globalStatus");
+        if (status) status.innerText = "今日特選已更新。";
+
         if (refreshBtn) {
           refreshBtn.disabled = false;
           refreshBtn.innerHTML = `<span>🔄 換一批</span>`;
