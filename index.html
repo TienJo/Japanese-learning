@@ -5198,8 +5198,9 @@
       const dateBadge = document.getElementById("specialDateBadge");
       if (dateBadge) dateBadge.innerText = displayDateStr;
 
-      // 首頁每次開啟都強制向 Gemini API 重新生成，不使用今天的快取。
-      loadDailySpecial(true);
+      // 每個自然日只自動生成一次；之後重新開頁、登入 Google 或切換分頁，都直接使用今天的快取。
+      // 只有「換一批」按鈕才會呼叫 loadDailySpecial(true) 強制重新生成。
+      loadDailySpecial(false);
     }
 
     async function loadDailySpecial(forceRefresh = false) {
