@@ -166,6 +166,7 @@
       background: #e4e6eb;
       color: #222;
     }
+
     .tab-bar {
       display: flex;
       gap: 8px;
@@ -200,6 +201,7 @@
     .tab-content.active {
       display: block;
     }
+
     .textarea-header {
       display: flex;
       justify-content: space-between;
@@ -277,6 +279,7 @@
       color: #666;
       font-size: 13px;
     }
+
     .result-container {
       margin-top: 24px;
       border-top: 1px solid #edf0f2;
@@ -363,102 +366,88 @@
       font-size: 14px;
       max-width: 500px;
     }
+    .tree-view-outer-wrapper {
+      position: relative;
+      margin-bottom: 24px;
+      width: 100%;
+    }
     .tree-scroll-container {
       overflow-x: auto;
       overflow-y: hidden;
       background: #fafbfc;
       border: 1px solid #e1e4e8;
       border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
+      padding: 24px 16px;
       position: relative;
+      width: 100%;
+      text-align: center;
+      min-height: 420px;
     }
     .floating-zoom-controls {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 10;
+      top: 14px;
+      right: 14px;
+      z-index: 30;
       display: flex;
       align-items: center;
       gap: 5px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(4px);
       padding: 4px 8px;
       border-radius: 6px;
       border: 1px solid #ccd0d5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      pointer-events: auto;
     }
     .floating-capture-controls {
       position: absolute;
-      bottom: 12px;
-      right: 12px;
-      z-index: 10;
+      bottom: 20px;
+      right: 14px;
+      z-index: 30;
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(4px);
       padding: 4px 8px;
       border-radius: 6px;
       border: 1px solid #ccd0d5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      pointer-events: auto;
     }
-    .capture-btn {
-      background: #ffffff;
-      border: 1px solid #ccd0d5;
-      color: #333;
-      padding: 4px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: background 0.15s, border-color 0.15s;
+    .tree-scroll-container {
+      overflow: auto;
+      background: #fafbfc;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+      width: 100%;
+      min-height: 420px;
     }
-    .capture-btn:hover {
-      background: #eef3f8;
-      border-color: #2e78d6;
-      color: #2e78d6;
-    }
-    .zoom-btn {
-      background: #ffffff;
-      border: 1px solid #ccd0d5;
-      color: #333;
-      padding: 3px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: bold;
-      transition: background 0.15s;
-    }
-    .zoom-btn:hover {
-      background: #e4e6eb;
-    }
-    .zoom-level-text {
-      font-size: 12px;
-      font-weight: 600;
-      color: #444;
-      min-width: 44px;
-      text-align: center;
+    .tree-zoom-spacer {
+      position: relative;
+      margin: 0 auto;
     }
     .tree-scale-wrapper {
       transform-origin: top left;
-      transition: transform 0.15s ease-out;
-      display: inline-block;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
     .tree-canvas-wrap {
       position: relative;
       display: flex;
       flex-direction: column;
-      min-width: 100%;
-      background: #fafbfc;
+      align-items: center;
+      width: max-content;
       padding: 16px 20px 20px 20px;
+      background: #fafbfc;
       border-radius: 8px;
     }
     .canvas-header-block {
       text-align: center;
+      width: 100%;
       padding: 6px 12px 18px 12px;
       border-bottom: 1px solid #e1e4e8;
       margin-bottom: 20px;
@@ -489,6 +478,7 @@
     #topSvgWrap {
       position: relative;
       width: 100%;
+      min-width: max-content;
       height: 220px;
     }
     svg.dep-svg-top {
@@ -503,14 +493,19 @@
     }
     .cards-row-wrap {
       position: relative;
-      width: 100%;
+      width: max-content;
+      display: flex;
+      justify-content: center;
     }
     .tokens-container {
       display: flex;
+      justify-content: center;
+      align-items: stretch;
       gap: 36px;
       padding: 12px 24px 20px 24px;
       position: relative;
       z-index: 2;
+      width: max-content;
     }
     .token-card {
       background: #ffffff;
@@ -593,6 +588,7 @@
     #bottomSvgWrap {
       position: relative;
       width: 100%;
+      min-width: max-content;
       height: 80px;
     }
     svg.dep-svg-bottom {
@@ -605,6 +601,7 @@
       pointer-events: none;
       z-index: 3;
     }
+    
     .syntax-table-title {
       font-size: 15px;
       font-weight: bold;
@@ -1883,81 +1880,95 @@
           <label for="syntaxSentenceSelect"><strong>檢視句子：</strong></label>
           <select id="syntaxSentenceSelect" onchange="renderSyntaxForSelected()"></select>
         </div>
-        <button id="saveToVocabBtn" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc; font-weight:600;" onclick="saveCurrentSyntaxSentenceToVocab()">
-          📖 轉存目前句子到單字書
-        </button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="saveSyntaxBtn" class="text-action-btn" style="background:#f3e8ff; color:#7e22ce; border-color:#d8b4fe; font-weight:600;" onclick="openSaveSyntaxModal()">
+            💾 儲存目前句構分析至資料庫
+          </button>
+          <button id="saveToVocabBtn" class="text-action-btn" style="background:#eef6ff; color:#2e78d6; border-color:#b8d6fc; font-weight:600;" onclick="saveCurrentSyntaxSentenceToVocab()">
+            📖 轉存目前句子到單字書
+          </button>
+        </div>
       </div>
 
-      <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #444;">語意結構圖（包含三語表頭與物理折線結構，截圖自動包含三語）：</div>
-      
-      <div class="tree-scroll-container">
-        <div class="floating-zoom-controls">
-          <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
-          <span class="zoom-level-text" id="zoomLabel">100%</span>
-          <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
-          <button class="zoom-btn" onclick="resetZoom()">重置</button>
-        </div>
+      <!-- 將結構圖與表格用一個外層佔位容器包裝起來，方便 Modal 中移轉借用 -->
+      <div id="syntaxCoreDisplayPlaceholder">
+        <div id="syntaxCoreDisplayArea">
+          <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #444;">語意結構圖（包含三語表頭與物理折線結構，截圖自動包含三語）：</div>
+          
+          <div class="tree-view-outer-wrapper">
+            <div class="floating-zoom-controls">
+              <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+              <span class="zoom-level-text" id="zoomLabel">100%</span>
+              <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+              <button class="zoom-btn" onclick="resetZoom()">重置</button>
+            </div>
 
-        <div class="floating-capture-controls">
+            <div class="floating-capture-controls">
           <button id="copyShotBtn" class="capture-btn" onclick="captureStructureTree('copy')">複製截圖</button>
           <button id="downShotBtn" class="capture-btn" onclick="captureStructureTree('download')">下載截圖</button>
         </div>
 
-        <div class="tree-scale-wrapper" id="treeScaleWrapper">
-          <div class="tree-canvas-wrap" id="treeCanvasWrap">
-            <div class="canvas-header-block" id="canvasHeaderBlock">
-              <div class="canvas-header-orig-zh" id="cHeaderOrigZh" style="display:none;"></div>
-              <div class="canvas-header-raw" id="cHeaderRaw">日文原文</div>
-              <div class="canvas-header-romaji" id="cHeaderRomaji">Hepburn Romaji</div>
-              <div class="canvas-header-zh" id="cHeaderZh">中文整句翻譯</div>
-            </div>
+        <div class="tree-scroll-container">
+          <div class="tree-zoom-spacer" id="treeZoomSpacer">
+            <div class="tree-scale-wrapper" id="treeScaleWrapper">
+              <div class="tree-canvas-wrap" id="treeCanvasWrap">
+                <div class="canvas-header-block" id="canvasHeaderBlock">
+                  <div class="canvas-header-orig-zh" id="cHeaderOrigZh" style="display:none;"></div>
+                  <div class="canvas-header-raw" id="cHeaderRaw">日文原文</div>
+                  <div class="canvas-header-romaji" id="cHeaderRomaji">Hepburn Romaji</div>
+                  <div class="canvas-header-zh" id="cHeaderZh">中文整句翻譯</div>
+                </div>
 
-            <div id="topSvgWrap">
-              <svg id="topDepSvg" class="dep-svg-top">
-                <defs>
-                  <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#2e78d6"></path>
-                  </marker>
-                  <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#9333ea"></path>
-                  </marker>
-                </defs>
-              </svg>
-            </div>
+                <div id="topSvgWrap">
+                  <svg id="topDepSvg" class="dep-svg-top">
+                    <defs>
+                      <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 1 L 8 5 L 0 9 z" fill="#2e78d6"></path>
+                      </marker>
+                      <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 1 L 8 5 L 0 9 z" fill="#9333ea"></path>
+                      </marker>
+                    </defs>
+                  </svg>
+                </div>
 
-            <div class="cards-row-wrap" id="cardsRowWrap">
-              <div id="clauseOverlays" class="clause-overlays"></div>
-              <div class="tokens-container" id="tokensBox"></div>
-            </div>
+                <div class="cards-row-wrap" id="cardsRowWrap">
+                  <div id="clauseOverlays" class="clause-overlays"></div>
+                  <div class="tokens-container" id="tokensBox"></div>
+                </div>
 
-            <div id="bottomSvgWrap">
-              <svg id="bottomDepSvg" class="dep-svg-bottom">
-                <defs>
-                  <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#15803d"></path>
-                  </marker>
-                </defs>
-              </svg>
+                <div id="bottomSvgWrap">
+                  <svg id="bottomDepSvg" class="dep-svg-bottom">
+                    <defs>
+                      <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 1 L 8 5 L 0 9 z" fill="#15803d"></path>
+                      </marker>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="syntax-table-title">詳細詞性、單詞釋義與動詞活用分解表</div>
-      <table class="analysis-table" id="syntaxTable">
-        <thead>
-          <tr>
-            <th>詞彙</th>
-            <th>羅馬拼音</th>
-            <th>中文意思</th>
-            <th>原型 / 辭書形</th>
-            <th>詞性分類</th>
-            <th>活用 / 變形種類</th>
-            <th>依賴關係（指向詞）</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+          <table class="analysis-table" id="syntaxTable">
+            <thead>
+              <tr>
+                <th>詞彙</th>
+                <th>羅馬拼音</th>
+                <th>中文意思</th>
+                <th>原型 / 辭書形</th>
+                <th>詞性分類</th>
+                <th>活用 / 變形種類</th>
+                <th>依賴關係（指向詞）</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1966,6 +1977,7 @@
     <div class="db-sub-nav">
       <button class="db-sub-tab-btn active" id="dbSubTabArticleBtn" onclick="switchDbSubTab('articles')">📂 翻譯文章與歌詞庫 (<span id="dbArticleCountBadge">0</span>)</button>
       <button class="db-sub-tab-btn" id="dbSubTabVocabBtn" onclick="switchDbSubTab('vocab')">🎴 單字學習與測驗庫 (<span id="dbVocabCountBadge">0</span>)</button>
+      <button class="db-sub-tab-btn" id="dbSubTabSyntaxBtn" onclick="switchDbSubTab('syntax')">🧩 句構分析典藏庫 (<span id="dbSyntaxCountBadge">0</span>)</button>
     </div>
 
     <!-- 子區塊 1：文章與歌詞庫 -->
@@ -2073,6 +2085,17 @@
         </div>
         <div id="bookCardsGrid" class="vocab-cards-grid"></div>
       </div>
+    </div>
+
+    <!-- 子區塊 3：句構分析典藏庫 -->
+    <div id="dbSyntaxSection" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-size:15px; font-weight:bold; color:#2d3748;">🧩 已典藏的日語句法結構分析</span>
+          <span style="font-size:12px; color:#718096; margin-left:8px;">點擊「🔍 還原結構圖」即可隨時重新在畫布呈現完整折線與依賴分析</span>
+        </div>
+      </div>
+      <div class="article-cards-grid" id="syntaxCardsGrid"></div>
     </div>
   </div>
 
@@ -2206,6 +2229,28 @@
     </div>
   </div>
 
+  <!-- 儲存句法結構分析 彈出對話框 -->
+  <div class="custom-modal-backdrop" id="saveSyntaxModal">
+    <div class="custom-modal-box">
+      <div class="modal-title">💾 儲存句法分析結果至資料庫</div>
+      
+      <div class="modal-field">
+        <label for="modalSyntaxTitle">自訂標題 / 備註 *</label>
+        <input type="text" id="modalSyntaxTitle" placeholder="例如：連體修飾複合句、靴のデザイナー...">
+      </div>
+
+      <div class="modal-field">
+        <label for="modalSyntaxTag">文法標籤分類</label>
+        <input type="text" id="modalSyntaxTag" placeholder="例如：複合句、中頓形、連體修飾、使役被動...">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="text-action-btn" onclick="closeSaveSyntaxModal()">取消</button>
+        <button type="button" class="primary-btn" onclick="confirmSaveSyntax()">儲存句構分析</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 檢視作品詳情對話框 -->
   <div class="custom-modal-backdrop" id="viewArticleModal">
     <div class="custom-modal-box" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
@@ -2255,6 +2300,19 @@
       <div class="modal-actions">
         <button type="button" class="text-action-btn" onclick="closeEditArticleModal()">取消</button>
         <button type="button" class="primary-btn" onclick="saveEditedArticle()">儲存變更</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 檢視典藏句構分析對話框 -->
+  <div class="custom-modal-backdrop" id="viewSyntaxModal">
+    <div class="custom-modal-box" style="max-width: 95vw; max-height: 95vh; width: 1200px; display: flex; flex-direction: column;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div class="modal-title" id="viewSyntaxModalTitle" style="margin-bottom:0;">句構分析</div>
+        <button type="button" class="card-delete-btn" style="position:static;" onclick="closeViewSyntaxModal()">✕</button>
+      </div>
+      <div id="syntaxModalContentTarget" style="flex-grow:1; overflow-y:auto; padding-right:4px;">
+        <!-- 動態移入 syntaxCoreDisplayArea -->
       </div>
     </div>
   </div>
@@ -2488,10 +2546,11 @@
     }
 
     const DB_NAME = "JapaneseVocabDB";
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
     const STORE_VOCAB = "vocab_cards";
     const STORE_ARTICLES = "articles_db";
     const STORE_FOLDERS = "folders_db";
+    const STORE_SYNTAX = "syntax_db";
     let dbInstance = null;
     let currentSelectedFolder = "全部";
 
@@ -2514,6 +2573,11 @@
           }
           if (!db.objectStoreNames.contains(STORE_FOLDERS)) {
             db.createObjectStore(STORE_FOLDERS, { keyPath: "name" });
+          }
+          if (!db.objectStoreNames.contains(STORE_SYNTAX)) {
+            const synStore = db.createObjectStore(STORE_SYNTAX, { keyPath: "id", autoIncrement: true });
+            synStore.createIndex("raw", "raw", { unique: false });
+            synStore.createIndex("created_at", "created_at", { unique: false });
           }
         };
         req.onsuccess = async (e) => {
@@ -2624,6 +2688,129 @@
       };
     }
 
+    // ================= 句構分析資料庫存取 =================
+    function saveSyntaxToDb(record) {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_SYNTAX, "readwrite");
+        tx.objectStore(STORE_SYNTAX).add({
+          title: record.title,
+          tag: record.tag || "一般句型",
+          syntaxData: record.syntaxData,
+          created_at: Date.now()
+        });
+        tx.oncomplete = () => {
+          refreshDatabaseUi();
+          if (googleAccessToken) syncWithGoogleDrive(false);
+          resolve();
+        };
+      });
+    }
+
+    function getAllSyntaxFromDb() {
+      return new Promise(async (resolve) => {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_SYNTAX, "readonly");
+        const store = tx.objectStore(STORE_SYNTAX);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+      });
+    }
+
+    async function deleteSyntaxFromDb(id) {
+      if (!confirm("確定要刪除這筆句構分析典藏嗎？")) return;
+      if (!dbInstance) await initIndexedDB();
+      const tx = dbInstance.transaction(STORE_SYNTAX, "readwrite");
+      tx.objectStore(STORE_SYNTAX).delete(Number(id));
+      tx.oncomplete = async () => {
+        refreshDatabaseUi();
+        if (googleAccessToken) await syncWithGoogleDrive(false, true);
+      };
+    }
+
+    function openSaveSyntaxModal() {
+      if (!isolatedSyntaxData || isolatedSyntaxData.length === 0) {
+        alert("請先輸入句子並完成句構分析後再儲存。");
+        return;
+      }
+      const idx = document.getElementById("syntaxSentenceSelect").value || 0;
+      const data = isolatedSyntaxData[idx];
+      if (!data) {
+        alert("找不到當前句構分析資料。");
+        return;
+      }
+
+      document.getElementById("modalSyntaxTitle").value = data.raw.length > 28 ? data.raw.slice(0, 28) + "..." : data.raw;
+      document.getElementById("modalSyntaxTag").value = "";
+      document.getElementById("saveSyntaxModal").classList.add("active");
+      document.getElementById("modalSyntaxTitle").focus();
+    }
+
+    function closeSaveSyntaxModal() {
+      document.getElementById("saveSyntaxModal").classList.remove("active");
+    }
+
+    async function confirmSaveSyntax() {
+      const idx = document.getElementById("syntaxSentenceSelect").value || 0;
+      const data = isolatedSyntaxData[idx];
+      if (!data) return;
+
+      const title = document.getElementById("modalSyntaxTitle").value.trim();
+      const tag = document.getElementById("modalSyntaxTag").value.trim();
+
+      if (!title) {
+        alert("請填寫標題或備註！");
+        return;
+      }
+
+      await saveSyntaxToDb({
+        title: title,
+        tag: tag || "句法結構",
+        syntaxData: JSON.parse(JSON.stringify(data))
+      });
+
+      closeSaveSyntaxModal();
+      alert(`已成功將《${title}》句構分析存入典藏庫！隨時可於「我的資料庫」回放結構圖。`);
+    }
+
+    function restoreSyntaxAnalysis(syntaxRecord) {
+      if (!syntaxRecord || !syntaxRecord.syntaxData) return;
+      isolatedSyntaxData = [syntaxRecord.syntaxData];
+
+      const sel = document.getElementById("syntaxSentenceSelect");
+      sel.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = 0;
+      opt.innerText = `1. ${syntaxRecord.syntaxData.raw}${syntaxRecord.syntaxData.input_zh ? ` (原: ${syntaxRecord.syntaxData.input_zh})` : ""}`;
+      sel.appendChild(opt);
+
+      document.getElementById("viewSyntaxModalTitle").innerText = `典藏句構：${syntaxRecord.title}`;
+      
+      const modalContent = document.getElementById("syntaxModalContentTarget");
+      const coreDisplay = document.getElementById("syntaxCoreDisplayArea");
+      if (modalContent && coreDisplay) {
+        modalContent.appendChild(coreDisplay);
+      }
+      
+      document.getElementById("viewSyntaxModal").classList.add("active");
+      document.getElementById("syntaxStatus").innerText = `已載入典藏「${syntaxRecord.title}」之句構分析！`;
+
+      setTimeout(() => {
+        resetZoom();
+        renderSyntaxForSelected();
+      }, 50);
+    }
+
+    function closeViewSyntaxModal() {
+      document.getElementById("viewSyntaxModal").classList.remove("active");
+      
+      const placeholder = document.getElementById("syntaxCoreDisplayPlaceholder");
+      const coreDisplay = document.getElementById("syntaxCoreDisplayArea");
+      if (placeholder && coreDisplay) {
+        placeholder.appendChild(coreDisplay);
+      }
+    }
+
     async function saveVocabToDb(tokens) {
       if (!dbInstance) await initIndexedDB();
       const tx = dbInstance.transaction(STORE_VOCAB, "readwrite");
@@ -2718,15 +2905,95 @@
       const articles = await getAllArticlesFromDb();
       const vocabs = await getAllVocabFromDb();
       const folders = await getAllFoldersFromDb();
+      const syntaxes = await getAllSyntaxFromDb();
 
       const artCountBadge = document.getElementById("dbArticleCountBadge");
       if (artCountBadge) artCountBadge.innerText = articles.length;
       const vocCountBadge = document.getElementById("dbVocabCountBadge");
       if (vocCountBadge) vocCountBadge.innerText = vocabs.length;
+      const synCountBadge = document.getElementById("dbSyntaxCountBadge");
+      if (synCountBadge) synCountBadge.innerText = syntaxes.length;
 
       renderFolderChips(folders, articles);
       renderArticleCards(articles);
       renderBookCards(vocabs);
+      renderSyntaxCards(syntaxes);
+    }
+
+    function renderSyntaxCards(syntaxes) {
+      const grid = document.getElementById("syntaxCardsGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      if (syntaxes.length === 0) {
+        grid.innerHTML = `<div style="color:#a0aec0; font-size:13px; grid-column:1/-1; text-align:center; padding:36px; background:#fff; border-radius:8px;">目前典藏庫中沒有句構分析，請至「句構分析」分頁分析後點擊「💾 儲存目前句構分析至資料庫」。</div>`;
+        return;
+      }
+
+      syntaxes.slice().reverse().forEach(syn => {
+        const card = document.createElement("div");
+        card.className = "article-card";
+        const d = syn.syntaxData || {};
+        const tokenCount = d.tokens ? d.tokens.length : 0;
+        const clauseCount = d.clauses ? d.clauses.length : 0;
+        const dateStr = new Date(syn.created_at).toLocaleDateString();
+
+        card.innerHTML = `
+          <button type="button" class="card-delete-btn" title="刪除此典藏">✕</button>
+          <div class="article-card-header">
+            <div class="article-card-title">${escapeHtml(syn.title)}</div>
+            <div class="article-card-author">標籤：<span style="background:#f3e8ff; color:#7e22ce; padding:1px 6px; border-radius:4px; font-weight:600;">${escapeHtml(syn.tag)}</span></div>
+          </div>
+          <div class="article-card-preview" style="border-left-color:#9333ea;" title="點擊還原結構圖">
+            <div style="font-weight:700; color:#111; margin-bottom:2px;">${escapeHtml(d.raw || "")}</div>
+            <div style="font-size:11px; color:#c93b3b; font-family:Consolas, monospace;">${escapeHtml(d.romaji || "")}</div>
+            <div style="font-size:11px; color:#257a46; margin-top:2px;">${escapeHtml(d.translation || "")}</div>
+          </div>
+          <div class="article-card-meta">
+            <span>分詞 ${tokenCount} 個 · 修飾節 ${clauseCount} 個</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>${dateStr}</span>
+              <button type="button" class="text-action-btn" style="background:#f3e8ff; color:#7e22ce; border-color:#d8b4fe; font-weight:600; padding:3px 8px;">🔍</button>
+            </div>
+          </div>
+        `;
+
+        const delBtn = card.querySelector(".card-delete-btn");
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteSyntaxFromDb(syn.id);
+        };
+
+        card.onclick = () => restoreSyntaxAnalysis(syn);
+        grid.appendChild(card);
+      });
+    }
+
+    function switchDbSubTab(tab) {
+      const artSection = document.getElementById("dbArticlesSection");
+      const vocSection = document.getElementById("dbVocabSection");
+      const synSection = document.getElementById("dbSyntaxSection");
+      const artBtn = document.getElementById("dbSubTabArticleBtn");
+      const vocBtn = document.getElementById("dbSubTabVocabBtn");
+      const synBtn = document.getElementById("dbSubTabSyntaxBtn");
+
+      artSection.style.display = "none";
+      vocSection.style.display = "none";
+      synSection.style.display = "none";
+      artBtn.classList.remove("active");
+      vocBtn.classList.remove("active");
+      synBtn.classList.remove("active");
+
+      if (tab === "articles") {
+        artSection.style.display = "block";
+        artBtn.classList.add("active");
+      } else if (tab === "vocab") {
+        vocSection.style.display = "block";
+        vocBtn.classList.add("active");
+      } else if (tab === "syntax") {
+        synSection.style.display = "block";
+        synBtn.classList.add("active");
+      }
     }
 
     function renderFolderChips(folders, articles) {
@@ -2796,25 +3063,6 @@
         card.onclick = () => openViewArticleModal(art);
         grid.appendChild(card);
       });
-    }
-
-    function switchDbSubTab(tab) {
-      const artSection = document.getElementById("dbArticlesSection");
-      const vocSection = document.getElementById("dbVocabSection");
-      const artBtn = document.getElementById("dbSubTabArticleBtn");
-      const vocBtn = document.getElementById("dbSubTabVocabBtn");
-
-      if (tab === "articles") {
-        artSection.style.display = "block";
-        vocSection.style.display = "none";
-        artBtn.classList.add("active");
-        vocBtn.classList.remove("active");
-      } else {
-        artSection.style.display = "none";
-        vocSection.style.display = "block";
-        artBtn.classList.remove("active");
-        vocBtn.classList.add("active");
-      }
     }
 
     async function openSaveArticleModal() {
@@ -3577,12 +3825,14 @@
         const localItems = await getAllVocabFromDb();
         const localArticles = await getAllArticlesFromDb();
         const localFolders = await getAllFoldersFromDb();
+        const localSyntax = await getAllSyntaxFromDb();
         const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
 
         if (fileId) {
           let fullMergedItems = localItems;
           let fullMergedArticles = localArticles;
           let fullMergedFolders = localFolders;
+          let fullMergedSyntax = localSyntax;
           let keyToSync = currentLocalKey;
 
           // 只有在非本地主動刪除的情況下（例如啟動或常規雙向同步），才進行雲端合併
@@ -3590,10 +3840,11 @@
             const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
               headers: { Authorization: `Bearer ${googleAccessToken}` }
             });
-            const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], apiKey: "" }));
+            const cloudData = await getRes.json().catch(() => ({ items: [], articles: [], folders: [], syntax: [], apiKey: "" }));
             const cloudItems = cloudData.items || [];
             const cloudArticles = cloudData.articles || [];
             const cloudFolders = cloudData.folders || [];
+            const cloudSyntax = cloudData.syntax || [];
             const cloudApiKey = cloudData.apiKey || "";
 
             if (!currentLocalKey && cloudApiKey) {
@@ -3625,13 +3876,23 @@
               }
             }
 
+            // 合併句構分析
+            const localSyntaxRaws = new Set(localSyntax.map(s => s.syntaxData?.raw || s.title));
+            for (const cs of cloudSyntax) {
+              const rawKey = cs.syntaxData?.raw || cs.title;
+              if (!localSyntaxRaws.has(rawKey)) {
+                await saveSyntaxToDb(cs);
+              }
+            }
+
             fullMergedItems = await getAllVocabFromDb();
             fullMergedArticles = await getAllArticlesFromDb();
             fullMergedFolders = await getAllFoldersFromDb();
+            fullMergedSyntax = await getAllSyntaxFromDb();
             keyToSync = currentLocalKey || cloudApiKey;
           }
 
-          // 將最新狀態寫入 Google Drive（如果是刪除動作，此處會將刪除後的結果覆蓋過去）
+          // 將最新狀態寫入 Google Drive
           const updateRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: "PATCH",
             headers: {
@@ -3643,12 +3904,13 @@
               apiKey: keyToSync,
               items: fullMergedItems,
               articles: fullMergedArticles,
-              folders: fullMergedFolders
+              folders: fullMergedFolders,
+              syntax: fullMergedSyntax
             })
           });
 
           if (updateRes.ok && showNotify) {
-            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 作品庫：已同步 ${fullMergedArticles.length} 部\n• API Key：已同步記錄`);
+            alert(`Google 雲端同步完成！\n• 單字：已同步 ${fullMergedItems.length} 個\n• 作品庫：已同步 ${fullMergedArticles.length} 部\n• 句構分析：已同步 ${fullMergedSyntax.length} 筆\n• API Key：已同步記錄`);
           }
         } else {
           const metadata = {
@@ -3662,7 +3924,8 @@
             apiKey: currentLocalKey,
             items: localItems,
             articles: localArticles,
-            folders: localFolders
+            folders: localFolders,
+            syntax: localSyntax
           })], { type: "application/json" }));
 
           const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
@@ -3672,7 +3935,7 @@
           });
 
           if (createRes.ok && showNotify) {
-            alert(`已在 Google 雲端建立備份庫！本地累積的 ${localArticles.length} 部作品與 ${localItems.length} 個單字已全部上傳儲存。`);
+            alert(`已在 Google 雲端建立備份庫！本地累積的 ${localArticles.length} 部作品、${localSyntax.length} 筆句構分析與 ${localItems.length} 個單字已全部上傳儲存。`);
           }
         }
         refreshDatabaseUi();
@@ -3783,20 +4046,56 @@
       }
     }
 
+    function autoFitStructureZoom() {
+      const scrollContainer = document.querySelector(".tree-scroll-container");
+      const tokensBox = document.getElementById("tokensBox");
+      if (!scrollContainer || !tokensBox) return;
+
+      const cards = tokensBox.querySelectorAll(".token-card");
+      if (cards.length === 0) return;
+
+      const availWidth = scrollContainer.clientWidth - 48;
+      if (!availWidth || availWidth <= 120) return;
+
+      const firstCard = cards[0];
+      const lastCard = cards[cards.length - 1];
+      const naturalSpan = (lastCard.getBoundingClientRect().right - firstCard.getBoundingClientRect().left) / (currentZoom || 1.0);
+      const neededWidth = naturalSpan + 64;
+
+      if (neededWidth > 0 && availWidth > 0) {
+        const ratio = availWidth / neededWidth;
+        const targetZoom = Math.min(1.85, Math.max(0.65, Math.round(ratio * 20) / 20));
+        currentZoom = targetZoom;
+        applyZoom();
+      }
+    }
+
     function changeZoom(delta) {
-      currentZoom = Math.min(2.0, Math.max(0.6, currentZoom + delta));
+      currentZoom = Math.min(2.0, Math.max(0.5, Math.round((currentZoom + delta) * 20) / 20));
       applyZoom();
+      requestAnimationFrame(drawStructureGraph);
     }
 
     function resetZoom() {
-      currentZoom = 1.0;
-      applyZoom();
+      autoFitStructureZoom();
+      requestAnimationFrame(drawStructureGraph);
     }
 
     function applyZoom() {
       const wrapper = document.getElementById("treeScaleWrapper");
-      wrapper.style.transform = `scale(${currentZoom})`;
-      document.getElementById("zoomLabel").innerText = `${Math.round(currentZoom * 100)}%`;
+      const spacer = document.getElementById("treeZoomSpacer");
+      const canvasWrap = document.getElementById("treeCanvasWrap");
+      const label = document.getElementById("zoomLabel");
+
+      if (wrapper && spacer && canvasWrap) {
+        wrapper.style.transform = `scale(${currentZoom})`;
+        if (label) label.innerText = `${Math.round(currentZoom * 100)}%`;
+
+        // 即時更新佔位容器的大小，確保捲軸能正確滾動到邊緣不被裁切
+        const rect = canvasWrap.getBoundingClientRect();
+        spacer.style.width = `${rect.width}px`;
+        spacer.style.height = `${rect.height}px`;
+      }
     }
 
     async function captureStructureTree(actionType) {
@@ -3808,7 +4107,11 @@
       if (!canvasTarget) return;
 
       const savedTransform = scaleWrapper.style.transform;
+      const savedZoom = currentZoom;
+
       scaleWrapper.style.transform = "scale(1.0)";
+      currentZoom = 1.0;
+      drawStructureGraph();
 
       try {
         if (actionType === "copy") copyBtn.innerText = "擷取中...";
@@ -3854,6 +4157,8 @@
         downBtn.innerText = "下載截圖";
       } finally {
         scaleWrapper.style.transform = savedTransform;
+        currentZoom = savedZoom;
+        drawStructureGraph();
       }
     }
 
@@ -3873,7 +4178,10 @@
       });
 
       if (tabId === "tabSyntax") {
-        setTimeout(drawStructureGraph, 60);
+        setTimeout(() => {
+          autoFitStructureZoom();
+          drawStructureGraph();
+        }, 60);
       } else if (tabId === "tabDatabase") {
         refreshDatabaseUi();
       } else if (tabId === "tabDailySpecial") {
@@ -3951,7 +4259,7 @@
           }
         ],
         tips: [
-          "「それな」：極高頻率的共鳴句，相當於「對吧！完全就是這樣！」。",
+          "「それな」：極高頻率的共鳴句，相當於「對吧！完全 প্রচです」。",
           "「ワンチャン（one chance）」：口語中表示「說不定還有微小可能性／搞不好可以」。",
           "「チルする（chill）」：源自英語，指「放鬆、悠閒度過」。",
           "「エグい」：原指殘酷或噁心，現代年輕人常作為「超猛、太扯、太誇張」的讚嘆或感嘆。"
@@ -4497,7 +4805,6 @@ ${JSON.stringify(rawLines, null, 2)}`;
         });
 
         wrapper.style.display = "block";
-        resetZoom();
         renderSyntaxForSelected();
         status.innerText = `分析完成！共處理 ${isolatedSyntaxData.length} 句。`;
       } catch (err) {
@@ -4564,7 +4871,8 @@ ${JSON.stringify(rawLines, null, 2)}`;
         tableBody.appendChild(tr);
       });
 
-      setTimeout(drawStructureGraph, 60);
+      autoFitStructureZoom();
+      requestAnimationFrame(drawStructureGraph);
     }
 
     function drawStructureGraph() {
@@ -4590,7 +4898,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
       bottomSvg.innerHTML = "";
       if (bottomDefs) bottomSvg.appendChild(bottomDefs);
 
-      const cardsRect = cardsRowWrap.getBoundingClientRect();
+      const topSvgRect = topSvg.getBoundingClientRect();
       const inAlloc = {};
       const outAlloc = {};
 
@@ -4598,7 +4906,8 @@ ${JSON.stringify(rawLines, null, 2)}`;
         const el = document.getElementById(`token-${tokenId}`);
         if (!el) return 0;
         const rect = el.getBoundingClientRect();
-        const baseCenterX = ((rect.left - cardsRect.left) / currentZoom) + (rect.width / currentZoom / 2);
+        // 直接以 topSvg 的左側坐標為原點，除以 currentZoom 得到無偏差的真實內部 X 座標
+        const baseCenterX = ((rect.left - topSvgRect.left) / currentZoom) + (rect.width / currentZoom / 2);
 
         if (isTarget) {
           const count = inAlloc[tokenId] || 0;
@@ -4613,6 +4922,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
 
       const clauseList = data.clauses || [];
       const clauseRoutes = [];
+      const overlaysRect = overlays.getBoundingClientRect();
 
       clauseList.forEach(cl => {
         const startEl = document.getElementById(`token-${cl.start_token_id}`);
@@ -4622,9 +4932,9 @@ ${JSON.stringify(rawLines, null, 2)}`;
         const sRect = startEl.getBoundingClientRect();
         const eRect = endEl.getBoundingClientRect();
 
-        const boxLeft = ((Math.min(sRect.left, eRect.left) - cardsRect.left) / currentZoom) - 10;
-        const boxRight = ((Math.max(sRect.right, eRect.right) - cardsRect.left) / currentZoom) + 10;
-        const boxTop = ((sRect.top - cardsRect.top) / currentZoom) - 8;
+        const boxLeft = ((Math.min(sRect.left, eRect.left) - overlaysRect.left) / currentZoom) - 10;
+        const boxRight = ((Math.max(sRect.right, eRect.right) - overlaysRect.left) / currentZoom) + 10;
+        const boxTop = ((sRect.top - overlaysRect.top) / currentZoom) - 8;
         const boxHeight = (sRect.height / currentZoom) + 16;
 
         const box = document.createElement("div");
@@ -4641,7 +4951,9 @@ ${JSON.stringify(rawLines, null, 2)}`;
         overlays.appendChild(box);
 
         if (cl.target_token_id) {
-          const fromX = boxLeft + (boxRight - boxLeft) / 2;
+          // 以修飾框在螢幕上的幾何中心為起點，精準映射至 topSvg 坐標系
+          const boxCenterScreenX = (Math.min(sRect.left, eRect.left) + Math.max(sRect.right, eRect.right)) / 2;
+          const fromX = (boxCenterScreenX - topSvgRect.left) / currentZoom;
           const toX = getCardPortX(cl.target_token_id, true);
           clauseRoutes.push({
             fromX: fromX,
@@ -4715,7 +5027,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
 
       topSvgWrap.style.height = `${topSvgHeight}px`;
 
-      const totalWidth = Math.max(tokensBox.scrollWidth, cardsRowWrap.offsetWidth);
+      const totalWidth = Math.max(tokensBox.scrollWidth, cardsRowWrap.offsetWidth, cardsRowWrap.scrollWidth);
       topSvg.setAttribute("width", totalWidth);
       topSvg.setAttribute("height", topSvgHeight);
 
@@ -4744,6 +5056,8 @@ ${JSON.stringify(rawLines, null, 2)}`;
       bottomSvg.setAttribute("width", totalWidth);
       bottomSvg.setAttribute("height", bottomSvgHeight);
 
+      const bottomSvgRect = bottomSvg.getBoundingClientRect();
+
       actionChains.forEach((chain, cIdx) => {
         const fromEl = document.getElementById(`token-${chain.from_action_id}`);
         const conjEl = document.getElementById(`token-${chain.conj_token_id}`);
@@ -4753,8 +5067,8 @@ ${JSON.stringify(rawLines, null, 2)}`;
         const fRect = fromEl.getBoundingClientRect();
         const tRect = toEl.getBoundingClientRect();
 
-        const x1 = ((fRect.left - cardsRect.left) / currentZoom) + (fRect.width / currentZoom / 2);
-        const x2 = ((tRect.left - cardsRect.left) / currentZoom) + (tRect.width / currentZoom / 2);
+        const x1 = ((fRect.left - bottomSvgRect.left) / currentZoom) + (fRect.width / currentZoom / 2);
+        const x2 = ((tRect.left - bottomSvgRect.left) / currentZoom) + (tRect.width / currentZoom / 2);
 
         const bottomChannelY = 24 + (cIdx * 34);
 
@@ -4770,7 +5084,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
         let labelX = (x1 + x2) / 2;
         if (conjEl) {
           const cRect = conjEl.getBoundingClientRect();
-          labelX = ((cRect.left - cardsRect.left) / currentZoom) + (cRect.width / currentZoom / 2);
+          labelX = ((cRect.left - bottomSvgRect.left) / currentZoom) + (cRect.width / currentZoom / 2);
         }
         renderSquareLabel(bottomSvg, labelX, bottomChannelY, chain.label || "連續動作", "#15803d");
       });
@@ -4804,6 +5118,7 @@ ${JSON.stringify(rawLines, null, 2)}`;
 
     window.addEventListener("resize", () => {
       if (document.getElementById("tabSyntax").classList.contains("active")) {
+        autoFitStructureZoom();
         drawStructureGraph();
       }
     });
