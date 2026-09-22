@@ -2107,15 +2107,6 @@
       </div>
 
       <div class="settings-field-group">
-        <label for="apiKey">Gemini API Key：</label>
-        <div style="display:flex; gap:8px; max-width:560px;">
-          <input type="password" id="apiKey" class="settings-input" placeholder="貼上你的 Gemini API Key (AI Studio)">
-          <button type="button" class="text-action-btn" onclick="clearApiKey()">清除 Key</button>
-        </div>
-        <div class="settings-tip">此 Key 儲存於瀏覽器本機，並會在連線 Google Drive 時自動同步備份至個人雲端空間。</div>
-      </div>
-
-      <div class="settings-field-group">
         <label for="modelSelect">主要呼叫模型：</label>
         <select id="modelSelect" class="settings-select" onchange="onModelChange()">
           <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (高吞吐、超低延遲，預設)</option>
@@ -2156,8 +2147,18 @@
       <!-- 進階 Client ID 設定 -->
       <details style="margin-top:16px; border-top:1px dashed #e2e8f0; padding-top:12px;">
         <summary style="font-size:12px; color:#718096; cursor:pointer; user-select:none;">
-          🔒 進階開發者設定 (自訂 Client ID) ▾
+          🔒 進階開發者設定 (API Key / Client ID) ▾
         </summary>
+        <div class="settings-field-group" style="margin-top:12px;">
+          <label for="apiKey">🔑 Gemini API Key：</label>
+          <div style="display:flex; gap:8px; max-width:620px; flex-wrap:wrap;">
+            <input type="password" id="apiKey" class="settings-input" style="background:#edf2f7;" readonly autocomplete="off" spellcheck="false">
+            <button type="button" class="text-action-btn" id="unlockApiKeyBtn" onclick="promptUnlockApiKey()">解鎖查看 / 修改 API Key</button>
+            <button type="button" class="text-action-btn" id="saveApiKeyBtn" style="display:none;" onclick="saveCustomApiKey()">儲存變更</button>
+          </div>
+          <div class="settings-tip">API Key 已移至進階開發者設定，與 Client ID 使用相同的管理員密碼保護。預設使用內建 Key；一般情況無需修改。</div>
+        </div>
+
         <div class="settings-field-group" style="margin-top:12px;">
           <label for="gdriveClientIdInput">Google OAuth 2.0 Client ID：</label>
           <div style="display:flex; gap:8px; max-width:620px; flex-wrap:wrap;">
@@ -2356,6 +2357,8 @@
     const ADMIN_STATS_KEY = "app_admin_stats_v1";
 
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
+    // 預設 Gemini API Key。UI 顯示與修改受到同一組管理員密碼保護。
+    const BUILTIN_GEMINI_API_KEY = "AQ.Ab8RN6IZniCKcCQSKXB1DYZJmHGss-cEz9dax91fj89bZ67QqA";
     const ADMIN_UNLOCK_PASSWORD = "19980815";
 
     let cachedHtmlPayload = "";
@@ -3606,6 +3609,49 @@
       return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || BUILTIN_GOOGLE_CLIENT_ID;
     }
 
+    function getEffectiveApiKey() {
+      return (localStorage.getItem(STORAGE_KEY) || BUILTIN_GEMINI_API_KEY).trim();
+    }
+
+    function promptUnlockApiKey() {
+      const inputPass = prompt("請輸入管理密碼以解除 API Key 鎖定：");
+      if (inputPass === ADMIN_UNLOCK_PASSWORD) {
+        const inputEl = document.getElementById("apiKey");
+        inputEl.type = "text";
+        inputEl.readOnly = false;
+        inputEl.style.background = "#ffffff";
+        inputEl.focus();
+
+        document.getElementById("unlockApiKeyBtn").style.display = "none";
+        document.getElementById("saveApiKeyBtn").style.display = "inline-block";
+        alert("已驗證身分！現在可以查看或修改 Gemini API Key。");
+      } else if (inputPass !== null) {
+        alert("密碼不正確，無法編輯 API Key！");
+      }
+    }
+
+    function saveCustomApiKey() {
+      const inputEl = document.getElementById("apiKey");
+      const val = inputEl.value.trim();
+      if (val) {
+        localStorage.setItem(STORAGE_KEY, val);
+        alert("Gemini API Key 已儲存！");
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        inputEl.value = BUILTIN_GEMINI_API_KEY;
+        alert("已清除自訂 Key，恢復為內建預設 API Key！");
+      }
+
+      inputEl.type = "password";
+      inputEl.readOnly = true;
+      inputEl.style.background = "#edf2f7";
+      document.getElementById("unlockApiKeyBtn").style.display = "inline-block";
+      document.getElementById("saveApiKeyBtn").style.display = "none";
+
+      updateApiKeyBadge(getEffectiveApiKey());
+      if (googleAccessToken) syncWithGoogleDrive(false);
+    }
+
     function promptUnlockClientId() {
       const inputPass = prompt("請輸入管理密碼以解除鎖定：");
       if (inputPass === ADMIN_UNLOCK_PASSWORD) {
@@ -3826,7 +3872,7 @@
         const localArticles = await getAllArticlesFromDb();
         const localFolders = await getAllFoldersFromDb();
         const localSyntax = await getAllSyntaxFromDb();
-        const currentLocalKey = localStorage.getItem(STORAGE_KEY) || "";
+        const currentLocalKey = getEffectiveApiKey();
 
         if (fileId) {
           let fullMergedItems = localItems;
@@ -3950,11 +3996,9 @@
     window.addEventListener("DOMContentLoaded", () => {
       recordVisitorCount();
 
-      const savedKey = localStorage.getItem(STORAGE_KEY);
-      if (savedKey) {
-        document.getElementById("apiKey").value = savedKey;
-      }
-      updateApiKeyBadge(savedKey);
+      const effectiveApiKey = getEffectiveApiKey();
+      document.getElementById("apiKey").value = effectiveApiKey;
+      updateApiKeyBadge(effectiveApiKey);
 
       const savedModel = localStorage.getItem(MODEL_STORAGE_KEY) || "gemini-3.1-flash-lite";
       document.getElementById("modelSelect").value = savedModel;
@@ -3973,12 +4017,13 @@
 
     document.getElementById("apiKey").addEventListener("input", (e) => {
       const val = e.target.value.trim();
+      if (e.target.readOnly) return;
       if (val) {
         localStorage.setItem(STORAGE_KEY, val);
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }
-      updateApiKeyBadge(val);
+      updateApiKeyBadge(val || BUILTIN_GEMINI_API_KEY);
       if (googleAccessToken) syncWithGoogleDrive(false);
     });
 
@@ -4010,10 +4055,10 @@
     }
 
     function clearApiKey() {
-      document.getElementById("apiKey").value = "";
       localStorage.removeItem(STORAGE_KEY);
-      updateApiKeyBadge("");
-      document.getElementById("globalStatus").innerText = "已清除 API Key。";
+      document.getElementById("apiKey").value = BUILTIN_GEMINI_API_KEY;
+      updateApiKeyBadge(BUILTIN_GEMINI_API_KEY);
+      document.getElementById("globalStatus").innerText = "已恢復內建 API Key。";
       if (googleAccessToken) syncWithGoogleDrive(false);
     }
 
@@ -4023,9 +4068,9 @@
     }
 
     function getApiKey() {
-      const key = document.getElementById("apiKey").value.trim();
+      const key = getEffectiveApiKey();
       if (!key) {
-        alert("請先前往第四分頁「⚙️ 帳號與 API 設定」填入 Gemini API Key。");
+        alert("請先前往第四分頁「⚙️ 帳號與 API 設定」設定 Gemini API Key。");
         switchTab("tabSettings");
         return null;
       }
@@ -5168,7 +5213,7 @@
         }
       }
 
-      const apiKey = document.getElementById("apiKey") ? document.getElementById("apiKey").value.trim() : "";
+      const apiKey = getEffectiveApiKey();
 
       // 沒有 API Key 時無法呼叫 Gemini；保留內建教材作為離線備援。
       if (!apiKey) {
