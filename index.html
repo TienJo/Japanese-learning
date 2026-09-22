@@ -2401,8 +2401,7 @@
     const ADMIN_STATS_KEY = "app_admin_stats_v1";
 
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
-    // 預設 Gemini API Key。UI 顯示與修改受到同一組管理員密碼保護。
-    const ADMIN_UNLOCK_PASSWORD = "19980815";
+    // Gemini API Key 改為使用者手動輸入，並可透過 Google Drive AppData 同步。
 
     let cachedHtmlPayload = "";
     let cachedTextPayload = "";
@@ -3783,20 +3782,14 @@
     }
 
     function promptUnlockClientId() {
-      const inputPass = prompt("請輸入管理密碼以解除鎖定：");
-      if (inputPass === ADMIN_UNLOCK_PASSWORD) {
-        const inputEl = document.getElementById("gdriveClientIdInput");
-        inputEl.type = "text";
-        inputEl.readOnly = false;
-        inputEl.style.background = "#ffffff";
-        inputEl.focus();
+      const inputEl = document.getElementById("gdriveClientIdInput");
+      inputEl.type = "text";
+      inputEl.readOnly = false;
+      inputEl.style.background = "#ffffff";
+      inputEl.focus();
 
-        document.getElementById("unlockClientBtn").style.display = "none";
-        document.getElementById("saveClientBtn").style.display = "inline-block";
-        alert("已驗證身分！現在可以編輯或更換 Client ID。");
-      } else if (inputPass !== null) {
-        alert("密碼不正確，無法編輯！");
-      }
+      document.getElementById("unlockClientBtn").style.display = "none";
+      document.getElementById("saveClientBtn").style.display = "inline-block";
     }
 
     function saveCustomClientId() {
