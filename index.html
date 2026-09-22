@@ -5676,18 +5676,112 @@
       }
 
       const parts = data.candidates[0].content.parts;
-      if (!parts || !parts[0] || !parts[0].text) {
+      const textParts = Array.isArray(parts)
+        ? parts.filter(part => part && typeof part.text === "string").map(part => part.text)
+        : [];
+
+      if (!textParts.length) {
         throw new Error("回傳結構中缺少有效文字");
       }
 
-      let rawText = parts[0].text.trim();
-      if (rawText.startsWith("```json")) {
-        rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-      } else if (rawText.startsWith("```")) {
-        rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      const rawText = textParts.join("\n").trim();
+
+      // Gemini 偶爾會在 JSON 前後加上說明文字，或用 ```json ... ``` 包住 JSON。
+      // 不再要求整段回傳內容必須 100% 等於 JSON，而是自動從文字中找出
+      // 第一個「完整且可解析」的 JSON object / array。
+      const jsonValue = extractFirstValidJson(rawText);
+      if (jsonValue === null) {
+        const preview = rawText.length > 500 ? rawText.slice(0, 500) + "…" : rawText;
+        throw new Error(`Gemini 回傳內容中找不到有效 JSON。\n回傳內容：${preview}`);
       }
 
-      return JSON.parse(rawText);
+      return jsonValue;
+    }
+
+    function extractFirstValidJson(text) {
+      if (typeof text !== "string" || !text.trim()) return null;
+
+      // 先處理最常見的 Markdown code fence。
+      const fencedMatches = [];
+      const fenceRe = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
+      let fenceMatch;
+      while ((fenceMatch = fenceRe.exec(text)) !== null) {
+        fencedMatches.push(fenceMatch[1].trim());
+      }
+
+      const sources = fencedMatches.length ? fencedMatches : [text];
+
+      // 從每個候選文字中找出完整的 JSON 結構。
+      // 解析時會正確忽略字串內的 { } [ ]，也會處理 \"、\\ 等跳脫字元。
+      for (const source of sources) {
+        const candidates = [];
+
+        for (let start = 0; start < source.length; start++) {
+          const first = source[start];
+          if (first !== "{" && first !== "[") continue;
+
+          const stack = [];
+          let inString = false;
+          let escaped = false;
+
+          for (let i = start; i < source.length; i++) {
+            const ch = source[i];
+
+            if (inString) {
+              if (escaped) {
+                escaped = false;
+              } else if (ch === "\\") {
+                escaped = true;
+              } else if (ch === '"') {
+                inString = false;
+              }
+              continue;
+            }
+
+            if (ch === '"') {
+              inString = true;
+              continue;
+            }
+
+            if (ch === "{" || ch === "[") {
+              stack.push(ch);
+            } else if (ch === "}" || ch === "]") {
+              const expected = ch === "}" ? "{" : "[";
+              if (stack.length === 0 || stack[stack.length - 1] !== expected) {
+                break;
+              }
+
+              stack.pop();
+              if (stack.length === 0) {
+                const candidate = source.slice(start, i + 1).trim();
+                try {
+                  candidates.push(JSON.parse(candidate));
+                } catch (_) {
+                  // 這個候選不是合法 JSON，繼續找下一個可能的 JSON。
+                }
+                break;
+              }
+            }
+          }
+        }
+
+        if (candidates.length) {
+          // 如果回傳中有多個 JSON，優先取結構最大的那一個，
+          // 避免誤抓到說明文字中的小型 JSON 片段。
+          return candidates.sort((a, b) => {
+            const aLen = JSON.stringify(a).length;
+            const bLen = JSON.stringify(b).length;
+            return bLen - aLen;
+          })[0];
+        }
+      }
+
+      // 最後再嘗試整段直接解析，處理一般正常 JSON。
+      try {
+        return JSON.parse(text.trim());
+      } catch (_) {
+        return null;
+      }
     }
 
     async function runTranslationOnly() {
