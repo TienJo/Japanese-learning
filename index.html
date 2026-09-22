@@ -2385,9 +2385,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "gemini_saved_api_key";
+    const STORAGE_KEY = "gemini_admin_api_key_v2";
     const MODEL_STORAGE_KEY = "gemini_saved_model_pref";
-    const GOOGLE_CLIENT_ID_KEY = "gdrive_saved_client_id";
+    const GOOGLE_CLIENT_ID_KEY = "gdrive_admin_client_id_v2";
     const GOOGLE_TOKEN_KEY = "gdrive_saved_access_token";
     const GOOGLE_EXPIRES_AT_KEY = "gdrive_saved_token_expires_at";
     const GOOGLE_LOGGED_IN_FLAG = "gdrive_has_logged_in";
@@ -2403,7 +2403,7 @@
 
     const BUILTIN_GOOGLE_CLIENT_ID = "865993916714-o0h883itsqd3lvgbatmkgqrqqhbrmuhf.apps.googleusercontent.com";
     // 預設 Gemini API Key。UI 顯示與修改受到同一組管理員密碼保護。
-    const BUILTIN_GEMINI_API_KEY = "AQ.Ab8RN6IZniCKcCQSKXB1DYZJmHGss-cEz9dax91fj89bZ67QqA";
+    const BUILTIN_GEMINI_API_KEY = "AQ.Ab8RN6Kdu-FYcyHJ4Gd53JRwLCBweKrkeyoNKMk23kPg4hqeEA";
     const ADMIN_UNLOCK_PASSWORD = "19980815";
 
     let cachedHtmlPayload = "";
@@ -4001,6 +4001,11 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      // Gemini API 與 Google 登入完全分離：清除舊版本曾儲存的使用者 API Key / Client ID，
+      // 避免舊帳號憑證覆蓋管理員提供的新版預設值。新版只有管理員解鎖後才能寫入 v2 設定。
+      localStorage.removeItem("gemini_saved_api_key");
+      localStorage.removeItem("gdrive_saved_client_id");
+
       recordVisitorCount();
 
       const effectiveApiKey = getEffectiveApiKey();
@@ -4076,9 +4081,10 @@
     }
 
     function getApiKey() {
+      // Gemini API 不依賴 Google 登入；Google 登入只用於 Drive 雲端同步。
       const key = getEffectiveApiKey();
       if (!key) {
-        alert("請先前往第四分頁「⚙️ 帳號與 API 設定」設定 Gemini API Key。");
+        alert("目前沒有可用的 Gemini API Key，請聯絡管理員設定。");
         switchTab("tabSettings");
         return null;
       }
@@ -5607,16 +5613,17 @@
         if (updateStatusCallback) updateStatusCallback(`正在使用 ${model} 處理中...`);
 
         try {
-          // 首頁「每日簽到」要與目前已驗證可正常運作的對照轉換 API 呼叫方式一致：
-          // 使用 generateContent?key=...，並只送 Content-Type header。
-          // 這裡的 forcedModel 目前就是首頁固定使用的 gemini-3.1-flash-lite。
-          const endpoint = forcedModel
-            ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`
-            : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+          // 所有 Gemini generateContent 請求都必須帶上 API Key。
+          // 之前只有 forcedModel（首頁每日簽到）帶 ?key=，
+          // 導致結構分析／翻譯等一般請求沒有任何 consumer identity，
+          // 因而出現「Method doesn't allow unregistered callers」。
+          // 現在統一讓所有請求都帶 API Key，並使用 Google 官方目前建議的 header 方式。
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
           const requestOptions = {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
