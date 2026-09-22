@@ -2114,7 +2114,7 @@
           <option value="gemini-3.7-flash">Gemini 3.7 Flash (高智商推理)</option>
           <option value="auto">自動備援 (Auto Fallback)</option>
         </select>
-        <div class="settings-tip">對照轉換與句法分析將優先使用選取的模型；若遇配額限制將自動切換備援。</div>
+        <div class="settings-tip">對照轉換與句法分析將依此設定呼叫；首頁「本日のトレンド單語」固定使用 Gemini 3.1 Flash-Lite，不受此設定影響。</div>
       </div>
     </div>
 
@@ -3978,7 +3978,9 @@
       initShadowingVoicePreference();
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
-      initDailySpecial();
+      // 首頁特選不要在頁面剛載入時立刻打 Gemini，避免手機瀏覽器/網路連線尚未穩定而出現 ERR_CONNECTION_CLOSED。
+      // 延後約 1.5 秒；若今天已有快取，loadDailySpecial(false) 仍會直接讀取，不會產生 API 請求。
+      setTimeout(initDailySpecial, 1500);
       document.getElementById("globalStatus").innerText = "系統就緒。";
     });
 
@@ -5268,7 +5270,7 @@
         const result = await requestGeminiWithFallback(prompt, apiKey, (msg) => {
           const status = document.getElementById("globalStatus");
           if (status) status.innerText = msg;
-        });
+        }, "gemini-3.1-flash-lite");
 
         if (validateDailySpecialData(result)) {
           result.words = result.words.slice(0, 2);
@@ -5286,10 +5288,23 @@
         }
       } catch (err) {
         console.error("生成本日のスペシャル失敗:", err);
+        // Gemini 失敗時也要把今日的內建備援教材寫入今日快取。
+        // 否則每次重新開頁都會因為沒有 cache 而再次呼叫 Gemini，造成
+        // 「每次開頁都跳出認證錯誤」的循環。
         currentDailySpecialData = getBuiltInDailySpecial(today);
+        currentDailySpecialData.date = today;
         renderDailySpecial(currentDailySpecialData);
+        localStorage.setItem(cacheKey, JSON.stringify(currentDailySpecialData));
         saveDailySpecialHistory(currentDailySpecialData, today);
-        alert("今日特選生成時遇限制，已先載入今日專屬教材：" + err.message);
+
+        // 自動開頁失敗時不要再用 alert 阻塞使用者；
+        // 手動按「換一批」時才提示 API 錯誤，方便管理員排查。
+        if (forceRefresh) {
+          alert("今日特選生成失敗，已載入今日專屬教材：" + err.message);
+        } else {
+          const status = document.getElementById("globalStatus");
+          if (status) status.innerText = "今日特選暫時使用備援教材。";
+        }
       } finally {
         // Gemini 完成後清除「正在使用 xxx 處理中...」狀態，避免成功更新後畫面仍一直顯示處理中。
         const status = document.getElementById("globalStatus");
@@ -5450,12 +5465,15 @@
       }
     }
 
-    async function requestGeminiWithFallback(prompt, apiKey, updateStatusCallback) {
+    async function requestGeminiWithFallback(prompt, apiKey, updateStatusCallback, forcedModel = null) {
       const userChoice = document.getElementById("modelSelect").value;
       let candidateModels = [];
       const standardPool = ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3.7-flash"];
 
-      if (userChoice === "auto") candidateModels = standardPool;
+      // 首頁「本日のトレンド單語」固定使用 Gemini 3.1 Flash-Lite，
+      // 不受設定頁的模型選擇與 Auto Fallback 影響。
+      if (forcedModel) candidateModels = [forcedModel];
+      else if (userChoice === "auto") candidateModels = standardPool;
       else candidateModels = [userChoice, ...standardPool.filter(m => m !== userChoice)];
 
       let lastError = null;
@@ -5468,7 +5486,7 @@
           // Google 目前的新式 AQ. 認證 Key 建議透過 x-goog-api-key 傳送。
           // 不再把 API Key 放進 URL 的 ?key= 參數，避免新版認證金鑰被當成 OAuth 憑證處理。
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-          const res = await fetch(endpoint, {
+          const requestOptions = {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -5478,7 +5496,23 @@
               contents: [{ parts: [{ text: prompt }] }],
               generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
             })
-          });
+          };
+
+          // 手機瀏覽器剛開頁時偶爾會出現 TypeError: Failed to fetch / ERR_CONNECTION_CLOSED。
+          // 這不是 HTTP 認證錯誤，因為連 HTTP response 都沒有收到；首頁特選只在此情況短暫重試。
+          let res;
+          const maxNetworkRetries = forcedModel ? 2 : 0;
+          for (let attempt = 0; ; attempt++) {
+            try {
+              res = await fetch(endpoint, requestOptions);
+              break;
+            } catch (networkErr) {
+              if (attempt >= maxNetworkRetries) throw networkErr;
+              console.warn(`[Network Retry] ${model} 連線失敗，第 ${attempt + 2} 次重試...`, networkErr);
+              if (updateStatusCallback) updateStatusCallback(`連線中斷，正在重試 ${attempt + 1}/${maxNetworkRetries}...`);
+              await new Promise(resolve => setTimeout(resolve, 1200));
+            }
+          }
 
           const data = await res.json();
           if (!res.ok) {
