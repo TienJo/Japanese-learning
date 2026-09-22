@@ -1706,6 +1706,35 @@
       color: #92400e;
       line-height: 1.5;
     }
+
+
+    /* 每日簽到搖籤 */
+    .daily-checkin-card {
+      margin: 18px 0 22px;
+      padding: 28px 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #f8fbff 0%, #fffdf7 100%);
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(30, 64, 175, 0.06);
+    }
+    .daily-checkin-icon { font-size: 42px; line-height: 1; margin-bottom: 10px; }
+    .daily-checkin-title { font-size: 20px; font-weight: 800; color: #2d3748; margin-bottom: 7px; }
+    .daily-checkin-desc { font-size: 13px; color: #718096; line-height: 1.7; margin: 0 auto 16px; max-width: 520px; }
+    .daily-checkin-btn {
+      border: 0; border-radius: 999px; padding: 12px 26px;
+      background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;
+      font-size: 15px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 7px 18px rgba(102,126,234,.25);
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    .daily-checkin-btn:hover { transform: translateY(-1px); }
+    .daily-checkin-btn:disabled { opacity: .65; cursor: wait; transform: none; }
+    .daily-checkin-note { margin-top: 11px; font-size: 12px; color: #a0aec0; }
+    .daily-checkin-card.shaking .daily-checkin-icon { animation: dailyShake .42s ease-in-out infinite alternate; }
+    @keyframes dailyShake { from { transform: rotate(-12deg) translateX(-2px); } to { transform: rotate(12deg) translateX(2px); } }
+    #dailySpecialContent.is-hidden { display: none; }
+
   </style>
 </head>
 <body>
@@ -1785,11 +1814,21 @@
         <div class="special-hero-desc">由 Gemini 每天即時挑選近期流行流行語與當代年輕人的日常會話，每天不重樣，帶你掌握最道地的現代日語！</div>
       </div>
       <div>
-        <button type="button" class="special-refresh-btn" id="refreshDailyBtn" onclick="loadDailySpecial(true)">
+        <button type="button" class="special-refresh-btn" id="refreshDailyBtn" onclick="loadDailySpecial(true)" style="display:none;">
           <span>🔄 換一批</span>
         </button>
       </div>
     </div>
+
+    <div class="daily-checkin-card" id="dailyCheckinCard">
+      <div class="daily-checkin-icon" id="dailyCheckinIcon">🎋</div>
+      <div class="daily-checkin-title" id="dailyCheckinTitle">今日の日本語籤，等你來搖！</div>
+      <div class="daily-checkin-desc" id="dailyCheckinDesc">按下「今日簽到・搖籤」，才會向 Gemini 取得今天專屬的 2 個流行單字與一段真實日常對話。每天簽一次，今天的教材就會保留在本機。</div>
+      <button type="button" class="daily-checkin-btn" id="dailyCheckinBtn" onclick="checkInDailySpecial()">🎋 今日簽到・搖籤</button>
+      <div class="daily-checkin-note" id="dailyCheckinNote">尚未簽到 · 不會在開啟網頁時自動呼叫 Gemini</div>
+    </div>
+
+    <div id="dailySpecialContent" class="is-hidden">
 
     <!-- 流行語塊區 -->
     <div class="special-section-title">
@@ -1819,6 +1858,7 @@
         <div style="font-size:14px; font-weight:700; color:#4a5568; margin-bottom:8px;">💡 若者ことば・ニュアンス解説（現代口語特色與文化指南）</div>
         <div class="culture-tips-grid" id="cultureTipsGrid"></div>
       </div>
+    </div>
     </div>
   </div>
 
@@ -3978,9 +4018,8 @@
       initShadowingVoicePreference();
       initIndexedDB();
       setTimeout(initGoogleClient, 500);
-      // 首頁特選不要在頁面剛載入時立刻打 Gemini，避免手機瀏覽器/網路連線尚未穩定而出現 ERR_CONNECTION_CLOSED。
-      // 延後約 1.5 秒；若今天已有快取，loadDailySpecial(false) 仍會直接讀取，不會產生 API 請求。
-      setTimeout(initDailySpecial, 1500);
+      // 每日特選改為「簽到搖籤」：開頁只檢查今天是否已簽到，不會自動呼叫 Gemini。
+      initDailySpecial();
       document.getElementById("globalStatus").innerText = "系統就緒。";
     });
 
@@ -5146,22 +5185,107 @@
       return !hasDuplicate;
     }
 
+    const DAILY_CHECKIN_STORAGE_KEY_PREFIX = "app_daily_special_checkin_";
+
+    function setDailyCheckinView(checkedIn, data = null, loading = false) {
+      const card = document.getElementById("dailyCheckinCard");
+      const content = document.getElementById("dailySpecialContent");
+      const btn = document.getElementById("dailyCheckinBtn");
+      const icon = document.getElementById("dailyCheckinIcon");
+      const title = document.getElementById("dailyCheckinTitle");
+      const desc = document.getElementById("dailyCheckinDesc");
+      const note = document.getElementById("dailyCheckinNote");
+      if (!card || !content || !btn) return;
+
+      card.classList.toggle("shaking", loading);
+      if (loading) {
+        content.classList.add("is-hidden");
+        btn.disabled = true;
+        btn.innerText = "🎋 搖籤中…";
+        if (icon) icon.innerText = "🎋";
+        if (title) title.innerText = "正在為你搖今天的日本語籤…";
+        if (desc) desc.innerText = "第一次按下簽到時才會呼叫 Gemini，請稍候。";
+        if (note) note.innerText = "正在取得今日專屬教材…";
+        return;
+      }
+
+      if (checkedIn && data) {
+        content.classList.remove("is-hidden");
+        btn.disabled = true;
+        btn.innerText = "✅ 今日已簽到";
+        if (icon) icon.innerText = "🎋✨";
+        if (title) title.innerText = "今日日本語籤已開出！";
+        if (desc) desc.innerText = "今天的單字與日常對話已準備好，明天再來搖新的。";
+        if (note) note.innerText = "已簽到 · 今日教材已儲存，不會再次自動呼叫 Gemini";
+      } else {
+        content.classList.add("is-hidden");
+        btn.disabled = false;
+        btn.innerText = "🎋 今日簽到・搖籤";
+        if (icon) icon.innerText = "🎋";
+        if (title) title.innerText = "今日の日本語籤，等你來搖！";
+        if (desc) desc.innerText = "按下「今日簽到・搖籤」，才會向 Gemini 取得今天專屬的 2 個流行單字與一段真實日常對話。每天簽一次，今天的教材就會保留在本機。";
+        if (note) note.innerText = "尚未簽到 · 不會在開啟網頁時自動呼叫 Gemini";
+      }
+    }
+
     function initDailySpecial() {
-      const today = new Date();
-      const dateStr = getLocalDateKey(today);
-      const year = today.getFullYear();
-      const month = today.getMonth() + 1;
-      const day = today.getDate();
+      const todayObj = new Date();
+      const today = getLocalDateKey(todayObj);
+      const year = todayObj.getFullYear();
+      const month = todayObj.getMonth() + 1;
+      const day = todayObj.getDate();
       const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
-      const dayName = weekDays[today.getDay()];
+      const dayName = weekDays[todayObj.getDay()];
       const displayDateStr = `${year}年${month}月${day}日（${dayName}）`;
 
       const dateBadge = document.getElementById("specialDateBadge");
       if (dateBadge) dateBadge.innerText = displayDateStr;
 
-      // 每個自然日只自動生成一次；之後重新開頁、登入 Google 或切換分頁，都直接使用今天的快取。
-      // 只有「換一批」按鈕才會呼叫 loadDailySpecial(true) 強制重新生成。
-      loadDailySpecial(false);
+      // 開頁時只讀今天的簽到紀錄/快取；絕不因為開頁本身呼叫 Gemini。
+      const checkinKey = DAILY_CHECKIN_STORAGE_KEY_PREFIX + today;
+      const checkedIn = localStorage.getItem(checkinKey) === "1";
+      const cacheKey = DAILY_SPECIAL_STORAGE_KEY_PREFIX + today;
+      const cached = localStorage.getItem(cacheKey);
+      if (checkedIn && cached) {
+        try {
+          currentDailySpecialData = JSON.parse(cached);
+          renderDailySpecial(currentDailySpecialData);
+          setDailyCheckinView(true, currentDailySpecialData);
+          return;
+        } catch (e) {
+          console.warn("今日簽到快取無法解析，等待重新簽到:", e);
+          localStorage.removeItem(checkinKey);
+          localStorage.removeItem(cacheKey);
+        }
+      }
+      setDailyCheckinView(false);
+    }
+
+    async function checkInDailySpecial() {
+      const today = getLocalDateKey();
+      const cacheKey = DAILY_SPECIAL_STORAGE_KEY_PREFIX + today;
+      const checkinKey = DAILY_CHECKIN_STORAGE_KEY_PREFIX + today;
+
+      // 今天已簽到就不再打 API。
+      if (localStorage.getItem(checkinKey) === "1") {
+        initDailySpecial();
+        return;
+      }
+
+      setDailyCheckinView(false, null, true);
+      try {
+        // forceRefresh=true：真正的 Gemini 呼叫只從「今日簽到・搖籤」這個動作發生。
+        await loadDailySpecial(true);
+        if (currentDailySpecialData) {
+          localStorage.setItem(checkinKey, "1");
+          setDailyCheckinView(true, currentDailySpecialData);
+        }
+      } catch (err) {
+        // loadDailySpecial 已處理 API 錯誤並載入備援內容；若仍無資料，讓使用者可以重新簽到。
+        console.error("今日簽到失敗:", err);
+        localStorage.removeItem(checkinKey);
+        setDailyCheckinView(false);
+      }
     }
 
     async function loadDailySpecial(forceRefresh = false) {
