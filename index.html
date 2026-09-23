@@ -416,21 +416,14 @@
       pointer-events: auto;
     }
     .tree-scroll-container {
-      overflow: hidden;
+      overflow: auto;
       background: #fafbfc;
       border: 1px solid #e1e4e8;
       border-radius: 8px;
       padding: 16px;
       position: relative;
       width: 100%;
-      height: 700px;
-      min-height: 700px;
-      cursor: grab;
-      user-select: none;
-    }
-
-    .tree-scroll-container.dragging {
-      cursor: grabbing;
+      min-height: 420px;
     }
     .tree-zoom-spacer {
       position: relative;
@@ -1818,7 +1811,7 @@
       <div>
         <div class="special-date-chip" id="specialDateBadge">2026年9月21日（月）</div>
         <div class="special-hero-title">✨ 本日のスペシャル</div>
-        <div class="special-hero-desc">由 Gemini 每天即時挑選近期流行流行語與當代年輕人的日常會話，每天不重樣，帶你掌握最道地的現代日語！</div>
+        <div class="special-hero-desc">每天生成一個生活主題，透過真實場景對話學習日本人日常會說的自然日語。</div>
       </div>
       <div>
         <button type="button" class="special-refresh-btn" id="refreshDailyBtn" onclick="loadDailySpecial(true)" style="display:none;">
@@ -1839,10 +1832,19 @@
 
     <!-- 流行語塊區 -->
     <div class="special-section-title">
-      <span>🔥 本日のトレンド単語</span>
+      <span>🔥 本日の生活テーマ・キーワード</span>
       <span style="font-size:12px; color:#718096; font-weight:normal;">點擊 🔊 試聽發音 · 支援收藏至單字庫</span>
     </div>
     <div class="special-words-grid" id="specialWordsGrid"></div>
+
+    <!-- 文法教學區 -->
+    <div class="special-section-title">
+      <span>📘 本日の文法レッスン・JLPT文法</span>
+      <span style="font-size:12px; color:#718096; font-weight:normal;">標示 JLPT N1〜N5 等級</span>
+    </div>
+    <div class="article-card" style="cursor:default;" id="dailyGrammarCard">
+      <div id="dailyGrammarContent">今日の文法を生成すると表示されます。</div>
+    </div>
 
     <!-- 真實對話區 -->
     <div class="special-section-title">
@@ -2415,7 +2417,6 @@
     let latestTranslationResults = null;
     let isolatedSyntaxData = [];
     let currentZoom = 1.0;
-    let treePan = { x: 0, y: 0 };
 
     // ================= 原生人聲發音核心 (Web Speech API) =================
     let voicePitch = 0.85;
@@ -4198,8 +4199,7 @@
         // 取寬高較小值，確保完整放入固定視窗
         const fitRatio = Math.min(widthRatio, heightRatio);
 
-        // 預設保持 100%，避免視窗跟著內容縮放
-        currentZoom = 1.0;
+        currentZoom = Math.min(1.85, Math.max(0.5, Math.round(fitRatio * 20) / 20));
       }
 
       wrapper.style.transform = oldTransform;
@@ -4227,44 +4227,12 @@
         wrapper.style.transform = `scale(${currentZoom})`;
         if (label) label.innerText = `${Math.round(currentZoom * 100)}%`;
 
-        // 縮放只作用於內容，不改變外層視窗大小
+        // 即時更新佔位容器的大小，確保捲軸能正確滾動到邊緣不被裁切
         const rect = canvasWrap.getBoundingClientRect();
         spacer.style.width = `${rect.width}px`;
         spacer.style.height = `${rect.height}px`;
-        wrapper.style.transform = `translate(${treePan.x}px, ${treePan.y}px) scale(${currentZoom})`;
       }
     }
-
-    // 結構圖視窗拖曳平移（拖空白處移動，不改變視窗大小）
-    (function initTreePan() {
-      document.addEventListener("DOMContentLoaded", () => {
-        const box = document.querySelector(".tree-scroll-container");
-        if (!box) return;
-
-        let dragging = false;
-        let startX = 0, startY = 0;
-
-        box.addEventListener("mousedown", (e) => {
-          if (e.target.closest("button")) return;
-          dragging = true;
-          box.classList.add("dragging");
-          startX = e.clientX - treePan.x;
-          startY = e.clientY - treePan.y;
-        });
-
-        window.addEventListener("mousemove", (e) => {
-          if (!dragging) return;
-          treePan.x = e.clientX - startX;
-          treePan.y = e.clientY - startY;
-          applyZoom();
-        });
-
-        window.addEventListener("mouseup", () => {
-          dragging = false;
-          box.classList.remove("dragging");
-        });
-      });
-    })();
 
     async function captureStructureTree(actionType) {
       const canvasTarget = document.getElementById("treeCanvasWrap");
@@ -5279,7 +5247,7 @@
       const selected = JSON.parse(JSON.stringify(pool[index]));
 
       selected.date = dateKey;
-      selected.theme_title = selected.theme_title || "2026年最新若者言葉・日常トレンド";
+      selected.theme_title = selected.theme_title || "2026年最新日常生活テーマ";
       return selected;
     }
 
@@ -5449,7 +5417,7 @@
 
       const prompt = `你是一位精通日本現代流行文化與年輕人用語（若者言葉）的日語專家。
 今天日期是「${today}」。
-請以「${randomSeed}」為核心情境，創作一份精采道地的【本日のスペシャル（今日特選）】教材。
+請以「${randomSeed}」為核心情境，創作一份實用的【日本生活日語主題教材】。
 
 【非常重要的每日不重複規則】
 - 今天的 2 個 words 必須與最近使用過的詞彙不同。
@@ -5459,9 +5427,9 @@
 - 內容要符合現代日本年輕人的自然口語，但不要為了追求流行而使用明顯過時或虛構的詞。
 
 嚴格要求：
-1. words：精選剛好 2 個「近年日本 SNS、Z世代或時下年輕人高頻使用但課本少教」的真實流行詞彙。
+1. words：精選剛好 2 個與日常生活主題相關的重要詞彙或自然口語表現（不限流行語，優先選日本人每天真的會使用的說法）。
    - 提供詞彙 (word)、純平假名讀音 (reading)、標準赫本式羅馬拼音 (romaji)、詞性分類標籤 (tag)、詳細有趣的起源及現代語意中文解釋 (meaning)、以及一個生動的年輕人日常例句 (example，包含 ja, reading, romaji, zh)。
-2. dialogue：創作一段雙人對話（4 至 6 句），呈現最自然、生活化的現代日常交流。包含省略句、真實口語縮約、語氣詞與當代俚語。
+2. dialogue：創作一段雙人對話（4 至 6 句），呈現日本人在真實生活中會遇到的場景交流。優先包含便利商店、餐廳、交通、購物、工作、朋友聊天、旅行等情境中的自然說法。可以包含口語縮約、語氣詞與禮貌差異。
    - scenario：情境描寫（中文）。
    - characters：兩位說話者名字（日文假名或漢字）。
    - lines：對話語句陣列，每句包含 speaker、日文原句 text、發音專用平假名 reading、標準羅馬拼音 romaji、自然台灣繁體中文意譯 zh。
@@ -5486,6 +5454,15 @@
       }
     }
   ],
+  "grammar": {
+    "level": "N3",
+    "grammar": "文法形式",
+    "meaning": "中文解釋",
+    "usage": "使用情境",
+    "examples": [
+      {"ja":"例句","reading":"平假名","romaji":"romaji","zh":"中文"}
+    ]
+  },
   "dialogue": {
     "scenario": "詳細情境說明",
     "characters": ["角色A", "角色B"],
@@ -5558,6 +5535,18 @@
 
     function renderDailySpecial(data) {
       if (!data) return;
+
+      // 文法教學渲染
+      const grammarBox = document.getElementById("dailyGrammarContent");
+      if (grammarBox && data.grammar) {
+        const g = data.grammar;
+        grammarBox.innerHTML = `
+          <div style="font-size:20px;font-weight:700;color:#2e78d6;">${escapeHtml(g.grammar || "")}</div>
+          <div style="margin:8px 0;"><strong>JLPT 等級：</strong>${escapeHtml(g.level || "")}</div>
+          <div><strong>意思：</strong>${escapeHtml(g.meaning || "")}</div>
+          <div style="margin-top:8px;"><strong>使用情境：</strong>${escapeHtml(g.usage || "")}</div>
+          <div style="margin-top:12px;"><strong>例句：</strong>${(g.examples || []).map(e => `<p>${escapeHtml(e.ja || "")}<br><span style="color:#c93b3b">${escapeHtml(e.romaji || "")}</span><br><span style="color:#257a46">${escapeHtml(e.zh || "")}</span></p>`).join("")}</div>`;
+      }
 
       // 1. 渲染流行詞卡片（固定呈現 2 個）
       const wordsGrid = document.getElementById("specialWordsGrid");
