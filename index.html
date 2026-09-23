@@ -5392,13 +5392,19 @@
 
       const apiKey = getEffectiveApiKey();
 
-      // 沒有 API Key 時無法呼叫 Gemini；保留內建教材作為離線備援。
+      // 首頁抽籤需要雲端 AI 生成；若沒有登入帳號，不再靜默使用離線教材，
+      // 直接引導使用者到帳號設定頁登入。
+      const isGoogleLoggedIn = localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) === "true";
+      if (!isGoogleLoggedIn) {
+        alert("請先登入 Google 帳號後再使用首頁抽籤功能。");
+        switchTab("tabSettings");
+        return;
+      }
+
+      // 沒有 API Key 時仍提示設定，不使用離線備援資料混淆使用者狀態。
       if (!apiKey) {
-        currentDailySpecialData = getBuiltInDailySpecial(today);
-        renderDailySpecial(currentDailySpecialData);
-        saveDailySpecialHistory(currentDailySpecialData, today);
-        const status = document.getElementById("globalStatus");
-        if (status) status.innerText = "今日特選已更新。";
+        alert("尚未設定 Gemini API Key，請在帳號與 API 設定頁完成設定。");
+        switchTab("tabSettings");
         return;
       }
 
@@ -5504,22 +5510,16 @@
         }
       } catch (err) {
         console.error("生成本日のスペシャル失敗:", err);
-        // Gemini 失敗時也要把今日的內建備援教材寫入今日快取。
-        // 否則每次重新開頁都會因為沒有 cache 而再次呼叫 Gemini，造成
-        // 「每次開頁都跳出認證錯誤」的循環。
-        currentDailySpecialData = getBuiltInDailySpecial(today);
-        currentDailySpecialData.date = today;
-        renderDailySpecial(currentDailySpecialData);
-        localStorage.setItem(cacheKey, JSON.stringify(currentDailySpecialData));
-        saveDailySpecialHistory(currentDailySpecialData, today);
+        // API 失敗時不要降級到離線教材，避免使用者誤以為已成功生成。
+        const status = document.getElementById("globalStatus");
+        if (status) status.innerText = "生成失敗，請檢查登入狀態或 API 設定。";
 
-        // 自動開頁失敗時不要再用 alert 阻塞使用者；
-        // 手動按「換一批」時才提示 API 錯誤，方便管理員排查。
         if (forceRefresh) {
-          alert("今日特選生成失敗，已載入今日專屬教材：" + err.message);
-        } else {
-          const status = document.getElementById("globalStatus");
-          if (status) status.innerText = "今日特選暫時使用備援教材。";
+          alert("今日特選生成失敗：" + err.message);
+        }
+
+        if (localStorage.getItem(GOOGLE_LOGGED_IN_FLAG) !== "true") {
+          switchTab("tabSettings");
         }
       } finally {
         // Gemini 完成後清除「正在使用 xxx 處理中...」狀態，避免成功更新後畫面仍一直顯示處理中。
