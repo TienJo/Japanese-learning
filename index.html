@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>さあ、日本語脳！</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
-let grammarPlanData=JSON.parse(localStorage.getItem('grammarPlanData')||'null');
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+let grammarPlanData=JSON.parse(localStorage.getItem('grammarPlanData')||'null') || {
+  level:"",
+  days:[],
+  currentDay:1
+};
 let grammarHistory=JSON.parse(localStorage.getItem('grammarHistory')||'[]');
 let currentGrammarDay=0;
 function renderGrammarPlan(){
@@ -13,7 +18,7 @@ function renderGrammarPlan(){
  if(!grammarPlanData)return;
  grammarPlanData.days.forEach((d,i)=>{let e=document.createElement('div');e.className='grammar-day-card '+(i===0||grammarPlanData.days[i-1].done?'unlocked':''); if(d.done)e.classList.add('done'); e.innerHTML=`<b>Day ${i+1}</b><br>${d.title}<br>${d.level}`; e.onclick=()=>startGrammarDay(i); box.appendChild(e);});
 }
-async function createGrammarPlan(){
+window.createGrammarPlan=async function(){
  const level=document.getElementById('grammarTargetLevel').value; const days=Number(document.getElementById('grammarPlanDays').value);
  const prompt=`請建立日語JLPT文法學習計畫。等級:${level} 天數:${days}。不要重複以下已學內容:${JSON.stringify(grammarHistory)}。只輸出JSON {"days":[{"title":"","level":""}]}`;
  try{let result=await callGemini(prompt); grammarPlanData={level,days:JSON.parse(result).days.map(x=>({...x,done:false}))}; localStorage.setItem('grammarPlanData',JSON.stringify(grammarPlanData));
@@ -21,15 +26,15 @@ async function createGrammarPlan(){
   renderGrammarPlan();}
  catch(e){alert('生成學習計畫失敗，請確認登入與API設定');}
 }
-async function startGrammarDay(i){
+window.startGrammarDay=async function(i){
  if(i>0&&!grammarPlanData.days[i-1].done)return alert('請先完成前一天'); currentGrammarDay=i;
  document.getElementById('grammarStudyArea').style.display='block'; document.getElementById('grammarStudyTitle').innerText=`Day ${i+1}: ${grammarPlanData.days[i].title}`;
  let c=document.getElementById('grammarStudyChat'); c.innerHTML='<div class="grammar-message">AI老師正在準備今天的課程...</div>';
  let prompt=`你是日語老師。教授${grammarPlanData.level} Day${i+1} 文法:${grammarPlanData.days[i].title}。生成完整課程：文法解釋、例句、練習、常見錯誤。用對話教學方式。`;
  try{let r=await callGemini(prompt);c.innerHTML='<div class="grammar-message">'+r.replace(/\n/g,'<br>')+'</div>'; localStorage.setItem('grammarDay'+i,r);}catch(e){c.innerHTML='生成失敗';}
 }
-async function askGrammarTeacher(){let q=document.getElementById('grammarQuestion').value; if(!q)return; let c=document.getElementById('grammarStudyChat'); let r=await callGemini('回答學生日語文法問題:'+q); c.innerHTML+='<div class="grammar-message">學生:'+q+'<br>老師:'+r+'</div>';}
-async function finishGrammarLesson(){alert('開始今日測驗功能');}
+window.askGrammarTeacher=async function(){let q=document.getElementById('grammarQuestion').value; if(!q)return; let c=document.getElementById('grammarStudyChat'); let r=await callGemini('回答學生日語文法問題:'+q); c.innerHTML+='<div class="grammar-message">學生:'+q+'<br>老師:'+r+'</div>';}
+window.finishGrammarLesson=async function(){alert('開始今日測驗功能');}
 </script>
   <!-- 引入 Google Identity Services (GIS) 官方授權庫 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
