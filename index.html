@@ -6,6 +6,24 @@
   <title>さあ、日本語脳！</title>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
+
+async function callGemini(prompt){
+  const apiKey = localStorage.getItem('geminiApiKey');
+  if(!apiKey){
+    throw new Error('API Key 未設定');
+  }
+
+  // 使用現有 Gemini 請求封裝，避免文法學習模組直接呼叫不存在的函式
+  const result = await requestGeminiWithFallback(
+    prompt,
+    apiKey,
+    null,
+    'gemini-3.1-flash-lite'
+  );
+
+  return result;
+}
+
 let grammarPlanData=JSON.parse(localStorage.getItem('grammarPlanData')||'null') || {
   level:"",
   days:[],
