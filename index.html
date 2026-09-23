@@ -4,7 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>さあ、日本語脳！</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+let grammarPlanData=JSON.parse(localStorage.getItem('grammarPlanData')||'null');
+let grammarHistory=JSON.parse(localStorage.getItem('grammarHistory')||'[]');
+let currentGrammarDay=0;
+function renderGrammarPlan(){
+ const box=document.getElementById('grammarPlanGrid'); if(!box)return; box.innerHTML='';
+ if(!grammarPlanData)return;
+ grammarPlanData.days.forEach((d,i)=>{let e=document.createElement('div');e.className='grammar-day-card '+(i===0||grammarPlanData.days[i-1].done?'unlocked':''); if(d.done)e.classList.add('done'); e.innerHTML=`<b>Day ${i+1}</b><br>${d.title}<br>${d.level}`; e.onclick=()=>startGrammarDay(i); box.appendChild(e);});
+}
+async function createGrammarPlan(){
+ const level=document.getElementById('grammarTargetLevel').value; const days=Number(document.getElementById('grammarPlanDays').value);
+ const prompt=`請建立日語JLPT文法學習計畫。等級:${level} 天數:${days}。不要重複以下已學內容:${JSON.stringify(grammarHistory)}。只輸出JSON {"days":[{"title":"","level":""}]}`;
+ try{let result=await callGemini(prompt); grammarPlanData={level,days:JSON.parse(result).days.map(x=>({...x,done:false}))}; localStorage.setItem('grammarPlanData',JSON.stringify(grammarPlanData));
+  await saveGrammarPlanToCloud();
+  renderGrammarPlan();}
+ catch(e){alert('生成學習計畫失敗，請確認登入與API設定');}
+}
+async function startGrammarDay(i){
+ if(i>0&&!grammarPlanData.days[i-1].done)return alert('請先完成前一天'); currentGrammarDay=i;
+ document.getElementById('grammarStudyArea').style.display='block'; document.getElementById('grammarStudyTitle').innerText=`Day ${i+1}: ${grammarPlanData.days[i].title}`;
+ let c=document.getElementById('grammarStudyChat'); c.innerHTML='<div class="grammar-message">AI老師正在準備今天的課程...</div>';
+ let prompt=`你是日語老師。教授${grammarPlanData.level} Day${i+1} 文法:${grammarPlanData.days[i].title}。生成完整課程：文法解釋、例句、練習、常見錯誤。用對話教學方式。`;
+ try{let r=await callGemini(prompt);c.innerHTML='<div class="grammar-message">'+r.replace(/\n/g,'<br>')+'</div>'; localStorage.setItem('grammarDay'+i,r);}catch(e){c.innerHTML='生成失敗';}
+}
+async function askGrammarTeacher(){let q=document.getElementById('grammarQuestion').value; if(!q)return; let c=document.getElementById('grammarStudyChat'); let r=await callGemini('回答學生日語文法問題:'+q); c.innerHTML+='<div class="grammar-message">學生:'+q+'<br>老師:'+r+'</div>';}
+async function finishGrammarLesson(){alert('開始今日測驗功能');}
+</script>
   <!-- 引入 Google Identity Services (GIS) 官方授權庫 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
@@ -1735,7 +1761,16 @@
     @keyframes dailyShake { from { transform: rotate(-12deg) translateX(-2px); } to { transform: rotate(12deg) translateX(2px); } }
     #dailySpecialContent.is-hidden { display: none; }
 
-  </style>
+  
+    /* =================== 文法學習計畫 =================== */
+    .grammar-plan-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin-bottom:18px;}
+    .grammar-days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+    .grammar-day-card{background:#fff;border:1px solid #dbe3ec;border-radius:10px;padding:16px;cursor:pointer;opacity:.55;transition:.2s;}
+    .grammar-day-card.unlocked{opacity:1;}
+    .grammar-day-card.done{border-color:#38a169;background:#f0fff4;}
+    .grammar-chat{background:#f8fafc;border-radius:10px;padding:18px;min-height:260px;}
+    .grammar-message{padding:12px;border-radius:8px;background:#fff;margin-bottom:10px;line-height:1.6;}
+</style>
 </head>
 <body>
 
@@ -1802,6 +1837,7 @@
     <button class="tab-btn" onclick="switchTab('tabTranslate')">對照轉換</button>
     <button class="tab-btn" onclick="switchTab('tabSyntax')">句構分析</button>
     <button class="tab-btn" onclick="switchTab('tabDatabase')">📚 我的資料庫</button>
+    <button class="tab-btn" onclick="switchTab('tabGrammarPlan')">📘 文法學習計畫</button>
     <button class="tab-btn" onclick="switchTab('tabSettings')">⚙️ 帳號與 API 設定</button>
   </div>
 
@@ -2149,7 +2185,29 @@
   </div>
 
   <!-- 分頁四：⚙️ 帳號與 API 設定 -->
-  <div id="tabSettings" class="tab-content">
+  <div id="tabGrammarPlan" class="tab-content">
+  <div class="special-hero-banner"><div>
+    <div class="special-hero-title">📘 JLPT 文法學習計畫</div>
+    <div class="special-hero-desc">設定目標等級與天數，AI 會安排每日學習路線。每天開始學習時才生成當日完整教材。</div>
+  </div></div>
+  <div class="grammar-plan-card">
+    <label>日語等級：</label>
+    <select id="grammarTargetLevel"><option>N5</option><option>N4</option><option>N3</option><option>N2</option><option>N1</option></select>
+    <label style="margin-left:20px">學習天數：</label>
+    <input id="grammarPlanDays" type="number" value="30" min="1" max="365">
+    <button class="primary-btn" onclick="createGrammarPlan()">生成學習計畫</button>
+  </div>
+  <div id="grammarPlanGrid" class="grammar-days-grid"></div>
+  <div id="grammarStudyArea" class="grammar-plan-card" style="display:none">
+    <h3 id="grammarStudyTitle"></h3>
+    <div id="grammarStudyChat" class="grammar-chat"></div>
+    <textarea id="grammarQuestion" placeholder="輸入問題，例如：這個文法和另一個有什麼差別？"></textarea>
+    <button class="primary-btn" onclick="askGrammarTeacher()">詢問老師</button>
+    <button class="primary-btn" onclick="finishGrammarLesson()">完成今天學習並開始測驗</button>
+  </div>
+</div>
+
+<div id="tabSettings" class="tab-content">
     <div class="settings-section-card">
       <div class="settings-section-title">
         <span>🤖 Gemini 模型與 API Key</span>
@@ -3993,6 +4051,44 @@
       return data.files && data.files.length > 0 ? data.files[0].id : null;
     }
 
+
+    // ===== 文法學習計畫 Google Drive 同步 =====
+    async function loadGrammarPlanFromCloud(){
+      if(!googleAccessToken) return;
+      try{
+        const fileId=await findDriveFileId();
+        if(!fileId) return;
+        const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{
+          headers:{Authorization:`Bearer ${googleAccessToken}`}
+        });
+        const data=await res.json();
+        if(data.grammarPlanData){
+          grammarPlanData=data.grammarPlanData;
+          localStorage.setItem('grammarPlanData',JSON.stringify(grammarPlanData));
+          if(typeof renderGrammarPlan==='function') renderGrammarPlan();
+        }
+      }catch(e){console.error('讀取文法計畫失敗',e)}
+    }
+
+    async function saveGrammarPlanToCloud(){
+      if(!googleAccessToken || !grammarPlanData) return;
+      try{
+        const fileId=await findDriveFileId();
+        if(!fileId) return;
+        const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{
+          headers:{Authorization:`Bearer ${googleAccessToken}`}
+        });
+        const data=await res.json().catch(()=>({}));
+        data.grammarPlanData=grammarPlanData;
+        data.updated_at=new Date().toISOString();
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,{
+          method:'PATCH',
+          headers:{Authorization:`Bearer ${googleAccessToken}`,'Content-Type':'application/json'},
+          body:JSON.stringify(data)
+        });
+      }catch(e){console.error('保存文法計畫失敗',e)}
+    }
+
     async function syncWithGoogleDrive(showNotify = false, isLocalSourceOfTruth = false) {
       if (!googleAccessToken) {
         if (showNotify) alert("Google 雲端尚未連線，請點擊「恢復 Google 連線」。");
@@ -4048,7 +4144,8 @@
             body: JSON.stringify({
               updated_at: new Date().toISOString(),
               items: fullMergedItems,
-              articles: fullMergedArticles
+              articles: fullMergedArticles,
+              grammarPlanData: grammarPlanData || null
             })
           });
 
@@ -4065,7 +4162,8 @@
           form.append("file", new Blob([JSON.stringify({
             updated_at: new Date().toISOString(),
             items: localItems,
-            articles: localArticles
+            articles: localArticles,
+            grammarPlanData: grammarPlanData || null
           })], { type: "application/json" }));
 
           const createRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
@@ -4094,6 +4192,7 @@
       localStorage.removeItem("gdrive_saved_client_id");
 
       recordVisitorCount();
+      setTimeout(()=>{ if(googleAccessToken) loadGrammarPlanFromCloud(); },1500);
 
       document.getElementById("apiKey").value = "";
       updateApiKeyBadge("");
@@ -4299,7 +4398,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ["tabDailySpecial", "tabTranslate", "tabSyntax", "tabDatabase", "tabSettings"];
+      const tabs = ["tabDailySpecial", "tabTranslate", "tabSyntax", "tabDatabase", "tabGrammarPlan", "tabSettings"];
       const btns = document.querySelectorAll(".tab-btn");
 
       tabs.forEach((id, idx) => {
