@@ -257,7 +257,7 @@
 
       <!-- Hero Typography Section (Motto style giant header) -->
       <div class="px-6 sm:px-12 pt-8 pb-4 bg-white shrink-0">
-        <div class="w-full max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="w-full max-w-[92%] md:max-w-[85%] lg:max-w-[75%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div class="text-xs font-mono-swiss text-zinc-400 uppercase tracking-widest mb-2" id="heroSubtitle">
               (CHAPTER 14 OF 21 · NEW TESTAMENT)
@@ -281,7 +281,7 @@
 
       <!-- Scrollable Scripture Canvas -->
       <div class="flex-1 overflow-y-auto px-6 sm:px-12 py-6 bg-white" id="scriptureScrollArea">
-        <div class="w-full max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto space-y-8">
+        <div class="w-full max-w-[92%] md:max-w-[85%] lg:max-w-[75%] mx-auto space-y-8">
           
           <div id="scriptureTextContainer" class="w-full">
             <!-- Verses dynamically injected here -->
@@ -331,9 +331,15 @@
           <button onclick="applyHighlightToSelected('none')" class="text-[10px] text-zinc-400 hover:text-white pl-1">CLR</button>
         </div>
 
-        <button onclick="copySelectedVerses()" class="hover:text-yellow-300 uppercase transition">
-          COPY
-        </button>
+        <!-- 複製選項：可分開複製中文、英文或中英雙語 -->
+        <div class="flex items-center space-x-1.5 pr-3 border-r border-zinc-700">
+          <span class="text-zinc-500 uppercase text-[10px]">COPY:</span>
+          <button onclick="copySelectedVerses('zh')" class="hover:text-yellow-300 uppercase transition px-1" title="只複製選取的中文">中文</button>
+          <span class="text-zinc-600">/</span>
+          <button onclick="copySelectedVerses('en')" class="hover:text-yellow-300 uppercase transition px-1" title="只複製選取的英文">EN</button>
+          <span class="text-zinc-600">/</span>
+          <button onclick="copySelectedVerses('both')" class="hover:text-yellow-300 uppercase transition px-1" title="複製中英對照">雙語</button>
+        </div>
 
         <button onclick="openBookmarkModalForSelected()" class="hover:text-yellow-300 uppercase transition">
           BOOKMARK
@@ -1393,28 +1399,38 @@
       clearVerseSelection();
     }
 
-    function copySelectedVerses() {
+    function copySelectedVerses(lang = 'both') {
       if (selectedVerses.size === 0) return;
       const book = BIBLE_BOOKS[appData.currentBookIndex];
       const chapter = appData.currentChapter;
       const sorted = Array.from(selectedVerses).sort((a,b) => a - b);
 
-      let text = `*${book.en.toUpperCase()} ${chapter}:${sorted.join(',')} (${book.zh} ${chapter}章)
+      let title = "";
+      if (lang === 'zh') {
+        title = `【${book.zh} 第${chapter}章 ${sorted.join(',')}節】\n\n`;
+      } else if (lang === 'en') {
+        title = `*${book.en.toUpperCase()} ${chapter}:${sorted.join(',')} (${appData.enTranslation})\n\n`;
+      } else {
+        title = `*${book.en.toUpperCase()} ${chapter}:${sorted.join(',')} (${book.zh} ${chapter}章 · ${appData.enTranslation})\n\n`;
+      }
 
-`;
+      let content = title;
       sorted.forEach(v => {
         const item = currentVersesData.find(i => i.verse === v);
         if (item) {
-          text += `[${v}] ${item.zhText}
-${item.enText}
-
-`;
+          if (lang === 'zh') {
+            content += `[${v}] ${item.zhText}\n`;
+          } else if (lang === 'en') {
+            content += `[${v}] ${item.enText}\n`;
+          } else {
+            content += `[${v}] ${item.zhText}\n${item.enText}\n\n`;
+          }
         }
       });
-      text += `—— DEVOTIONAL BIBLE`;
 
-      navigator.clipboard.writeText(text).then(() => {
-        alert("已成功複製所選經文！");
+      const copyLabel = lang === 'zh' ? '中文經文' : (lang === 'en' ? '英文經文' : '中英雙語經文');
+      navigator.clipboard.writeText(content.trim()).then(() => {
+        alert(`已成功複製選取的${copyLabel}！`);
         clearVerseSelection();
       }).catch(err => console.error(err));
     }
