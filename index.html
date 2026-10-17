@@ -257,7 +257,7 @@
 
       <!-- Hero Typography Section (Motto style giant header) -->
       <div class="px-6 sm:px-12 pt-8 pb-4 bg-white shrink-0">
-        <div class="w-full max-w-[92%] md:max-w-[85%] lg:max-w-[75%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="w-full max-w-[90%] md:max-w-[75%] lg:max-w-[60%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div class="text-xs font-mono-swiss text-zinc-400 uppercase tracking-widest mb-2" id="heroSubtitle">
               (CHAPTER 14 OF 21 · NEW TESTAMENT)
@@ -281,7 +281,7 @@
 
       <!-- Scrollable Scripture Canvas -->
       <div class="flex-1 overflow-y-auto px-6 sm:px-12 py-6 bg-white" id="scriptureScrollArea">
-        <div class="w-full max-w-[92%] md:max-w-[85%] lg:max-w-[75%] mx-auto space-y-8">
+        <div class="w-full max-w-[90%] md:max-w-[75%] lg:max-w-[60%] mx-auto space-y-8">
           
           <div id="scriptureTextContainer" class="w-full">
             <!-- Verses dynamically injected here -->
@@ -1245,7 +1245,7 @@
 
         // Top Column Labels
         const headerRow = document.createElement("div");
-        headerRow.className = "grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 pb-3 border-b border-zinc-200 select-none text-[11px] font-mono-swiss text-zinc-400 uppercase tracking-widest";
+        headerRow.className = "grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 pb-4 select-none text-[11px] font-mono-swiss text-zinc-400 uppercase tracking-widest";
         headerRow.innerHTML = `
           <div>(TRADITIONAL CHINESE · 新標點和合本)</div>
           <div class="hidden md:block">(${appData.enTranslation} · ENGLISH)</div>
@@ -1261,7 +1261,7 @@
 
           // 每一節是一個完整的橫列 Row
           const row = document.createElement("div");
-          row.className = `grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 py-3.5 border-b border-zinc-100/80 items-start cursor-pointer transition ${
+          row.className = `grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 py-4 items-start cursor-pointer transition ${
             isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'
           }`;
           row.onclick = () => toggleVerseSelection(item.verse);
@@ -1296,7 +1296,7 @@
       } else {
         // Interlinear / Single Language
         const listWrapper = document.createElement("div");
-        listWrapper.className = `space-y-6 ${currentFontSize} leading-relaxed`;
+        listWrapper.className = `space-y-7 ${currentFontSize} leading-relaxed`;
 
         currentVersesData.forEach(item => {
           const verseKey = `${bookId}-${chapter}-${item.verse}`;
