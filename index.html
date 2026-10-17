@@ -638,6 +638,70 @@
       { id: 66, zh: "啟示錄", en: "Revelation", enShort: "Rev", chapters: 22, test: "nt", cat: "revelation" }
     ];
 
+
+    /* ========================================================
+       權威聖經章節大綱與分段小標題 (和合本 CUV ✕ KJV/NLV)
+       ======================================================== */
+    const CHAPTER_HEADINGS = {
+      // 創世記
+      "1-1": { titleZh: "神的創造大工", titleEn: "THE CREATION OF HEAVEN AND EARTH", sections: { 1: { zh: "起初上帝創造天地", en: "The Creation of the World" }, 26: { zh: "上帝造男造女", en: "Creation of Humankind" } } },
+      "1-2": { titleZh: "安息日與伊甸園", titleEn: "THE SEVENTH DAY AND EDEN", sections: { 1: { zh: "第七日定為聖日", en: "The Sabbath" }, 4: { zh: "伊甸園與生命樹", en: "The Garden of Eden" }, 18: { zh: "設立婚姻的奧祕", en: "Creation of Woman" } } },
+      "1-3": { titleZh: "人的背叛與救贖應許", titleEn: "THE FALL OF MAN", sections: { 1: { zh: "始祖違命受誘惑", en: "The Fall" }, 14: { zh: "上帝的審判與女人的後裔", en: "The Judgment and Promise" } } },
+      "1-12": { titleZh: "亞伯蘭蒙召與應許之約", titleEn: "THE CALL OF ABRAM", sections: { 1: { zh: "耶和華呼召亞伯蘭", en: "The Call of Abram" }, 10: { zh: "亞伯蘭下埃及", en: "Abram in Egypt" } } },
+
+      // 詩篇
+      "19-23": { titleZh: "大衛的詩：牧者之歌", titleEn: "THE LORD IS MY SHEPHERD", sections: { 1: { zh: "耶和華是我的牧者", en: "The Lord is My Shepherd" } } },
+      "19-91": { titleZh: "至高者的隱密處與避難所", titleEn: "ABIDING UNDER THE SHADOW OF THE ALMIGHTY", sections: { 1: { zh: "全能者的蔭下", en: "Safe in God's Protection" }, 14: { zh: "神的拯救應許", en: "The Lord's Assurance" } } },
+      "19-103": { titleZh: "數算主恩：稱頌耶和華的一切恩惠", titleEn: "PRAISE FOR THE LORD'S MERCIES", sections: { 1: { zh: "稱頌耶和華不可忘記恩惠", en: "Bless the Lord, O My Soul" }, 8: { zh: "耶和華有憐憫與豐盛慈愛", en: "The Lord's Compassion" } } },
+      "19-119": { titleZh: "神話語的頌歌：腳前的燈路上的光", titleEn: "THE EXCELLENCE OF GOD'S WORD", sections: { 1: { zh: "遵行律法的人便為有福", en: "Blessed Are the Undefiled" }, 9: { zh: "少年人如何潔淨行為", en: "Cleansing the Way" }, 105: { zh: "祢的話是我腳前的燈", en: "A Lamp unto My Feet" } } },
+      "19-139": { titleZh: "全知全在的主深知我心", titleEn: "GOD'S ALL-SEEING PROVIDENCE", sections: { 1: { zh: "主洞察我的起坐意念", en: "The All-Knowing God" }, 13: { zh: "受造奇妙可畏", en: "Fearfully and Wonderfully Made" }, 23: { zh: "求神鑒察引導永生的路", en: "Search Me, O God" } } },
+
+      // 箴言
+      "20-3": { titleZh: "專心仰賴耶和華認定祂", titleEn: "TRUST IN THE LORD WITH ALL YOUR HEART", sections: { 1: { zh: "不可忘記神的法則", en: "Guidance for the Young" }, 5: { zh: "專心仰賴認定主", en: "Trust in the Lord" }, 13: { zh: "得著智慧便為有福", en: "The Value of Wisdom" } } },
+      "20-4": { titleZh: "保守你心勝過保守一切", titleEn: "KEEP THY HEART WITH ALL DILIGENCE", sections: { 1: { zh: "當聽父親的教訓", en: "A Father's Instruction" }, 20: { zh: "你要保守你心勝過一切", en: "Watch over Your Heart" } } },
+
+      // 馬太福音
+      "40-5": { titleZh: "登山寶訓：天國八福與新約之義", titleEn: "THE SERMON ON THE MOUNT: THE BEATITUDES", sections: { 1: { zh: "論天國八福", en: "The Beatitudes" }, 13: { zh: "世上的鹽與光", en: "Salt and Light" }, 17: { zh: "成全律法與先知的義", en: "Fulfilling the Law" }, 21: { zh: "論發怒與和好", en: "Reconciliation" }, 27: { zh: "論潔淨內心的意念", en: "Purity of Heart" }, 43: { zh: "愛仇敵的完全樣式", en: "Love for Enemies" } } },
+      "40-6": { titleZh: "隱密處的禱告與卸下憂慮", titleEn: "THE LORD'S PRAYER & SEEKING GOD'S KINGDOM", sections: { 1: { zh: "論施捨與行善", en: "Giving to the Needy" }, 5: { zh: "主教導的主禱文", en: "The Lord's Prayer" }, 19: { zh: "積攢財寶在天上", en: "Treasures in Heaven" }, 25: { zh: "不要為生命憂慮吃穿", en: "Do Not Worry" }, 33: { zh: "先求神的國和祂的義", en: "Seek First His Kingdom" } } },
+      "40-7": { titleZh: "窄門窄路與建造在磐石上的根基", titleEn: "THE NARROW GATE & BUILDING ON THE ROCK", sections: { 1: { zh: "論不要論斷人", en: "Judging Others" }, 7: { zh: "祈求尋找叩門的應許", en: "Ask, Seek, Knock" }, 13: { zh: "進窄門走窄路", en: "The Narrow Gate" }, 24: { zh: "蓋在磐石與沙土上的房子", en: "The Wise and Foolish Builders" } } },
+      "40-28": { titleZh: "基督復活與頒布大使命", titleEn: "THE RESURRECTION & THE GREAT COMMISSION", sections: { 1: { zh: "主耶穌榮耀復活", en: "The Resurrection" }, 16: { zh: "往普天下去頒布大使命", en: "The Great Commission" } } },
+
+      // 路加福音
+      "42-15": { titleZh: "天父尋回失喪者的三大比喻", titleEn: "THE PARABLES OF THE LOST", sections: { 1: { zh: "失羊的比喻：一人悔改天上的歡喜", en: "The Parable of the Lost Sheep" }, 8: { zh: "失錢的比喻：點燈細細尋找", en: "The Parable of the Lost Coin" }, 11: { zh: "浪子回頭的比喻：無條件的慈父之愛", en: "The Parable of the Prodigal Son" } } },
+
+      // 約翰福音
+      "43-1": { titleZh: "太初有道：道成肉身與施洗約翰的見證", titleEn: "THE WORD BECAME FLESH", sections: { 1: { zh: "太初有道道與神同在", en: "The Word Became Flesh" }, 19: { zh: "施洗約翰的曠野呼聲", en: "The Testimony of John the Baptist" }, 35: { zh: "呼召第一批門徒", en: "Calling of the First Disciples" } } },
+      "43-3": { titleZh: "重生之道與神愛世人", titleEn: "REBIRTH & GOD SO LOVED THE WORLD", sections: { 1: { zh: "耶穌向尼哥底母論重生", en: "Jesus and Nicodemus" }, 16: { zh: "神愛世人賜下獨生子", en: "For God So Loved the World" }, 22: { zh: "祂必興旺我必衰微", en: "He Must Increase, I Must Decrease" } } },
+      "43-14": { titleZh: "道路真理生命 · 應許賜下保惠師與平安", titleEn: "THE WAY, THE TRUTH, AND THE LIFE", sections: { 1: { zh: "耶穌是道路、真理、生命", en: "Jesus the Way to the Father" }, 15: { zh: "應許賜下保惠師聖靈", en: "The Promise of the Holy Spirit" }, 27: { zh: "留給門徒出人意外的平安", en: "Peace I Leave with You" } } },
+      "43-15": { titleZh: "真葡萄樹與枝子 · 彼此相愛的命令", titleEn: "THE VINE AND THE BRANCHES", sections: { 1: { zh: "常在主裡面多結果子", en: "The Vine and the Branches" }, 12: { zh: "你們要彼此相愛如同我愛你們", en: "Love One Another" }, 18: { zh: "世人的恨惡與保惠師的見證", en: "The World Hates the Disciples" } } },
+
+      // 羅馬書
+      "45-8": { titleZh: "隨從聖靈的新生 · 萬事互相效力與基督的愛", titleEn: "LIFE IN THE SPIRIT · MORE THAN CONQUERORS", sections: { 1: { zh: "在基督耶穌裡不再定罪", en: "Free from Condemnation" }, 14: { zh: "神兒女的確據與呼叫阿爸父", en: "Children of God" }, 26: { zh: "聖靈親自替我們代求", en: "The Spirit Helps in Weakness" }, 28: { zh: "萬事互相效力叫愛神的人得益處", en: "All Things Work for Good" }, 31: { zh: "誰也不能使我們與基督的愛隔絕", en: "Nothing Can Separate Us from God's Love" } } },
+      "45-12": { titleZh: "獻上活祭的生命奉獻與彼此相顧", titleEn: "LIVING SACRIFICES & DAILY VIRTUES", sections: { 1: { zh: "將身體獻上當作活祭", en: "A Living Sacrifice" }, 3: { zh: "各盡其職合一的肢體", en: "One Body with Many Gifts" }, 9: { zh: "愛不可虛假以善勝惡", en: "Marks of the True Christian" } } },
+
+      // 哥林多前書
+      "46-13": { titleZh: "愛的真諦頌歌：愛是永不止息", titleEn: "THE GREATEST GIFT: LOVE NEVER FAILS", sections: { 1: { zh: "沒有愛一切恩賜都屬徒然", en: "The Necessity of Love" }, 4: { zh: "愛的真諦恆久忍耐", en: "The Character of Love" }, 8: { zh: "愛是永不止息如今常存的有信有望有愛", en: "Love Never Ends" } } },
+
+      // 以弗所書
+      "49-1": { titleZh: "基督裡的屬靈福氣與榮耀的基業", titleEn: "SPIRITUAL BLESSINGS IN CHRIST", sections: { 1: { zh: "天上各樣屬靈的福氣", en: "Praise for Spiritual Blessings" }, 15: { zh: "為門徒心眼得開的禱告", en: "Thanksgiving and Prayer" } } },
+      "49-6": { titleZh: "穿戴神所賜的全副軍裝", titleEn: "THE WHOLE ARMOR OF GOD", sections: { 1: { zh: "家庭與主僕相待之理", en: "Children and Parents" }, 10: { zh: "穿戴全副軍裝抵擋仇敵", en: "The Whole Armor of God" }, 18: { zh: "靠著聖靈隨時多方禱告祈求", en: "Praying Always in the Spirit" } } },
+
+      // 腓立比書
+      "50-2": { titleZh: "以基督耶穌的心為心 · 明光照耀", titleEn: "IMITATING CHRIST'S HUMILITY", sections: { 1: { zh: "同心合意存心謙卑", en: "Unity and Humility" }, 5: { zh: "以基督的心為心降卑與升高", en: "Christ's Example of Humility" }, 12: { zh: "如明光照耀將生命的道表明出來", en: "Shining as Lights in the World" } } },
+      "50-4": { titleZh: "一無罣慮的喜樂交託與知足秘訣", titleEn: "REJOICING, PRAYER AND CONTENTMENT", sections: { 1: { zh: "應當一無罣慮凡事藉禱告交託", en: "Rejoice in the Lord Always" }, 10: { zh: "凡事隨處都得了知足的秘訣", en: "God's Provision and Contentment" } } },
+
+      // 希伯來書
+      "58-11": { titleZh: "信心長廊：信是所望之事的實底", titleEn: "THE HALL OF FAITH", sections: { 1: { zh: "信就是所望之事的實底", en: "Faith in Action" }, 8: { zh: "亞伯拉罕因著信往前行", en: "The Faith of Abraham" }, 29: { zh: "摩西與歷代信心的見證人", en: "Faith Overcoming the World" } } },
+      "58-12": { titleZh: "仰望創始成終的耶穌奔跑前路", titleEn: "LOOKING UNTO JESUS, AUTHOR OF FAITH", sections: { 1: { zh: "仰望信心創始成終的耶穌", en: "Looking unto Jesus" }, 18: { zh: "來到天上的耶路撒冷與不震動的國", en: "The Kingdom That Cannot Be Shaken" } } },
+
+      // 雅各書
+      "59-1": { titleZh: "試煉中的忍耐智慧與聽道行道", titleEn: "TESTING OF FAITH & DOERS OF THE WORD", sections: { 1: { zh: "百般試煉生出純全忍耐", en: "Trials and Temptations" }, 19: { zh: "只要聽道也要行道", en: "Listening and Doing" } } },
+
+      // 啟示錄
+      "66-21": { titleZh: "新天新地：神擦去眼淚不再有死痛", titleEn: "THE NEW HEAVEN AND THE NEW EARTH", sections: { 1: { zh: "看哪新天新地新耶路撒冷", en: "A New Heaven and a New Earth" }, 9: { zh: "羔羊的新婦榮耀聖城", en: "The New Jerusalem" }, 22: { zh: "主神與羔羊為城裡的殿與光", en: "The Glory of the City" } } },
+      "66-22": { titleZh: "生命水與生命樹 · 主必快來", titleEn: "THE RIVER OF LIFE & I AM COMING SOON", sections: { 1: { zh: "水晶般明亮的生命水河", en: "The River of Life" }, 6: { zh: "主耶穌宣告：看哪我必快來", en: "Jesus Is Coming Soon" }, 20: { zh: "主耶穌阿我願祢來願主恩同在", en: "Amen. Come, Lord Jesus" } } }
+    };
+
     const TOTAL_BIBLE_CHAPTERS = 1189;
     const OT_CHAPTERS = 929;
     const NT_CHAPTERS = 260;
@@ -1138,11 +1202,19 @@
       const enRef = `${book.en.toUpperCase()} ${chapter}`;
 
       // Update Center Header & Hero Section
-      document.getElementById("headerTitleZh").innerText = zhRef;
+      const chKey = `${book.id}-${chapter}`;
+      const chHeading = CHAPTER_HEADINGS[chKey];
+
+      document.getElementById("headerTitleZh").innerText = chHeading ? `${zhRef} · ${chHeading.titleZh.split('：')[0].split('·')[0].trim()}` : zhRef;
       document.getElementById("headerTitleEn").innerText = `${enRef} · (${book.test.toUpperCase()})`;
 
-      document.getElementById("heroTitle").innerHTML = `*${enRef}<br><span class="font-serif-tc text-3xl sm:text-5xl font-bold tracking-tight">${zhRef}</span>`;
-      document.getElementById("heroSubtitle").innerText = `(CHAPTER ${chapter} OF ${book.chapters} · ${book.test === 'nt' ? 'NEW TESTAMENT' : 'OLD TESTAMENT'})`;
+      if (chHeading) {
+        document.getElementById("heroSubtitle").innerText = `(CHAPTER ${chapter} OF ${book.chapters} · ${book.test === 'nt' ? 'NEW TESTAMENT' : 'OLD TESTAMENT'}) · ${chHeading.titleEn}`;
+        document.getElementById("heroTitle").innerHTML = `*${enRef}<br><span class="font-serif-tc text-3xl sm:text-5xl font-bold tracking-tight">${zhRef}</span><div class="font-serif-tc font-normal text-base sm:text-xl text-zinc-600 mt-3 pt-2 tracking-normal border-t border-zinc-200/60 max-w-2xl">本章小標題：${chHeading.titleZh}</div>`;
+      } else {
+        document.getElementById("heroSubtitle").innerText = `(CHAPTER ${chapter} OF ${book.chapters} · ${book.test === 'nt' ? 'NEW TESTAMENT' : 'OLD TESTAMENT'})`;
+        document.getElementById("heroTitle").innerHTML = `*${enRef}<br><span class="font-serif-tc text-3xl sm:text-5xl font-bold tracking-tight">${zhRef}</span>`;
+      }
 
       updateChapterReadBtnState();
 
@@ -1252,8 +1324,26 @@
         `;
         wrapper.appendChild(headerRow);
 
+        const chKey = `${bookId}-${chapter}`;
+        const chHeading = CHAPTER_HEADINGS[chKey];
+
         currentVersesData.forEach(item => {
           const verseKey = `${bookId}-${chapter}-${item.verse}`;
+
+          // 若此節有分段小標題，則插入跨欄小標題
+          if (chHeading && chHeading.sections && chHeading.sections[item.verse]) {
+            const sec = chHeading.sections[item.verse];
+            const secBanner = document.createElement("div");
+            secBanner.className = "col-span-full pt-10 pb-3";
+            secBanner.innerHTML = `
+              <div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest">(SECTION HEADING)</div>
+              <div class="flex flex-wrap items-baseline gap-3 mt-1">
+                <h3 class="font-serif-tc font-bold text-xl text-black">§ ${sec.zh}</h3>
+                <span class="font-headline font-medium text-sm text-zinc-500">/ ${sec.en}</span>
+              </div>
+            `;
+            wrapper.appendChild(secBanner);
+          }
           const isSelected = selectedVerses.has(item.verse);
           const activeHighlight = appData.highlights[verseKey];
           let highlightClass = (activeHighlight && activeHighlight !== "none") ? `verse-highlight-${activeHighlight}` : "";
@@ -1298,8 +1388,26 @@
         const listWrapper = document.createElement("div");
         listWrapper.className = `space-y-7 ${currentFontSize} leading-relaxed`;
 
+        const chKey = `${bookId}-${chapter}`;
+        const chHeading = CHAPTER_HEADINGS[chKey];
+
         currentVersesData.forEach(item => {
           const verseKey = `${bookId}-${chapter}-${item.verse}`;
+
+          // 若此節有分段小標題，則插入跨欄小標題
+          if (chHeading && chHeading.sections && chHeading.sections[item.verse]) {
+            const sec = chHeading.sections[item.verse];
+            const secBanner = document.createElement("div");
+            secBanner.className = "col-span-full pt-10 pb-3";
+            secBanner.innerHTML = `
+              <div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest">(SECTION HEADING)</div>
+              <div class="flex flex-wrap items-baseline gap-3 mt-1">
+                <h3 class="font-serif-tc font-bold text-xl text-black">§ ${sec.zh}</h3>
+                <span class="font-headline font-medium text-sm text-zinc-500">/ ${sec.en}</span>
+              </div>
+            `;
+            wrapper.appendChild(secBanner);
+          }
           const isSelected = selectedVerses.has(item.verse);
           const activeHighlight = appData.highlights[verseKey];
           let highlightClass = (activeHighlight && activeHighlight !== "none") ? `verse-highlight-${activeHighlight}` : "";
