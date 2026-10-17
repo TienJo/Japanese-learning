@@ -1473,7 +1473,7 @@
 
           // 右欄：英文該節
           const colEn = document.createElement("div");
-          colEn.className = `font-headline ${currentFontSize} leading-relaxed flex items-start space-x-3.5 pt-2 md:pt-0`;
+          colEn.className = `font-en-verse ${currentFontSize} flex items-start space-x-3.5 pt-2 md:pt-0`;
           colEn.innerHTML = `
             <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none shrink-0 md:hidden">[${String(item.verse).padStart(2, '0')}]</span>
             <span class="flex-1 font-medium text-black ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || "—"}</span>
@@ -1528,7 +1528,7 @@
                 <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
                 <div class="flex-1 space-y-1.5">
                   <div class="font-serif-tc text-black font-normal ${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || ""}</div>
-                  <div class="font-headline text-zinc-700 font-medium ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
+                  <div class="font-en-verse text-zinc-700 font-normal ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
                 </div>
                 ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
               </div>
@@ -1547,7 +1547,7 @@
             innerContent = `
               <div class="flex items-start space-x-4">
                 <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
-                <div class="flex-1 font-headline text-black font-medium ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
+                <div class="flex-1 font-en-verse text-black font-normal ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || ""}</div>
                 ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
               </div>
               ${verseNote ? `<div class="ml-12 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-2">${verseNote}</div>` : ''}
