@@ -257,7 +257,7 @@
 
       <!-- Hero Typography Section (Motto style giant header) -->
       <div class="px-6 sm:px-12 pt-8 pb-4 bg-white shrink-0">
-        <div class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="w-full max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div class="text-xs font-mono-swiss text-zinc-400 uppercase tracking-widest mb-2" id="heroSubtitle">
               (CHAPTER 14 OF 21 · NEW TESTAMENT)
@@ -281,7 +281,7 @@
 
       <!-- Scrollable Scripture Canvas -->
       <div class="flex-1 overflow-y-auto px-6 sm:px-12 py-6 bg-white" id="scriptureScrollArea">
-        <div class="max-w-5xl mx-auto space-y-8">
+        <div class="w-full max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto space-y-8">
           
           <div id="scriptureTextContainer" class="w-full">
             <!-- Verses dynamically injected here -->
@@ -1233,17 +1233,18 @@
       const chapter = appData.currentChapter;
 
       if (mode === "parallel") {
-        // Parallel Dual Column View
+        // Parallel Row-by-Row Aligned View (每個章節獨立 Row，左中右英絕對水平對齊)
         const wrapper = document.createElement("div");
-        wrapper.className = "grid grid-cols-1 md:grid-cols-2 gap-10 w-full";
+        wrapper.className = "w-full space-y-1";
 
-        const leftCol = document.createElement("div");
-        leftCol.className = `space-y-6 font-serif-tc ${currentFontSize} leading-relaxed`;
-        leftCol.innerHTML = `<div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest pb-2 border-b border-zinc-100">(TRADITIONAL CHINESE · 新標點和合本)</div>`;
-
-        const rightCol = document.createElement("div");
-        rightCol.className = `space-y-6 font-headline ${currentFontSize} leading-relaxed`;
-        rightCol.innerHTML = `<div class="text-[10px] font-mono-swiss text-zinc-400 uppercase tracking-widest pb-2 border-b border-zinc-100">(${appData.enTranslation} · ENGLISH)</div>`;
+        // Top Column Labels
+        const headerRow = document.createElement("div");
+        headerRow.className = "grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 pb-3 border-b border-zinc-200 select-none text-[11px] font-mono-swiss text-zinc-400 uppercase tracking-widest";
+        headerRow.innerHTML = `
+          <div>(TRADITIONAL CHINESE · 新標點和合本)</div>
+          <div class="hidden md:block">(${appData.enTranslation} · ENGLISH)</div>
+        `;
+        wrapper.appendChild(headerRow);
 
         currentVersesData.forEach(item => {
           const verseKey = `${bookId}-${chapter}-${item.verse}`;
@@ -1252,35 +1253,38 @@
           let highlightClass = (activeHighlight && activeHighlight !== "none") ? `verse-highlight-${activeHighlight}` : "";
           const verseNote = appData.verseNotes[verseKey];
 
-          // ZH line
-          const pZh = document.createElement("div");
-          pZh.className = `cursor-pointer p-2 transition flex flex-col ${isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'}`;
-          pZh.innerHTML = `
-            <div class="flex items-start space-x-3">
-              <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
-              <span class="flex-1 ${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || "—"}</span>
-              ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
-            </div>
-            ${verseNote ? `<div class="ml-9 mt-1 text-xs text-zinc-500 font-sans italic">${verseNote}</div>` : ''}
-          `;
-          pZh.onclick = () => toggleVerseSelection(item.verse);
-          leftCol.appendChild(pZh);
+          // 每一節是一個完整的橫列 Row
+          const row = document.createElement("div");
+          row.className = `grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 py-3.5 border-b border-zinc-100/80 items-start cursor-pointer transition ${
+            isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'
+          }`;
+          row.onclick = () => toggleVerseSelection(item.verse);
 
-          // EN line
-          const pEn = document.createElement("div");
-          pEn.className = `cursor-pointer p-2 transition flex flex-col ${isSelected ? 'verse-selected' : 'hover:bg-[#f7f7f6]'}`;
-          pEn.innerHTML = `
-            <div class="flex items-start space-x-3">
-              <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none">[${String(item.verse).padStart(2, '0')}]</span>
-              <span class="flex-1 font-medium text-black ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || "—"}</span>
+          // 左欄：中文該節
+          const colZh = document.createElement("div");
+          colZh.className = `font-serif-tc ${currentFontSize} leading-relaxed flex items-start space-x-3.5`;
+          colZh.innerHTML = `
+            <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none shrink-0">[${String(item.verse).padStart(2, '0')}]</span>
+            <div class="flex-1 space-y-1">
+              <span class="${highlightClass}" id="verseSpan-zh-${verseKey}">${item.zhText || "—"}</span>
+              ${verseNote ? `<div class="mt-1 text-xs text-zinc-500 font-sans italic bg-[#f2f2f0] p-1.5">${verseNote}</div>` : ''}
             </div>
+            ${verseNote ? `<button class="text-[10px] font-mono-swiss text-black underline uppercase shrink-0" onclick="event.stopPropagation(); openVerseNoteDialog(${item.verse})">[NOTE]</button>` : ''}
           `;
-          pEn.onclick = () => toggleVerseSelection(item.verse);
-          rightCol.appendChild(pEn);
+
+          // 右欄：英文該節
+          const colEn = document.createElement("div");
+          colEn.className = `font-headline ${currentFontSize} leading-relaxed flex items-start space-x-3.5 pt-2 md:pt-0`;
+          colEn.innerHTML = `
+            <span class="text-[11px] font-mono-swiss text-zinc-400 pt-1 select-none shrink-0 md:hidden">[${String(item.verse).padStart(2, '0')}]</span>
+            <span class="flex-1 font-medium text-black ${highlightClass}" id="verseSpan-en-${verseKey}">${item.enText || "—"}</span>
+          `;
+
+          row.appendChild(colZh);
+          row.appendChild(colEn);
+          wrapper.appendChild(row);
         });
 
-        wrapper.appendChild(leftCol);
-        wrapper.appendChild(rightCol);
         container.appendChild(wrapper);
 
       } else {
